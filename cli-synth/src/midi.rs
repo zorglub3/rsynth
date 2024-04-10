@@ -29,8 +29,7 @@ pub struct Midi {
 
 impl Midi {
     pub fn new(name: &str, sender: Sender<Event>) -> Result<Self, MidiError> {
-        let input = MidiInput::new(name)
-            .map_err(|err| MidiError::InputFail(err.to_string()))?;
+        let input = MidiInput::new(name).map_err(|err| MidiError::InputFail(err.to_string()))?;
 
         let conn = input
             .create_virtual(

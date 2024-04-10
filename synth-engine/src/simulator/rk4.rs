@@ -1,3 +1,5 @@
+//! Runge-Kutta 4 simulation engine.
+
 use crate::event::Event;
 use crate::modules::Module;
 use crate::simulator::Simulator;

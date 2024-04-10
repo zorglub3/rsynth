@@ -11,6 +11,8 @@ synth.
 
 ## Future work
 
+- Encapsulate synth state (represented as a vector of floats) in a `struct`. Also
+  move the `state.rs` module to be a sub module of the `simulation` module.
 - Improve sound of the oscillator module. Right now it suffers from aliasing problems
   and the reflection of harmonics at the Nyquist frequency.
 - More modules... Especially for control, but also delay and some reverbs

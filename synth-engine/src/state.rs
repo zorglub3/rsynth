@@ -1,10 +1,19 @@
+//! Some utility functions for dealing with the state of a simulation. A state is
+//! essentially just a vector of floating point values. Each value only has meaning
+//! as it relates to the modules reading and/or updating the value.
+//!
+//! TODO Refactor to wrap the state representation in a `struct`. No need for the
+//! rest of the system to know the internal representation.
+
 use std::iter::zip;
 
+/// Mark a value in the state vector according to how it is computed and used.
 #[derive(Clone, Copy, Debug)]
 pub enum OutputType {
+    /// A _differentiable_ value is the output of a _differentiable function_.
     Differentiable,
+    /// A value computed by a _non-differentiable_ function.
     Absolute,
-    Lookup,
 }
 
 #[inline]

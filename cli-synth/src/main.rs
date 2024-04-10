@@ -86,6 +86,5 @@ fn main() -> Result<(), RuntimeError> {
     midi.close();
     println!("done");
 
-
     Ok(())
 }

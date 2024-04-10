@@ -74,7 +74,7 @@ impl Module for MidiMono {
             match event {
                 MidiMessage::NoteOn { pitch, velocity } => {
                     println!("Midi note on: {pitch}, {velocity}");
-                    
+
                     self.pitch_value = (*pitch as f32) / 12.;
                     self.velocity_value = (*velocity as f32) / 127.;
                     self.gate_value = 1.;

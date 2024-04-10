@@ -13,8 +13,10 @@ pub fn make_model(
 
     match model_name {
         "subtractive" => {
-            let midi_in = MidiMono::new_with_connections(Some(midi_channel as u8), vec![3, 4, 5, 6]);
-            let oscillator = RelaxationOscillator::new_with_connections(vec![0, 4, 0], vec![7, 8, 9, 10, 11]);
+            let midi_in =
+                MidiMono::new_with_connections(Some(midi_channel as u8), vec![3, 4, 5, 6]);
+            let oscillator =
+                RelaxationOscillator::new_with_connections(vec![0, 4, 0], vec![7, 8, 9, 10, 11]);
 
             simulator = Rk4::with_modules(vec![
                 ("midi_in".to_string(), Box::new(midi_in)),
