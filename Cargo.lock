@@ -225,6 +225,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "cli-test"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "synth-engine",
+ "thiserror",
+]
+
+[[package]]
 name = "colorchoice"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

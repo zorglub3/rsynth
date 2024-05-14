@@ -4,4 +4,5 @@ resolver = "2"
 members = [
   "synth-engine",
   "cli-synth",
+  "cli-test",
 ]

@@ -4,16 +4,29 @@ A simple set of modules and a simulator for a virtual analogue modular synth. Cu
 the modules can only be set up at compile time, but in the future, this may change. The
 engine supports this.
 
-It features a RK4 simulator. This can be replaced for a different RK tableau if better 
-accuracy or performance is desired. The engine is pretty light weight, so it should be 
-possible to port it to some simple microcontroller board for a small simple hardware 
-synth.
-
 ## Future work
 
-- Encapsulate synth state (represented as a vector of floats) in a `struct`. Also
-  move the `state.rs` module to be a sub module of the `simulation` module.
 - Improve sound of the oscillator module. Right now it suffers from aliasing problems
   and the reflection of harmonics at the Nyquist frequency.
 - More modules... Especially for control, but also delay and some reverbs
 - Improved support for various scales. Just intonation. That sort of thing.
+
+## Testing
+
+The project includes a simple test tool for running on the command line. The intend
+is to test the quality of the output produced by the synth engine by visual inspection.
+
+For example, run this:
+
+```bash
+cargo run --bin cli-test \
+  -- -t 0 -c 1024 -s 44100 --simulator rk38 \
+  |  gnuplot -e "plot '-' w lp; pause 99"
+```
+
+And see the output of the saw tooth oscillator when frequency approaches the Nyquist 
+frequency. It should show something more like a sine wave than a saw tooth.
+
+## References
+
+

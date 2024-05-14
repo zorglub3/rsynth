@@ -6,7 +6,10 @@
 use crate::event::Event;
 use crate::modules::Module;
 
+pub mod module;
 pub mod rk4;
+pub mod rungekutta;
+pub mod state;
 
 /// Interface for a simulator that can simulate a synth module configuration.
 pub trait Simulator: Send {

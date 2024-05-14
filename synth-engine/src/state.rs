@@ -27,7 +27,6 @@ pub fn update_state(modes: &[OutputType], w: f32, v1: &[f32], v2: &[f32], out: &
         match mode {
             OutputType::Differentiable => *out = a + w * b,
             OutputType::Absolute => *out = *b,
-            OutputType::Lookup => todo!(),
         }
     }
 }
@@ -60,7 +59,6 @@ pub fn finalize_state(
 
                 state[i] = acc;
             }
-            OutputType::Lookup => todo!(),
         }
     }
 }
