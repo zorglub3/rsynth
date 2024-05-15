@@ -17,13 +17,13 @@ fn saw_value(v: f32) -> f32 {
 }
 
 fn saw_average_value(start: f32, step: f32) -> f32 {
-    let end = start + step / 44100.0; // TODO - this constant doesn't belong here!    
+    let end = start + step / 44100.0; // TODO - this constant doesn't belong here!
 
     if end > 1. {
         let part_one = (saw_value(start) + 1.) / 2.;
         let part_two = (saw_value(end) - 1.) / 2.;
 
-        part_one * (1. - start) + part_two * (end - 1.)        
+        part_one * (1. - start) + part_two * (end - 1.)
     } else {
         (saw_value(end) + saw_value(start)) / 2.
     }
@@ -48,7 +48,7 @@ impl SawOsc {
         fc: f32,
     ) -> Self {
         let rc = PI / fc;
-        
+
         Self {
             f0,
             freq_index,

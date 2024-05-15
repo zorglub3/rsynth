@@ -1,13 +1,18 @@
 # Synth Engine in Rust
 
-A simple set of modules and a simulator for a virtual analogue modular synth. Currently, 
-the modules can only be set up at compile time, but in the future, this may change. The
-engine supports this.
+A simple set of modules and a simulator for a virtual analogue modular synth. 
+The synthesizer uses "Unsampled Digital Synthesis". It uses Runge Kutta methods
+for running the simulation. This method is good for simulating systems that can
+be described with partial differential equations. It is very bad at simulating
+systems with break points.
+
+Currently, the modules can only be set up at compile time, but in the future,
+this may change. Adding and removing modules while the simulation is running
+should be possilbe. Also, connecting and disconnecting modules should be
+possible as well. 
 
 ## Future work
 
-- Improve sound of the oscillator module. Right now it suffers from aliasing problems
-  and the reflection of harmonics at the Nyquist frequency.
 - More modules... Especially for control, but also delay and some reverbs
 - Improved support for various scales. Just intonation. That sort of thing.
 
@@ -29,4 +34,5 @@ frequency. It should show something more like a sine wave than a saw tooth.
 
 ## References
 
-
+- Unsampled Digital Synthesis: Computing the Output of Implicit and Non-Linear
+  Systems, David Medine, 2015

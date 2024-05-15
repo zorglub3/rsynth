@@ -101,6 +101,10 @@ impl RungeKutta {
         }
 
         self.state.apply_updates(&updates, &self.b, dt);
+
+        for (_ix, module) in &self.modules {
+            module.finalize(&mut self.state);
+        }
     }
 
     pub fn get_output(&self) -> (f32, f32) {

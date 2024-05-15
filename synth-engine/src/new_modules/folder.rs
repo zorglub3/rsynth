@@ -4,17 +4,13 @@ use crate::simulator::state::{State, StateUpdate, UpdateType};
 use std::f32::consts::PI;
 
 pub struct Folder {
-    input_index: usize, 
+    input_index: usize,
     control_index: usize,
     output_index: usize,
 }
 
 impl Folder {
-    pub fn new(
-        input_index: usize,
-        control_index: usize,
-        output_index: usize,
-    ) -> Self {
+    pub fn new(input_index: usize, control_index: usize, output_index: usize) -> Self {
         Self {
             input_index,
             control_index,

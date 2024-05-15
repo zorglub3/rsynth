@@ -19,12 +19,7 @@ pub struct SinOsc {
 }
 
 impl SinOsc {
-    pub fn new(
-        f0: f32,
-        freq_index: usize,
-        state0_index: usize,
-        output_index: usize,
-    ) -> Self {
+    pub fn new(f0: f32, freq_index: usize, state0_index: usize, output_index: usize) -> Self {
         Self {
             f0,
             freq_index,
