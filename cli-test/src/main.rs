@@ -1,9 +1,13 @@
 use clap::Parser;
 use std::collections::HashMap;
 use synth_engine::{
-    new_modules::bowed::BowedOscillator, new_modules::folder::Folder,
-    new_modules::quadrature::QuadratureOscillator, new_modules::saw::SawOsc,
-    new_modules::sine::SinOsc, simulator::module::Module, simulator::rungekutta::RungeKutta,
+    modules::bowed::BowedOscillator, 
+    modules::folder::Folder,
+    modules::quadrature::QuadratureOscillator, 
+    modules::saw::SawOsc,
+    modules::sine::SinOsc, 
+    simulator::module::Module, 
+    simulator::rungekutta::RungeKutta,
 };
 
 #[derive(Parser, Debug, Clone)]
