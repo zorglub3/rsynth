@@ -102,7 +102,7 @@ impl RungeKutta {
 
         self.state.apply_updates(&updates, &self.b, dt);
 
-        for (_ix, module) in &self.modules {
+        for (_ix, module) in &mut self.modules {
             module.finalize(&mut self.state);
         }
     }
@@ -120,5 +120,9 @@ impl RungeKutta {
             }
             _ => {}
         }
+    }
+
+    pub fn get_state(&mut self) -> &mut State {
+        &mut self.state
     }
 }

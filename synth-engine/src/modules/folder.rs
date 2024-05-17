@@ -33,7 +33,7 @@ impl Module for Folder {
         /* do nothing */
     }
 
-    fn finalize(&self, state: &mut State) {
+    fn finalize(&mut self, state: &mut State) {
         /* do nothing */
     }
 }

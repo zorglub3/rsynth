@@ -39,7 +39,7 @@ impl Module for QuadratureOscillator {
         /* do nothing */
     }
 
-    fn finalize(&self, state: &mut State) {
+    fn finalize(&mut self, state: &mut State) {
         let x = state.get(self.state_x_index);
         let y = state.get(self.state_y_index);
         let s = (x * x + y * y).sqrt();

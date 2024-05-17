@@ -70,7 +70,7 @@ impl Module for BowedOscillator {
         /* do nothing */
     }
 
-    fn finalize(&self, state: &mut State) {
+    fn finalize(&mut self, state: &mut State) {
         let u = state.get(self.state_u_index);
         let v = state.get(self.state_v_index);
         let s = (u * u + v * v).sqrt();

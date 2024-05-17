@@ -1,6 +1,7 @@
 use crate::audio::sound_simulation;
 use crate::midi::{Midi, MidiError};
 use crate::models::make_model;
+use synth_engine::simulator::rungekutta::RungeKutta;
 use clap::Parser;
 use cpal::{BuildStreamError, PlayStreamError};
 use std::io;
@@ -16,6 +17,7 @@ const DEFAULT_NAME: &str = "rsynth";
 const DEFAULT_MODEL: &str = "subtractive";
 const DEFAULT_SAMPLE_RATE: u32 = 44100;
 const DEFAULT_BUFFER_SIZE: u32 = 2048;
+const DEFAULT_SIMULATOR: &str = "rk4";
 
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
@@ -26,6 +28,8 @@ struct CliArgs {
     name: String,
     #[arg(short, long, default_value_t = DEFAULT_MODEL.to_string())]
     model: String,
+    #[arg(long, default_value_t = DEFAULT_SIMULATOR.to_string())]
+    simulator: String,
     #[arg(short, long, default_value_t = DEFAULT_SAMPLE_RATE)]
     sample_rate: u32,
     #[arg(short, long, default_value_t = DEFAULT_BUFFER_SIZE)]
@@ -42,6 +46,16 @@ pub enum RuntimeError {
     PlayError(#[from] PlayStreamError),
     #[error("Midi setup error: {0:?}")]
     MidiSetupError(#[from] MidiError),
+}
+
+fn make_simulator(simulator_name: &str, state_size: usize) -> RungeKutta {
+    match simulator_name {
+        "rk4" => RungeKutta::rk4(state_size),
+        "rk38" => RungeKutta::rk38(state_size),
+        "euler" => RungeKutta::euler(state_size),
+        "second_order" => RungeKutta::second_order(0.5, state_size),
+        _ => panic!("Unsupported simulator: {}", simulator_name),
+    }
 }
 
 fn pause() {
@@ -63,12 +77,16 @@ fn main() -> Result<(), RuntimeError> {
     let model = make_model(args.model.as_str(), args.channel.unwrap_or(0))?;
     println!("done");
 
+    print!("Creating simulator...");
+    let simulator = Box::new(make_simulator(args.simulator.as_str(), 32).with_modules(model));
+    println!("done");
+    
     print!("Creating communication channel...");
     let (send, receive) = channel();
     println!("done");
 
     print!("Creating the simulation runner...");
-    let simulation = sound_simulation(args.sample_rate, args.buffer_size, model, receive)?;
+    let simulation = sound_simulation(args.sample_rate, args.buffer_size, simulator, receive)?;
     println!("done");
 
     print!("Creating the midi interface...");

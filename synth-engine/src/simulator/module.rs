@@ -6,5 +6,5 @@ pub trait Module: Send {
 
     fn process_event(&mut self, event: &MidiMessage, channel: u8);
 
-    fn finalize(&self, state: &mut State);
+    fn finalize(&mut self, state: &mut State);
 }
