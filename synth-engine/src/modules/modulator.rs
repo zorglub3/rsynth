@@ -1,6 +1,6 @@
-use crate::simulator::state::{State, StateUpdate, UpdateType};
-use crate::simulator::module::{Module};
 use crate::midi::message::MidiMessage;
+use crate::simulator::module::Module;
+use crate::simulator::state::{State, StateUpdate, UpdateType};
 
 pub struct Modulator {
     input1_index: usize,
@@ -9,11 +9,7 @@ pub struct Modulator {
 }
 
 impl Modulator {
-    pub fn new(
-        input1_index: usize,
-        input2_index: usize,
-        output_index: usize,
-    ) -> Self {
+    pub fn new(input1_index: usize, input2_index: usize, output_index: usize) -> Self {
         Self {
             input1_index,
             input2_index,

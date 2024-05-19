@@ -1,12 +1,12 @@
 use crate::audio::sound_simulation;
 use crate::midi::{Midi, MidiError};
 use crate::models::make_model;
-use synth_engine::simulator::rungekutta::RungeKutta;
 use clap::Parser;
 use cpal::{BuildStreamError, PlayStreamError};
 use std::io;
 use std::io::prelude::*;
 use std::sync::mpsc::channel;
+use synth_engine::simulator::rungekutta::RungeKutta;
 use thiserror::Error;
 
 mod audio;
@@ -80,7 +80,7 @@ fn main() -> Result<(), RuntimeError> {
     print!("Creating simulator...");
     let simulator = Box::new(make_simulator(args.simulator.as_str(), 32).with_modules(model));
     println!("done");
-    
+
     print!("Creating communication channel...");
     let (send, receive) = channel();
     println!("done");

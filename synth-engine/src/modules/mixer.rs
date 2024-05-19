@@ -1,17 +1,21 @@
+use crate::midi::message::MidiMessage;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
-use crate::midi::message::MidiMessage;
 
-struct Mixer {
+pub struct Mixer {
     input_indices: Vec<usize>,
     attenuation_indices: Vec<usize>,
     output_index: usize,
 }
 
 impl Mixer {
-    pub fn new(input_indices: Vec<usize>, attenuation_indices: Vec<usize>, output_index: usize) -> Self {
+    pub fn new(
+        input_indices: Vec<usize>,
+        attenuation_indices: Vec<usize>,
+        output_index: usize,
+    ) -> Self {
         debug_assert!(input_indices.len() == attenuation_indices.len());
-        
+
         Self {
             input_indices,
             attenuation_indices,
@@ -23,10 +27,10 @@ impl Mixer {
 impl Module for Mixer {
     fn simulate(&self, state: &State, update: &mut StateUpdate) {
         let mut output_value = 0.0;
-        
-        for i in 0 .. self.input_indices.len() {
+
+        for i in 0..self.input_indices.len() {
             output_value +=
-                state.get(self.input_indices[i]) * state.get(self.attenuation_indices[i]).max(0.0);    
+                state.get(self.input_indices[i]) * state.get(self.attenuation_indices[i]).max(0.0);
         }
 
         update.set(self.output_index, output_value, UpdateType::Absolute);

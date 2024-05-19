@@ -44,8 +44,9 @@ fn control_to_frequency(f0: f32, exp_control: f32, lin_control: f32) -> f32 {
 
 impl Module for MoogFilter {
     fn simulate(&self, state: &State, update: &mut StateUpdate) {
-        let g: f32 = todo!();
-        let r: f32 = todo!();
+        let f: f32 = control_to_frequency(self.f0, state.get(self.freq_control_index), 0.);
+        let g: f32 = f * 2. * PI;
+        let r: f32 = state.get(self.res_control_index);
 
         update.set(
             self.state0_index,

@@ -1,10 +1,8 @@
 use clap::Parser;
 use std::collections::HashMap;
 use synth_engine::{
-    modules::bowed::BowedOscillator, 
-    modules::folder::Folder,
-    modules::quadrature::QuadratureOscillator, 
-    simulator::module::Module, 
+    modules::bowed::BowedOscillator, modules::folder::Folder,
+    modules::quadrature::QuadratureOscillator, simulator::module::Module,
     simulator::rungekutta::RungeKutta,
 };
 
@@ -35,7 +33,10 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
 
     match test {
         0 => {
-            result.insert("quad_osc".to_string(), Box::new(QuadratureOscillator::new(110., 4, 5, 6)));
+            result.insert(
+                "quad_osc".to_string(),
+                Box::new(QuadratureOscillator::new(110., 4, 5, 6)),
+            );
             result.insert("folder".to_string(), Box::new(Folder::new(4, 5, 1)));
         }
         1 => {

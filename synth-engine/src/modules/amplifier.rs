@@ -1,6 +1,6 @@
-use crate::simulator::state::{State, StateUpdate, UpdateType};
-use crate::simulator::module::{Module};
 use crate::midi::message::MidiMessage;
+use crate::simulator::module::Module;
+use crate::simulator::state::{State, StateUpdate, UpdateType};
 
 pub struct Amplifier {
     input_index: usize,
@@ -39,7 +39,10 @@ fn amplifier_amount(lin_control: f32, exp_control: f32) -> f32 {
 impl Module for Amplifier {
     fn simulate(&self, state: &State, update: &mut StateUpdate) {
         let input = state.get(self.input_index);
-        let m = amplifier_amount(state.get(self.lin_control_index), state.get(self.exp_control_index));
+        let m = amplifier_amount(
+            state.get(self.lin_control_index),
+            state.get(self.exp_control_index),
+        );
         update.set(self.output_index, input * m, UpdateType::Absolute);
     }
 
