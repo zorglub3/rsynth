@@ -26,7 +26,7 @@ fn pitch_value(pitch: u8) -> f32 {
 }
 
 impl Module for MidiMono {
-    fn simulate(&self, state: &State, update: &mut StateUpdate) {
+    fn simulate(&self, _state: &State, update: &mut StateUpdate) {
         match self.keys_pressed.first() {
             Some(pitch) => {
                 update.set(self.gate_output_index, 1., UpdateType::Absolute);
@@ -56,7 +56,7 @@ impl Module for MidiMono {
         }
     }
 
-    fn finalize(&mut self, state: &mut State) {
+    fn finalize(&mut self, _state: &mut State) {
         /* do nothing */
     }
 }

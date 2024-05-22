@@ -1,8 +1,3 @@
-#[inline]
-fn is_zero(v: f32) -> bool {
-    v < f32::EPSILON && v > -f32::EPSILON
-}
-
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum UpdateType {
     Differentiable,

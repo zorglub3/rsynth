@@ -48,7 +48,7 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
         2 => {
             result.insert(
                 "bowed_osc".to_string(),
-                Box::new(BowedOscillator::new(50., 5.0, 2, 1, 0, 0, 0)),
+                Box::new(BowedOscillator::new(50., 5.0, 5.0, 2, 1, 0, 0, 0)),
             );
         }
         _ => panic!("No test for {}", test),

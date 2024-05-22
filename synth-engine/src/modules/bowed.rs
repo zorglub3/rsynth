@@ -6,6 +6,7 @@ use std::f32::consts::PI;
 pub struct BowedOscillator {
     f0: f32,
     a: f32,
+    b: f32,
     state_u_index: usize,
     state_v_index: usize,
     control_index: usize,
@@ -17,6 +18,7 @@ impl BowedOscillator {
     pub fn new(
         f0: f32,
         a: f32,
+        b: f32,
         state_u_index: usize,
         state_v_index: usize,
         control_index: usize,
@@ -26,6 +28,7 @@ impl BowedOscillator {
         Self {
             f0,
             a,
+            b,
             state_u_index,
             state_v_index,
             control_index,
@@ -39,8 +42,8 @@ fn control_to_frequency(f0: f32, exp_control: f32, lin_control: f32) -> f32 {
     f0 * 2.0_f32.powf(exp_control) + lin_control
 }
 
-fn friction(a: f32, x: f32) -> f32 {
-    (2.0_f32 * a).sqrt() * x * (-a * x * x + 0.5).exp()
+fn friction(a: f32, b: f32, x: f32) -> f32 {
+    a * x * (-b * x * x + 0.5).exp()
 }
 
 impl Module for BowedOscillator {
@@ -49,14 +52,13 @@ impl Module for BowedOscillator {
         let u = state.get(self.state_u_index);
         let v = state.get(self.state_v_index);
 
-        // let vb = state.get(self.velocity_index);
-        // let force = state.get(self.pressure_index);
-        let vb = 0.3;
-        let force: f32 = 10.;
+        // vb should be in [-1, 1]
+        let vb = state.get(self.velocity_index);
+        let force = state.get(self.pressure_index);
 
         let force: f32 = force.min(omega / 2.);
 
-        let f = force * friction(self.a, v - vb);
+        let f = force * friction(self.a, self.b, v - vb);
 
         update.set(self.state_u_index, -omega * v, UpdateType::Differentiable);
         update.set(

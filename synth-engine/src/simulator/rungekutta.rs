@@ -67,8 +67,8 @@ impl RungeKutta {
         }
     }
 
-    pub fn second_order(alpha: f32, state_size: usize) -> Self {
-        todo!()
+    pub fn second_order(_alpha: f32, _state_size: usize) -> Self {
+        todo!("Second order Runge Kutta method")
     }
 
     pub fn with_modules(&mut self, modules: HashMap<String, Box<dyn Module>>) -> Self {
