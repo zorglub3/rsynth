@@ -1,62 +1,56 @@
 use crate::midi::message::MidiMessage;
-use crate::modules::Module;
-use crate::state::OutputType;
-
-const OUT: usize = 0;
-
-const IN: usize = 0;
-const CTRL_LIN: usize = 1;
-const CTRL_EXP: usize = 2;
+use crate::simulator::module::Module;
+use crate::simulator::state::{State, StateUpdate, UpdateType};
 
 pub struct Amplifier {
-    pub inputs: Vec<usize>,
-    pub outputs: Vec<usize>,
+    input_index: usize,
+    output_index: usize,
+    lin_control_index: usize,
+    exp_control_index: usize,
 }
 
 impl Amplifier {
-    pub fn new() -> Self {
+    pub fn new(
+        input_index: usize,
+        output_index: usize,
+        lin_control_index: usize,
+        exp_control_index: usize,
+    ) -> Self {
         Self {
-            inputs: vec![0; 3],
-            outputs: vec![0; 1],
-        }
-    }
-
-    pub fn new_with_connections(ins: Vec<usize>, outs: Vec<usize>) -> Self {
-        Self {
-            inputs: ins.clone(),
-            outputs: outs.clone(),
+            input_index,
+            output_index,
+            lin_control_index,
+            exp_control_index,
         }
     }
 }
 
-fn exp_gain(v: f32) -> f32 {
-    2. * (2.0_f32.powf(v) - 1.)
+fn amplifier_amount(lin_control: f32, exp_control: f32) -> f32 {
+    // TODO - these are constants - put them in the Amplifier struct
+    // 2.0 and 5.0 should be arguments to `new`
+    let min: f32 = 2.0_f32.powf(-5.0);
+    let scale: f32 = 1. / (1. - min);
+
+    let exp_control = exp_control.max(0.).min(1.);
+    let e = (2.0_f32.powf(5.0 * (exp_control - 1.)) - min) * scale;
+    (e + lin_control).max(0.)
 }
 
 impl Module for Amplifier {
-    fn simulate(&self, _dt: f32, state: &Vec<f32>, out: &mut Vec<f32>) {
-        let gain = state[self.inputs[CTRL_LIN]] * 2. + exp_gain(state[self.inputs[CTRL_EXP]]);
-
-        out[self.outputs[OUT]] = state[self.inputs[IN]] * gain;
-    }
-
-    fn finalize(&self, _state: &mut Vec<f32>) {
-        /* do nothing */
-    }
-
-    fn inputs(&self) -> Vec<usize> {
-        self.inputs.clone()
-    }
-
-    fn outputs(&self) -> Vec<usize> {
-        self.outputs.clone()
-    }
-
-    fn output_types(&self) -> Vec<OutputType> {
-        vec![OutputType::Absolute]
+    fn simulate(&self, state: &State, update: &mut StateUpdate) {
+        let input = state.get(self.input_index);
+        let m = amplifier_amount(
+            state.get(self.lin_control_index),
+            state.get(self.exp_control_index),
+        );
+        update.set(self.output_index, input * m, UpdateType::Absolute);
     }
 
     fn process_event(&mut self, _event: &MidiMessage, _channel: u8) {
+        /* do nothing */
+    }
+
+    fn finalize(&mut self, _state: &mut State) {
         /* do nothing */
     }
 }

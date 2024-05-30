@@ -3,6 +3,7 @@ resolver = "2"
 
 members = [
   "synth-engine",
+  "synth-designer",
   "cli-synth",
   "cli-test",
 ]

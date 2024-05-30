@@ -10,6 +10,4 @@
 pub mod event;
 pub mod midi;
 pub mod modules;
-pub mod new_modules;
 pub mod simulator;
-pub mod state;

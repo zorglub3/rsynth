@@ -1,7 +1,6 @@
 use crate::midi::message::MidiMessage;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
-use std::f32::consts::PI;
 
 pub struct Folder {
     input_index: usize,
@@ -24,8 +23,6 @@ impl Module for Folder {
         let i = state.get(self.input_index);
         let c = state.get(self.control_index).max(0.).min(5.) + 1.;
 
-        let m = c * 0.5 * PI;
-
         update.set(self.output_index, (i * c).sin(), UpdateType::Absolute);
     }
 
@@ -33,7 +30,7 @@ impl Module for Folder {
         /* do nothing */
     }
 
-    fn finalize(&self, state: &mut State) {
+    fn finalize(&mut self, _state: &mut State) {
         /* do nothing */
     }
 }

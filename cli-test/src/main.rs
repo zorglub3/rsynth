@@ -1,9 +1,9 @@
 use clap::Parser;
 use std::collections::HashMap;
 use synth_engine::{
-    new_modules::bowed::BowedOscillator, new_modules::folder::Folder,
-    new_modules::quadrature::QuadratureOscillator, new_modules::saw::SawOsc,
-    new_modules::sine::SinOsc, simulator::module::Module, simulator::rungekutta::RungeKutta,
+    modules::bowed::BowedOscillator, modules::folder::Folder,
+    modules::quadrature::QuadratureOscillator, simulator::module::Module,
+    simulator::rungekutta::RungeKutta,
 };
 
 #[derive(Parser, Debug, Clone)]
@@ -34,27 +34,21 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
     match test {
         0 => {
             result.insert(
-                "saw_osc".to_string(),
-                Box::new(SawOsc::new(510., 0, 3, 4, 1, 20000.)),
+                "quad_osc".to_string(),
+                Box::new(QuadratureOscillator::new(110., 4, 5, 6)),
             );
-        }
-        1 => {
-            result.insert("sin_osc".to_string(), Box::new(SinOsc::new(510., 0, 3, 1)));
-        }
-        2 => {
-            result.insert("sin_osc".to_string(), Box::new(SinOsc::new(510., 0, 3, 4)));
             result.insert("folder".to_string(), Box::new(Folder::new(4, 5, 1)));
         }
-        3 => {
+        1 => {
             result.insert(
                 "quad_osc".to_string(),
                 Box::new(QuadratureOscillator::new(110., 1, 2, 3)),
             );
         }
-        4 => {
+        2 => {
             result.insert(
-                "quad_osc".to_string(),
-                Box::new(BowedOscillator::new(50., 5.0, 2, 1, 0, 0, 0)),
+                "bowed_osc".to_string(),
+                Box::new(BowedOscillator::new(50., 5.0, 5.0, 2, 1, 0, 0, 0)),
             );
         }
         _ => panic!("No test for {}", test),

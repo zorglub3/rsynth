@@ -1,7 +1,7 @@
 //! Types for events that the synth engine can receive for real time control.
 
 use crate::midi::message::MidiMessage;
-use crate::modules::Module;
+use crate::simulator::module::Module;
 use std::fmt::{Debug, Error, Formatter};
 
 /// The basic type for event that the synth engine "understands"

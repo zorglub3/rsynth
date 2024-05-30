@@ -801,6 +801,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "synth-designer"
+version = "0.1.0"
+dependencies = [
+ "synth-engine",
+]
+
+[[package]]
 name = "synth-engine"
 version = "0.1.0"
 
