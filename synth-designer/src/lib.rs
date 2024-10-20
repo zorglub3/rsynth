@@ -3,6 +3,12 @@ pub mod modules;
 use core::ops::Range;
 use synth_engine::event::Event;
 use synth_engine::simulator::module::Module;
+use ini::Ini;
+
+pub enum SynthError {
+    FileError(ini::Error),
+    ModuleError(crate::modules::ModuleError),
+}
 
 pub struct StateAllocator(Range<usize>);
 
@@ -54,12 +60,25 @@ pub struct ModuleInput<'a> {
 }
 
 impl ModuleInput<'_> {
-    fn connect_to(&mut self, output: ModuleOutput) {
+    pub fn connect_to(&mut self, output: ModuleOutput) {
         self.module.set_input(self.module_input_index, output.state_index);
     }    
 }
 
 use std::collections::HashMap;
+
+pub fn collection_insert(map: &mut HashMap<String, Box<dyn Module>>, module: impl SynthModule) {
+    let name_clash = map.keys().filter(|&k| k == &module.name()).count();
+     
+    let mut name = module.name().clone();
+
+    if name_clash > 0 {
+        name.push_str("_");
+        name.push_str(&name_clash.to_string());
+    }
+
+    map.insert(name, module.create());
+}
 
 fn demo1() -> HashMap<String, Box<dyn Module>> {
     let mut state_allocator = StateAllocator::new(32);
@@ -78,4 +97,29 @@ fn demo1() -> HashMap<String, Box<dyn Module>> {
     modules.insert("vca".to_string(), amp.create());
 
     modules
+}
+
+fn from_ini_file(filename: &str) -> Result<HashMap<String, Box<dyn Module>>, SynthError> {
+    let mut modules = HashMap::new();
+    let synth_spec = Ini::load_from_file(filename).map_err(|e| SynthError::FileError(e))?;
+
+    for (section, props) in synth_spec {
+        if let Some(section) = section {
+            match &section.to_lowercase()[..] {
+                "amplifier" => todo!(),
+                "contour" => todo!(),
+                "filter" => todo!(),
+                "midi_cc" => todo!(),
+                "midi_mono" => todo!(),
+                "mono_out" => todo!(),
+                "oscillator" => todo!(),
+                _ => todo!(),
+            }
+        } else {
+            // top level specs for synth, name and version and such
+            todo!()
+        }
+    }
+
+    Ok(modules)
 }

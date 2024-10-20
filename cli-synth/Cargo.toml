@@ -10,4 +10,5 @@ clap = { version = "4.5.1", features = ["derive"] }
 cpal = "0.15.2"
 midir = "0.9.1"
 synth-engine = { path = "../synth-engine" }
+synth-designer = { path = "../synth-designer" }
 thiserror = "1.0.57"
