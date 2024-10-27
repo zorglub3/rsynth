@@ -4,10 +4,23 @@ use core::ops::Range;
 use synth_engine::event::Event;
 use synth_engine::simulator::module::Module;
 use ini::Ini;
+use crate::modules::*;
 
 pub enum SynthError {
     FileError(ini::Error),
-    ModuleError(crate::modules::ModuleError),
+    ModuleError(ModuleError),
+}
+
+impl From<ini::Error> for SynthError {
+    fn from(err: ini::Error) -> Self {
+        Self::FileError(err)
+    }
+}
+
+impl From<ModuleError> for SynthError {
+    fn from(err: ModuleError) -> Self {
+        Self::ModuleError(err)
+    }
 }
 
 pub struct StateAllocator(Range<usize>);
@@ -101,17 +114,36 @@ fn demo1() -> HashMap<String, Box<dyn Module>> {
 
 fn from_ini_file(filename: &str) -> Result<HashMap<String, Box<dyn Module>>, SynthError> {
     let mut modules = HashMap::new();
-    let synth_spec = Ini::load_from_file(filename).map_err(|e| SynthError::FileError(e))?;
+    let spec_file = Ini::load_from_file(filename).map_err(|e| SynthError::FileError(e))?;
+    let mut synth_spec = SynthSpec::new();
 
-    for (section, props) in synth_spec {
+    for (section, props) in spec_file {
         if let Some(section) = section {
             match &section.to_lowercase()[..] {
-                "amplifier" => todo!(),
-                "contour" => todo!(),
-                "filter" => todo!(),
-                "midi_cc" => todo!(),
-                "midi_mono" => todo!(),
-                "mono_out" => todo!(),
+                "amplifier" => {
+                    let module_spec = AmpModuleSpec::from_ini_properties(props)?;
+                    synth_spec.add_module(Box::new(module_spec));
+                }
+                "contour" => {
+                    let module_spec = ContourModuleSpec::from_ini_properties(props)?;
+                    synth_spec.add_module(Box::new(module_spec));
+                }
+                "filter" => {
+                    let module_spec = FilterModuleSpec::from_ini_properties(props)?;
+                    synth_spec.add_module(Box::new(module_spec));
+                }
+                "midi_cc" => {
+                    let module_spec = MidiCCModuleSpec::from_ini_properties(props)?;
+                    synth_spec.add_module(Box::new(module_spec));
+                }
+                "midi_mono" => {
+                    let module_spec = MidiMonoModuleSpec::from_ini_properties(props)?;
+                    synth_spec.add_module(Box::new(module_spec));
+                }
+                "mono_out" => {
+                    let module_spec = MonoOutputModuleSpec::from_ini_properties(props)?;
+                    synth_spec.add_module(Box::new(module_spec));
+                }
                 "oscillator" => todo!(),
                 _ => todo!(),
             }

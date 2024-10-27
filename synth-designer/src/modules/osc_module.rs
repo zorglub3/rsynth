@@ -1,6 +1,49 @@
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
 use crate::*;
+use ini::Properties;
+use crate::modules::*;
+
+const MODULE_TYPE: &str = "oscillator";
+const MODULE_NAME: &str = "name";
+const FREQUENCY_CONTROL: &str = "frequency";
+const PRESSURE_CONTROL: &str = "pressure";
+const VELOCITY_CONTROL: &str = "velocity";
+const SIGNAL_1_OUTPUT: &str = "signal1";
+const SIGNAL_2_OUTPUT: &str = "signal2";
+
+pub struct OscillatorModuleSpec {
+    name: String,
+    inputs: [InputSpec; 3],
+    state: [usize; 2],
+    f0: f32,
+    a: f32,
+    b: f32,
+}
+
+impl OscillatorModuleSpec {
+    pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
+        todo!()
+    }
+}
+
+impl ModuleSpec for OscillatorModuleSpec {
+    fn allocate_state(&mut self, alloc: &mut StateAllocator) {
+        alloc.allocate(&mut self.state);
+    }
+
+    fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
+        todo!()
+    }
+
+    fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
+        todo!()
+    }
+
+    fn get_name(&self) -> &str {
+        &self.name
+    }
+}
 
 pub struct OscModule {
     name: String,

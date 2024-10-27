@@ -20,8 +20,7 @@ pub struct AmpModuleSpec {
 impl AmpModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let name =
-            props
-                .get(MODULE_NAME)
+            props.get(MODULE_NAME)
                 .ok_or(ModuleError::MissingField { 
                     module_type: MODULE_TYPE.to_string(), 
                     field_name: MODULE_NAME.to_string(),
@@ -45,7 +44,14 @@ impl ModuleSpec for AmpModuleSpec {
     }
 
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
-        todo!()
+        let amplifier = Amplifier::new(
+            synth_spec.input_state_index(&self.inputs[0])?,
+            self.state[0],
+            synth_spec.input_state_index(&self.inputs[0])?,
+            synth_spec.input_state_index(&self.inputs[0])?,
+        );
+
+        Ok(Box::new(amplifier))
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
