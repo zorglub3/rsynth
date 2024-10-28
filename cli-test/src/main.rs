@@ -67,7 +67,7 @@ fn main() {
     for _i in 0..args.count {
         simulator.step(dt);
 
-        let output = simulator.get_output();
+        let output = simulator.get_stereo_output();
 
         println!("{}", output.0);
     }

@@ -107,8 +107,8 @@ impl RungeKutta {
         }
     }
 
-    pub fn get_output(&self) -> (f32, f32) {
-        (self.state.get(1), self.state.get(2))
+    pub fn get_stereo_output(&self) -> (f32, f32) {
+        (self.state.get_output(0), self.state.get_output(1))
     }
 
     pub fn process_event(&mut self, event: Event) {

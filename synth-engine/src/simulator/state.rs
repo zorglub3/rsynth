@@ -8,6 +8,7 @@ pub enum UpdateType {
 #[derive(Debug, Clone)]
 pub struct State {
     values: Vec<f32>,
+    outputs: Vec<f32>,
 }
 
 pub struct StateUpdate {
@@ -20,6 +21,7 @@ impl State {
     pub fn new(size: usize) -> Self {
         Self {
             values: vec![0.0_f32; size],
+            outputs: vec![0.0_f32; 2],
         }
     }
 
@@ -50,6 +52,7 @@ impl State {
     pub fn temp_update(&self, update: &StateUpdate, weight: f32) -> State {
         let mut temp_copy = Self {
             values: self.values.clone(),
+            outputs: self.outputs.clone(),
         };
 
         for i in 0..self.len() {
@@ -87,6 +90,14 @@ impl State {
                 self.values[i] += update;
             }
         }
+    }
+
+    pub fn set_output(&mut self, index: usize, v: f32) {
+        self.outputs[index] = v;
+    }
+
+    pub fn get_output(&self, index: usize) -> f32 {
+        self.outputs[index]
     }
 }
 

@@ -38,7 +38,7 @@ pub fn sound_simulation(
             for frame in data.chunks_mut(2) {
                 simulation.step(dt);
 
-                let (left, right) = simulation.get_output();
+                let (left, right) = simulation.get_stereo_output();
 
                 // println!("left: {}, right: {}", left, right);
 
