@@ -64,77 +64,8 @@ impl ModuleSpec for AmpModuleSpec {
     fn get_name(&self) -> &str {
         &self.name
     }
-}
-
-pub struct AmpModule {
-    name: String,
-    inputs: [usize; 3],
-    state: [usize; 1],
-}
-
-impl AmpModule {
-    pub fn new() -> Self {
-        Self {
-            name: "amplifier".to_string(),
-            inputs: [0; 3],
-            state: [0; 1],
-        }
-    }
-
-    pub fn signal_input(&mut self) -> ModuleInput {
-        ModuleInput {
-            module_input_index: 0,
-            module: self,
-        }
-    }
-
-    pub fn signal_output(&self) -> ModuleOutput {
-        ModuleOutput {
-            module_output_index: 0,
-            state_index: self.state[0],
-        }
-    }
-
-    pub fn linear_control_input(&mut self) -> ModuleInput {
-        ModuleInput {
-            module_input_index: 1,
-            module: self,
-        }
-    }
-
-    pub fn exponential_control_input(&mut self) -> ModuleInput {
-        ModuleInput {
-            module_input_index: 2,
-            module: self,
-        }
-    }
-}
-
-impl SynthModule for AmpModule {
-    fn name(&self) -> String {
-        self.name.clone()
-    }
 
     fn state_size(&self) -> usize {
         1
-    }
-
-    fn allocate_state(&mut self, state_allocator: &mut StateAllocator) {
-        state_allocator.allocate(&mut self.state);
-    }
-
-    fn set_input(&mut self, input_index: usize, state_index: usize) {
-        self.inputs[input_index] = state_index;
-    }
-
-    fn create(self) -> Box<dyn Module> {
-        Box::new(
-            Amplifier::new(
-                self.inputs[0],
-                self.state[0],
-                self.inputs[1],
-                self.inputs[2],
-            )
-        )
     }
 }

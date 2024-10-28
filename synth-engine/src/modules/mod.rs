@@ -8,6 +8,7 @@ pub mod mixer;
 pub mod modulator;
 pub mod moog_filter;
 pub mod quadrature;
+pub mod zero;
 
 pub use ad_envelope::ADEnvelope;
 pub use amplifier::Amplifier;
@@ -17,3 +18,4 @@ pub use midi_mono::MidiMono;
 pub use mixer::Mixer;
 pub use modulator::Modulator;
 pub use moog_filter::MoogFilter;
+pub use zero::ZeroModule;

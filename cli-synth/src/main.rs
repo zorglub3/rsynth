@@ -1,6 +1,5 @@
 use crate::audio::sound_simulation;
 use crate::midi::{Midi, MidiError};
-use crate::models::make_model;
 use clap::Parser;
 use cpal::{BuildStreamError, PlayStreamError};
 use std::io;
@@ -8,13 +7,12 @@ use std::io::prelude::*;
 use std::sync::mpsc::channel;
 use synth_engine::simulator::rungekutta::RungeKutta;
 use thiserror::Error;
+use synth_designer::from_ini_file;
 
 mod audio;
 mod midi;
-mod models;
 
 const DEFAULT_NAME: &str = "rsynth";
-const DEFAULT_MODEL: &str = "subtractive";
 const DEFAULT_SAMPLE_RATE: u32 = 44100;
 const DEFAULT_BUFFER_SIZE: u32 = 2048;
 const DEFAULT_SIMULATOR: &str = "rk4";
@@ -26,7 +24,7 @@ struct CliArgs {
     channel: Option<usize>,
     #[arg(short, long, default_value_t = DEFAULT_NAME.to_string())]
     name: String,
-    #[arg(short, long, default_value_t = DEFAULT_MODEL.to_string())]
+    #[arg(short)]
     model: String,
     #[arg(long, default_value_t = DEFAULT_SIMULATOR.to_string())]
     simulator: String,
@@ -73,12 +71,18 @@ fn pause() {
 fn main() -> Result<(), RuntimeError> {
     let args = CliArgs::parse();
 
-    print!("Creating the synth model...");
-    let model = make_model(args.model.as_str(), args.channel.unwrap_or(0))?;
+    // print!("Creating the synth model...");
+    // let model = make_model(args.model.as_str(), args.channel.unwrap_or(0))?;
+    // println!("done");
+    print!("Reading model definition from {}", args.model.as_str());
+    let Ok( (model, state_size) ) = from_ini_file(args.model.as_str()) else {
+        panic!("Messed up the model initialization");
+    };
+
     println!("done");
 
     print!("Creating simulator...");
-    let simulator = Box::new(make_simulator(args.simulator.as_str(), 32).with_modules(model));
+    let simulator = Box::new(make_simulator(args.simulator.as_str(), state_size).with_modules(model));
     println!("done");
 
     print!("Creating communication channel...");
