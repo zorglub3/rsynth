@@ -8,11 +8,12 @@ const MODULE_TYPE: &str = "mono_output";
 const MODULE_NAME: &str = "name";
 const SIGNAL_INPUT: &str = "signal_input";
 const OUTPUT_INDEX: &str = "output_index";
+const INPUT_SIZE: usize = 1;
 
 pub struct MonoOutputModuleSpec {
     name: String,
     output_index: usize,
-    inputs: [InputSpec; 1],
+    inputs: [InputSpec; INPUT_SIZE],
 }
 
 impl MonoOutputModuleSpec {

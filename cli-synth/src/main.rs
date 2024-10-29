@@ -24,7 +24,7 @@ struct CliArgs {
     channel: Option<usize>,
     #[arg(short, long, default_value_t = DEFAULT_NAME.to_string())]
     name: String,
-    #[arg(short)]
+    #[arg(short, long)]
     model: String,
     #[arg(long, default_value_t = DEFAULT_SIMULATOR.to_string())]
     simulator: String,
@@ -60,29 +60,28 @@ fn pause() {
     let mut stdin = io::stdin();
     let mut stdout = io::stdout();
 
-    // We want the cursor to stay at the end of the line, so we print without a newline and flush manually.
     write!(stdout, "Press any key to stop...").unwrap();
     stdout.flush().unwrap();
 
-    // Read a single byte and discard
     let _ = stdin.read(&mut [0u8]).unwrap();
 }
 
 fn main() -> Result<(), RuntimeError> {
     let args = CliArgs::parse();
 
-    // print!("Creating the synth model...");
-    // let model = make_model(args.model.as_str(), args.channel.unwrap_or(0))?;
-    // println!("done");
-    print!("Reading model definition from {}", args.model.as_str());
-    let Ok( (model, state_size) ) = from_ini_file(args.model.as_str()) else {
-        panic!("Messed up the model initialization");
+    println!("Reading model definition from {}", args.model.as_str());
+    let (model, state_size) = match from_ini_file(args.model.as_str()) {
+        Ok( (m, s) ) => (m, s),
+        Err(err) => {
+            panic!("Error initializing the synth model: {:?}", err);
+        }
     };
 
     println!("done");
 
     print!("Creating simulator...");
-    let simulator = Box::new(make_simulator(args.simulator.as_str(), state_size).with_modules(model));
+    let simulator = Box::new(
+        make_simulator(args.simulator.as_str(), state_size).with_modules(model));
     println!("done");
 
     print!("Creating communication channel...");
@@ -90,7 +89,8 @@ fn main() -> Result<(), RuntimeError> {
     println!("done");
 
     print!("Creating the simulation runner...");
-    let simulation = sound_simulation(args.sample_rate, args.buffer_size, simulator, receive)?;
+    let simulation = 
+        sound_simulation(args.sample_rate, args.buffer_size, simulator, receive)?;
     println!("done");
 
     print!("Creating the midi interface...");

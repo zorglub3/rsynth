@@ -10,11 +10,13 @@ const SIGNAL_INPUT: &str = "signal_input";
 const SIGNAL_OUTPUT: &str = "signal_output";
 const RISE_CONTROL: &str = "rise_control";
 const DECAY_CONTROL: &str = "decay_control";
+const INPUT_SIZE: usize = 3;
+const STATE_SIZE: usize = 1;
 
 pub struct ContourModuleSpec {
     name: String,
-    inputs: [InputSpec; 3],
-    state: [usize; 1],
+    inputs: [InputSpec; INPUT_SIZE],
+    state: [usize; STATE_SIZE],
 }
 
 impl ContourModuleSpec {
@@ -66,6 +68,6 @@ impl ModuleSpec for ContourModuleSpec {
     }
 
     fn state_size(&self) -> usize {
-        1
+        self.state.len()
     }
 }

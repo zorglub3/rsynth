@@ -10,11 +10,13 @@ const SIGNAL_INPUT: &str = "signal_input";
 const LINEAR_CONTROL: &str = "linear_control";
 const EXP_CONTROL: &str = "exp_control";
 const SIGNAL_OUTPUT: &str = "signal_output";
+const STATE_SIZE: usize = 1;
+const INPUT_SIZE: usize = 3;
 
 pub struct AmpModuleSpec {
     name: String,
-    inputs: [InputSpec; 3],
-    state: [usize; 1],
+    inputs: [InputSpec; INPUT_SIZE],
+    state: [usize; STATE_SIZE],
 }
 
 impl AmpModuleSpec {
@@ -66,6 +68,6 @@ impl ModuleSpec for AmpModuleSpec {
     }
 
     fn state_size(&self) -> usize {
-        1
+        self.state.len()
     }
 }

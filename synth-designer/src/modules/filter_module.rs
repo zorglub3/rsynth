@@ -11,11 +11,13 @@ const FREQ0: &str = "frequency_zero";
 const CUTOFF_CONTROL: &str = "cutoff_frequency";
 const RESONANCE_CONTROL: &str = "resonance";
 const SIGNAL_OUTPUT: &str = "signal_output";
+const INPUT_SIZE: usize = 3;
+const STATE_SIZE: usize = 4;
 
 pub struct FilterModuleSpec {
     name: String,
-    inputs: [InputSpec; 3],
-    state: [usize; 4],
+    inputs: [InputSpec; INPUT_SIZE],
+    state: [usize; STATE_SIZE],
     f0: f32,
 }
 
@@ -73,6 +75,6 @@ impl ModuleSpec for FilterModuleSpec {
     }
 
     fn state_size(&self) -> usize {
-        4
+        self.state.len()
     }
 }

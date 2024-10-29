@@ -3,8 +3,9 @@ use synth_engine::simulator::module::Module;
 use crate::*;
 use crate::modules::*;
 
+const STATE_SIZE: usize = 1;
 pub struct ZeroModuleSpec {
-    state: [usize; 1],
+    state: [usize; STATE_SIZE],
 }
 
 impl ZeroModuleSpec {
@@ -34,6 +35,6 @@ impl ModuleSpec for ZeroModuleSpec {
     }
 
     fn state_size(&self) -> usize {
-        1
+        self.state.len()
     }
 }

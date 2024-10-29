@@ -6,19 +6,21 @@ use crate::modules::*;
 
 const MODULE_TYPE: &str = "oscillator";
 const MODULE_NAME: &str = "name";
-const FREQUENCY_CONTROL: &str = "frequency";
-const PRESSURE_CONTROL: &str = "pressure";
-const VELOCITY_CONTROL: &str = "velocity";
+const FREQUENCY_CONTROL: &str = "frequency_control";
+const PRESSURE_CONTROL: &str = "pressure_control";
+const VELOCITY_CONTROL: &str = "velocity_control";
 const SIGNAL_1_OUTPUT: &str = "signal1";
 const SIGNAL_2_OUTPUT: &str = "signal2";
 const FREQ0: &str = "frequenzy_zero";
 const PARAM_A: &str = "param_a";
 const PARAM_B: &str = "param_b";
+const INPUT_SIZE: usize = 3;
+const STATE_SIZE: usize = 2;
 
 pub struct OscillatorModuleSpec {
     name: String,
-    inputs: [InputSpec; 3],
-    state: [usize; 2],
+    inputs: [InputSpec; INPUT_SIZE],
+    state: [usize; STATE_SIZE],
     f0: f32,
     a: f32,
     b: f32,
@@ -81,6 +83,6 @@ impl ModuleSpec for OscillatorModuleSpec {
     }
 
     fn state_size(&self) -> usize {
-        2
+        self.state.len()
     }
 }

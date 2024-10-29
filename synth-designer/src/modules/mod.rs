@@ -7,16 +7,6 @@ mod contour_module;
 mod mono_out_module;
 mod zero;
 
-/*
-pub use amp_module::AmpModule;
-pub use osc_module::OscModule;
-pub use filter_module::FilterModule;
-pub use midi_cc_module::MidiCCModule;
-pub use midi_mono_module::MidiMonoModule;
-pub use contour_module::ContourModule;
-pub use mono_out_module::MonoOutputModule;
-*/
-
 pub use amp_module::AmpModuleSpec;
 pub use contour_module::ContourModuleSpec;
 pub use filter_module::FilterModuleSpec;
@@ -45,6 +35,7 @@ pub fn zero_input() -> InputSpec {
     InputSpec { module_name: ZERO_MODULE.to_string(), state_field: ZERO_FIELD.to_string() }
 }
 
+#[derive(Debug)]
 pub enum ModuleError {
     MissingField { module_type: String, field_name: String },
     MalformedInputSpec { value: String },
@@ -79,6 +70,8 @@ impl SynthSpec {
 
     pub fn add_module(&mut self, module_spec: Box<dyn ModuleSpec>) {
         let key = module_spec.get_name().to_string();
+ 
+        // TODO check that the key isn't already taken
 
         self.0.insert(key, module_spec);
     }
@@ -86,13 +79,15 @@ impl SynthSpec {
     pub fn input_state_index(&self, input_spec: &InputSpec) -> Result<usize, ModuleError> {
         let module_spec = 
             self.0.get(&input_spec.module_name)
-                .ok_or(ModuleError::MissingModule { module_name: input_spec.module_name.clone() });
+                .ok_or(ModuleError::MissingModule { 
+                    module_name: input_spec.module_name.clone() 
+                });
 
         module_spec?.state_index(&input_spec.state_field)
     }
 
     fn state_size(&self) -> usize {
-        let mut state_size = 1;
+        let mut state_size: usize = 0;
 
         for (_k, v) in self.0.iter() {
             state_size = state_size + v.state_size();

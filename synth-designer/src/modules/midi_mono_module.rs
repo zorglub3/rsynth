@@ -9,11 +9,12 @@ const MODULE_NAME: &str = "name";
 const CHANNEL: &str = "channel";
 const PITCH_OUTPUT: &str = "pitch";
 const GATE_OUTPUT: &str = "gate";
+const STATE_SIZE: usize = 2;
 
 pub struct MidiMonoModuleSpec {
     name: String,
     channel: u8,
-    state: [usize; 2],
+    state: [usize; STATE_SIZE],
 }
 
 impl MidiMonoModuleSpec {
@@ -61,6 +62,6 @@ impl ModuleSpec for MidiMonoModuleSpec {
     }
 
     fn state_size(&self) -> usize {
-        2
+        self.state.len()
     }
 }

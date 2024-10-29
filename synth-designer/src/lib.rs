@@ -6,6 +6,7 @@ use ini::Ini;
 use crate::modules::*;
 use std::collections::HashMap;
 
+#[derive(Debug)]
 pub enum SynthError {
     FileError(ini::Error),
     ModuleError(ModuleError),
@@ -28,8 +29,8 @@ pub struct StateAllocator(Range<usize>);
 
 impl StateAllocator {
     pub fn new(size: usize) -> Self {
-        let size = size.min(16);
-        Self(5..size)
+        let size = size.max(16);
+        Self(0..size)
     }
 
     fn allocate_state_slot(&mut self) -> usize {

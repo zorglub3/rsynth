@@ -9,12 +9,13 @@ const MODULE_NAME: &str = "name";
 const CHANNEL: &str = "channel";
 const CONTROL: &str = "control";
 const SIGNAL_OUTPUT: &str = "signal_output";
+const STATE_SIZE: usize = 1;
 
 pub struct MidiCCModuleSpec {
     name: String,
     channel: u8,
     control: u8,
-    state: [usize; 1],
+    state: [usize; STATE_SIZE],
 }
 
 impl MidiCCModuleSpec {
@@ -62,6 +63,6 @@ impl ModuleSpec for MidiCCModuleSpec {
     }
 
     fn state_size(&self) -> usize {
-        1
+        self.state.len()
     }
 }
