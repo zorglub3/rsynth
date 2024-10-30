@@ -68,6 +68,8 @@ impl State {
     pub fn apply_updates(&mut self, updates: &[StateUpdate], weights: &[f32], dt: f32) {
         debug_assert!(updates.len() == weights.len());
 
+        let weights_sum: f32 = weights.iter().sum();
+
         for i in 0..self.len() {
             let mut is_absolute = false;
             let mut update = 0.0_f32;
@@ -85,7 +87,11 @@ impl State {
             }
 
             if is_absolute {
-                self.values[i] = update;
+                if weights_sum <= f32::MIN {
+                    self.values[i] = update;
+                } else {
+                    self.values[i] = update / weights_sum;
+                }
             } else {
                 self.values[i] += update;
             }

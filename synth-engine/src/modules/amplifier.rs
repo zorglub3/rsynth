@@ -43,6 +43,13 @@ impl Module for Amplifier {
             state.get(self.lin_control_index),
             state.get(self.exp_control_index),
         );
+        /*
+        if m > 0. {
+            println!("out: {}, signal: {}, amp: {}", input * m, input, m);
+            println!("lin control: {}", state.get(self.lin_control_index));
+            println!("exp control: {}", state.get(self.exp_control_index));
+        }
+        */
         update.set(self.output_index, input * m, UpdateType::Absolute);
     }
 

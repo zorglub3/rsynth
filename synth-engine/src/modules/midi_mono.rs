@@ -29,12 +29,10 @@ impl Module for MidiMono {
     fn simulate(&self, _state: &State, update: &mut StateUpdate) {
         match self.keys_pressed.first() {
             Some(pitch) => {
+                let pv = pitch_value(*pitch);
+
                 update.set(self.gate_output_index, 1., UpdateType::Absolute);
-                update.set(
-                    self.pitch_output_index,
-                    pitch_value(*pitch),
-                    UpdateType::Absolute,
-                );
+                update.set(self.pitch_output_index, pv, UpdateType::Absolute);
             }
             None => {
                 update.set(self.gate_output_index, 0., UpdateType::Absolute);

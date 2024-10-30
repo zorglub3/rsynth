@@ -7,23 +7,36 @@ pub struct MidiCC {
     control: u8,
     value: u8,
     channel: u8,
+    min_value: f32,
+    max_value: f32,
 }
 
 impl MidiCC {
-    pub fn new(output_index: usize, control: u8, channel: u8) -> Self {
+    pub fn new(
+        output_index: usize, 
+        control: u8, 
+        channel: u8,
+        min_value: f32,
+        max_value: f32
+    ) -> Self {
         Self {
             output_index,
             control,
             value: 0,
             channel,
+            min_value,
+            max_value,
         }
+    }
+
+    fn compute_value(&self) -> f32 {
+        (self.max_value - self.min_value) * (self.value as f32) / 127. + self.min_value
     }
 }
 
 impl Module for MidiCC {
     fn simulate(&self, _state: &State, update: &mut StateUpdate) {
-        let v = (self.value as f32) / 127.0;
-        update.set(self.output_index, v, UpdateType::Absolute);
+        update.set(self.output_index, self.compute_value(), UpdateType::Absolute);
     }
 
     fn process_event(&mut self, event: &MidiMessage, channel: u8) {

@@ -9,6 +9,8 @@ const MODULE_NAME: &str = "name";
 const CHANNEL: &str = "channel";
 const CONTROL: &str = "control";
 const SIGNAL_OUTPUT: &str = "signal_output";
+const MIN_VALUE: &str = "min_value";
+const MAX_VALUE: &str = "max_value";
 const STATE_SIZE: usize = 1;
 
 pub struct MidiCCModuleSpec {
@@ -16,6 +18,8 @@ pub struct MidiCCModuleSpec {
     channel: u8,
     control: u8,
     state: [usize; STATE_SIZE],
+    min_value: f32,
+    max_value: f32,
 }
 
 impl MidiCCModuleSpec {
@@ -32,6 +36,8 @@ impl MidiCCModuleSpec {
             channel: props.get(CHANNEL).map(|s| s.parse::<u8>()).unwrap_or(Ok(1_u8))?,
             control: props.get(CONTROL).map(|s| s.parse::<u8>()).unwrap_or(Ok(1_u8))?,
             state: [0; 1],
+            min_value: props.get(MIN_VALUE).map(|s| s.parse::<f32>()).unwrap_or(Ok(0.))?,
+            max_value: props.get(MAX_VALUE).map(|s| s.parse::<f32>()).unwrap_or(Ok(1.))?,
         })
     }
 }
@@ -46,6 +52,8 @@ impl ModuleSpec for MidiCCModuleSpec {
             self.state[0],
             self.control,
             self.channel,
+            self.min_value,
+            self.max_value,
         );
 
         Ok(Box::new(midi_cc))

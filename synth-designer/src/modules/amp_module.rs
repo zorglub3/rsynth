@@ -49,8 +49,8 @@ impl ModuleSpec for AmpModuleSpec {
         let amplifier = Amplifier::new(
             synth_spec.input_state_index(&self.inputs[0])?,
             self.state[0],
-            synth_spec.input_state_index(&self.inputs[0])?,
-            synth_spec.input_state_index(&self.inputs[0])?,
+            synth_spec.input_state_index(&self.inputs[1])?,
+            synth_spec.input_state_index(&self.inputs[2])?,
         );
 
         Ok(Box::new(amplifier))

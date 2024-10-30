@@ -2,12 +2,19 @@ use crate::midi::message::MidiMessage;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 
+enum EnvState {
+    Finished,
+    Attack,
+    Hold,
+    Decay,
+}
+
 pub struct ADEnvelope {
     input_index: usize,
     output_index: usize,
     attack_index: usize,
     decay_index: usize,
-    attack_state: bool,
+    env_state: EnvState,
 }
 
 impl ADEnvelope {
@@ -22,23 +29,20 @@ impl ADEnvelope {
             output_index,
             attack_index,
             decay_index,
-            attack_state: false,
+            env_state: EnvState::Finished,
         }
     }
 }
 
 impl Module for ADEnvelope {
     fn simulate(&self, state: &State, update: &mut StateUpdate) {
-        if self.attack_state {
-            let attack = state.get(self.attack_index);
-            update.set(self.output_index, attack, UpdateType::Differentiable);
-        } else {
-            let v = state.get(self.output_index);
+        let attack = state.get(self.attack_index);
+        let decay = state.get(self.decay_index);
 
-            if v > 0. {
-                let decay = state.get(self.decay_index);
-                update.set(self.output_index, decay, UpdateType::Differentiable);
-            }
+        match self.env_state {
+            EnvState::Attack => update.set(self.output_index, attack, UpdateType::Differentiable),
+            EnvState::Decay => update.set(self.output_index, -decay, UpdateType::Differentiable),
+            _ => { /* do nothing */ }
         }
     }
 
@@ -47,21 +51,32 @@ impl Module for ADEnvelope {
     }
 
     fn finalize(&mut self, state: &mut State) {
-        let v = state.get(self.output_index);
+        let input_state = state.get(self.input_index);
+        let output_state = state.get(self.output_index);
 
-        if self.attack_state {
-            if v > 1. {
-                state.set(self.output_index, 1.);
-                self.attack_state = false;
+        match self.env_state {
+            EnvState::Attack => {
+                if output_state >= 1. {
+                    self.env_state = EnvState::Hold;
+                }
             }
-        } else {
-            if state.get(self.input_index) > 0.1 {
-                self.attack_state = true;
+            EnvState::Hold => {
+                if input_state < 0.5 {
+                    self.env_state = EnvState::Decay;
+                }
+            }
+            EnvState::Decay => {
+                if output_state <= 0. {
+                    self.env_state = EnvState::Finished;
+                }
+            }
+            EnvState::Finished => {
+                if input_state > 0.5 {
+                    self.env_state = EnvState::Attack;
+                }
             }
         }
 
-        if v < 0. {
-            state.set(self.output_index, 0.);
-        }
+        state.set(self.output_index, output_state.max(0.).min(1.));
     }
 }
