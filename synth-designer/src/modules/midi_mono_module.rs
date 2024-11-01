@@ -1,15 +1,17 @@
-use synth_engine::modules::*;
-use synth_engine::simulator::module::Module;
+use crate::modules::*;
 use crate::*;
 use ini::Properties;
-use crate::modules::*;
+use synth_engine::modules::*;
+use synth_engine::simulator::module::Module;
 
 const MODULE_TYPE: &str = "midi_mono";
 const MODULE_NAME: &str = "name";
 const CHANNEL: &str = "channel";
 const PITCH_OUTPUT: &str = "pitch";
 const GATE_OUTPUT: &str = "gate";
-const STATE_SIZE: usize = 2;
+const PRESSURE_OUTPUT: &str = "aftertouch";
+const VELOCITY_OUTPUT: &str = "velocity";
+const STATE_SIZE: usize = 4;
 
 pub struct MidiMonoModuleSpec {
     name: String,
@@ -19,17 +21,18 @@ pub struct MidiMonoModuleSpec {
 
 impl MidiMonoModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
-        let name =
-            props.get(MODULE_NAME)
-                .ok_or(ModuleError::MissingField {
-                    module_type: MODULE_TYPE.to_string(),
-                    field_name: MODULE_NAME.to_string(),
-                })?;
+        let name = props.get(MODULE_NAME).ok_or(ModuleError::MissingField {
+            module_type: MODULE_TYPE.to_string(),
+            field_name: MODULE_NAME.to_string(),
+        })?;
 
         Ok(Self {
             name: name.to_string(),
-            channel: props.get(CHANNEL).map(|s| s.parse::<u8>()).unwrap_or(Ok(1_u8))?,
-            state: [0; 2],
+            channel: props
+                .get(CHANNEL)
+                .map(|s| s.parse::<u8>())
+                .unwrap_or(Ok(1_u8))?,
+            state: [0; STATE_SIZE],
         })
     }
 }
@@ -43,6 +46,8 @@ impl ModuleSpec for MidiMonoModuleSpec {
         let midi_mono = MidiMono::new(
             self.state[0],
             self.state[1],
+            self.state[2],
+            self.state[3],
             self.channel,
         );
 
@@ -53,7 +58,13 @@ impl ModuleSpec for MidiMonoModuleSpec {
         match state_field {
             PITCH_OUTPUT => Ok(self.state[0]),
             GATE_OUTPUT => Ok(self.state[1]),
-            _ => Err(ModuleError::MissingStateName { module_type: MODULE_TYPE.to_string(), module_name: self.name.clone(), field_name: state_field.to_string() }),
+            PRESSURE_OUTPUT => Ok(self.state[2]),
+            VELOCITY_OUTPUT => Ok(self.state[3]),
+            _ => Err(ModuleError::MissingStateName {
+                module_type: MODULE_TYPE.to_string(),
+                module_name: self.name.clone(),
+                field_name: state_field.to_string(),
+            }),
         }
     }
 

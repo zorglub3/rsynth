@@ -13,11 +13,11 @@ pub struct MidiCC {
 
 impl MidiCC {
     pub fn new(
-        output_index: usize, 
-        control: u8, 
+        output_index: usize,
+        control: u8,
         channel: u8,
         min_value: f32,
-        max_value: f32
+        max_value: f32,
     ) -> Self {
         Self {
             output_index,
@@ -36,7 +36,11 @@ impl MidiCC {
 
 impl Module for MidiCC {
     fn simulate(&self, _state: &State, update: &mut StateUpdate) {
-        update.set(self.output_index, self.compute_value(), UpdateType::Absolute);
+        update.set(
+            self.output_index,
+            self.compute_value(),
+            UpdateType::Absolute,
+        );
     }
 
     fn process_event(&mut self, event: &MidiMessage, channel: u8) {

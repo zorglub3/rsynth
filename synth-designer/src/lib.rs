@@ -1,10 +1,10 @@
 pub mod modules;
 
-use core::ops::Range;
-use synth_engine::simulator::module::Module;
-use ini::Ini;
 use crate::modules::*;
+use core::ops::Range;
+use ini::Ini;
 use std::collections::HashMap;
+use synth_engine::simulator::module::Module;
 
 #[derive(Debug)]
 pub enum SynthError {
@@ -35,24 +35,32 @@ impl StateAllocator {
 
     fn allocate_state_slot(&mut self) -> usize {
         if self.0.is_empty() {
-            self.0 = Range { start: self.0.start, end: self.0.end * 2 };
+            self.0 = Range {
+                start: self.0.start,
+                end: self.0.end * 2,
+            };
         }
 
         let slot = self.0.start;
 
-        self.0 = Range { start: self.0.start + 1, end: self.0.end };
+        self.0 = Range {
+            start: self.0.start + 1,
+            end: self.0.end,
+        };
 
         slot
     }
 
     pub fn allocate(&mut self, state: &mut [usize]) {
-        for i in 0 .. state.len() {
-            state[i] = self.allocate_state_slot();            
+        for i in 0..state.len() {
+            state[i] = self.allocate_state_slot();
         }
     }
-} 
+}
 
-pub fn from_ini_file(filename: &str) -> Result<(HashMap<String, Box<dyn Module>>, usize), SynthError> {
+pub fn from_ini_file(
+    filename: &str,
+) -> Result<(HashMap<String, Box<dyn Module>>, usize), SynthError> {
     let mut modules = HashMap::new();
     let spec_file = Ini::load_from_file(filename).map_err(|e| SynthError::FileError(e))?;
     let mut synth_spec = SynthSpec::new();
@@ -91,7 +99,6 @@ pub fn from_ini_file(filename: &str) -> Result<(HashMap<String, Box<dyn Module>>
                     synth_spec.add_module(Box::new(module_spec));
                 }
                 x => return Err(SynthError::UnknownModule(x.to_string())),
-
             }
         } else {
             for (k, v) in props.iter() {
@@ -104,5 +111,5 @@ pub fn from_ini_file(filename: &str) -> Result<(HashMap<String, Box<dyn Module>>
 
     synth_spec.make_modules(&mut modules)?;
 
-    Ok( (modules, state_size) )
+    Ok((modules, state_size))
 }

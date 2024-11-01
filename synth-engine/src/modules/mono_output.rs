@@ -3,15 +3,12 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate};
 
 pub struct MonoOutput {
-    output_index: usize, 
+    output_index: usize,
     state_index: usize,
 }
 
 impl MonoOutput {
-    pub fn new(
-        output_index: usize,
-        state_index: usize,
-    ) -> Self {
+    pub fn new(output_index: usize, state_index: usize) -> Self {
         Self {
             output_index,
             state_index,

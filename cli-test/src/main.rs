@@ -60,7 +60,9 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
 fn main() {
     let args = CliArgs::parse();
 
-    let mut simulator = test_simulator(&args.simulator, 32).with_modules(test_modules(args.test));
+    let mut simulator = 
+        test_simulator(&args.simulator, 32)
+            .with_modules(test_modules(args.test));
 
     let dt = 1.0 / args.sample_rate;
 

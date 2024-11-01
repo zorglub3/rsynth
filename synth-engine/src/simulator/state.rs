@@ -2,6 +2,7 @@
 pub enum UpdateType {
     Differentiable,
     Absolute,
+    ClampedDifferentiable(f32, f32),
     // TODO - more value types? Something for delay lines?
 }
 
@@ -59,6 +60,10 @@ impl State {
             match update.update_types[i] {
                 UpdateType::Differentiable => temp_copy.values[i] += update.updates[i] * weight,
                 UpdateType::Absolute => temp_copy.values[i] = update.updates[i],
+                UpdateType::ClampedDifferentiable(lo, hi) => {
+                    let v = temp_copy.values[i] + (update.updates[i] * weight).min(hi).max(lo);
+                    temp_copy.values[i] = v;
+                }
             }
         }
 
@@ -74,6 +79,9 @@ impl State {
             let mut is_absolute = false;
             let mut update = 0.0_f32;
 
+            let mut lo_bound = -f32::MAX;
+            let mut hi_bound = f32::MAX;
+
             for j in 0..updates.len() {
                 match updates[j].update_types[i] {
                     UpdateType::Absolute => {
@@ -83,17 +91,22 @@ impl State {
                     UpdateType::Differentiable => {
                         update += updates[j].updates[i] * weights[j] * dt;
                     }
+                    UpdateType::ClampedDifferentiable(lo, hi) => {
+                        update += updates[j].updates[i] * weights[j] * dt;
+                        lo_bound = lo_bound.max(lo);
+                        hi_bound = hi_bound.min(hi);
+                    }
                 }
             }
 
             if is_absolute {
-                if weights_sum <= f32::MIN {
+                if weights_sum <= f32::EPSILON {
                     self.values[i] = update;
                 } else {
                     self.values[i] = update / weights_sum;
                 }
             } else {
-                self.values[i] += update;
+                self.values[i] = (self.values[i] + update).max(lo_bound).min(hi_bound);
             }
         }
     }

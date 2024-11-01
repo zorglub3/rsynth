@@ -40,6 +40,8 @@ impl Midi {
                             event: message,
                             channel,
                         });
+                    } else {
+                        println!("Undecodable midi message: {:?}", message);
                     }
                 },
                 (),

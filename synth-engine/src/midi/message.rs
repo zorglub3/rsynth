@@ -39,7 +39,7 @@ fn make_u16(msb: u8, lsb: u8) -> u16 {
 impl MidiMessage {
     /// Parse three bytes of data to a MIDI message. Return `None`, if there is no valid parse
     /// or if the message type is not supported.
-    fn decode_data_message(status: u8, data1: u8, data2: u8) -> Option<(Self, MidiChannel)> {
+    fn decode_3_bytes(status: u8, data1: u8, data2: u8) -> Option<(Self, MidiChannel)> {
         let channel = status & 0x0F;
 
         match status & 0xF0 {
@@ -83,11 +83,22 @@ impl MidiMessage {
         }
     }
 
+    fn decode_2_bytes(status: u8, data1: u8) -> Option<(Self, MidiChannel)> {
+        let channel = status & 0x0F;
+
+        match status & 0xF0 {
+            0xD0 => Some((MidiMessage::ChannelAftertouch { amount: data1 }, channel)),
+            0xC0 => Some((MidiMessage::ProgramChange { program: data1 }, channel)),
+            _ => None,
+        }
+    }
+
     /// Parse the bytes in a slice as MIDI message. Return `None` if there is no parse or if the
     /// message type is not supported.
     pub fn decode(bytes: &[u8]) -> Option<(Self, MidiChannel)> {
         match bytes {
-            [status, data1, data2] => MidiMessage::decode_data_message(*status, *data1, *data2),
+            [status, data1, data2] => MidiMessage::decode_3_bytes(*status, *data1, *data2),
+            [status, data1] => MidiMessage::decode_2_bytes(*status, *data1),
             _ => None,
         }
     }

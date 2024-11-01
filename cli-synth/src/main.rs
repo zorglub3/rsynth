@@ -5,9 +5,9 @@ use cpal::{BuildStreamError, PlayStreamError};
 use std::io;
 use std::io::prelude::*;
 use std::sync::mpsc::channel;
+use synth_designer::from_ini_file;
 use synth_engine::simulator::rungekutta::RungeKutta;
 use thiserror::Error;
-use synth_designer::from_ini_file;
 
 mod audio;
 mod midi;
@@ -71,7 +71,7 @@ fn main() -> Result<(), RuntimeError> {
 
     println!("Reading model definition from {}", args.model.as_str());
     let (model, state_size) = match from_ini_file(args.model.as_str()) {
-        Ok( (m, s) ) => (m, s),
+        Ok((m, s)) => (m, s),
         Err(err) => {
             panic!("Error initializing the synth model: {:?}", err);
         }
@@ -80,8 +80,8 @@ fn main() -> Result<(), RuntimeError> {
     println!("done");
 
     print!("Creating simulator...");
-    let simulator = Box::new(
-        make_simulator(args.simulator.as_str(), state_size).with_modules(model));
+    let simulator =
+        Box::new(make_simulator(args.simulator.as_str(), state_size).with_modules(model));
     println!("done");
 
     print!("Creating communication channel...");
@@ -89,8 +89,7 @@ fn main() -> Result<(), RuntimeError> {
     println!("done");
 
     print!("Creating the simulation runner...");
-    let simulation = 
-        sound_simulation(args.sample_rate, args.buffer_size, simulator, receive)?;
+    let simulation = sound_simulation(args.sample_rate, args.buffer_size, simulator, receive)?;
     println!("done");
 
     print!("Creating the midi interface...");

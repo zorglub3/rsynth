@@ -1,10 +1,10 @@
 mod amp_module;
-mod osc_module;
+mod contour_module;
 mod filter_module;
 mod midi_cc_module;
 mod midi_mono_module;
-mod contour_module;
 mod mono_out_module;
+mod osc_module;
 mod zero;
 
 pub use amp_module::AmpModuleSpec;
@@ -16,12 +16,12 @@ pub use mono_out_module::MonoOutputModuleSpec;
 pub use osc_module::OscillatorModuleSpec;
 pub use zero::ZeroModuleSpec;
 
-use synth_engine::simulator::module::Module;
 use crate::StateAllocator;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::num::ParseFloatError;
 use std::num::ParseIntError;
+use synth_engine::simulator::module::Module;
 
 pub const ZERO_MODULE: &str = "zero";
 pub const ZERO_FIELD: &str = "zero";
@@ -32,17 +32,35 @@ pub struct InputSpec {
 }
 
 pub fn zero_input() -> InputSpec {
-    InputSpec { module_name: ZERO_MODULE.to_string(), state_field: ZERO_FIELD.to_string() }
+    InputSpec {
+        module_name: ZERO_MODULE.to_string(),
+        state_field: ZERO_FIELD.to_string(),
+    }
 }
 
 #[derive(Debug)]
 pub enum ModuleError {
-    MissingField { module_type: String, field_name: String },
-    MalformedInputSpec { value: String },
-    MissingStateName { module_type: String, module_name: String, field_name: String },
-    MissingModule { module_name: String },
-    ParseFloatError { parse_error: ParseFloatError },
-    ParseIntError { parse_error: ParseIntError },
+    MissingField {
+        module_type: String,
+        field_name: String,
+    },
+    MalformedInputSpec {
+        value: String,
+    },
+    MissingStateName {
+        module_type: String,
+        module_name: String,
+        field_name: String,
+    },
+    MissingModule {
+        module_name: String,
+    },
+    ParseFloatError {
+        parse_error: ParseFloatError,
+    },
+    ParseIntError {
+        parse_error: ParseIntError,
+    },
 }
 
 impl From<ParseFloatError> for ModuleError {
@@ -65,23 +83,25 @@ impl SynthSpec {
     }
 
     pub fn add_zero_module(&mut self) {
-        self.0.insert(ZERO_MODULE.to_string(), Box::new(ZeroModuleSpec::new()));
+        self.0
+            .insert(ZERO_MODULE.to_string(), Box::new(ZeroModuleSpec::new()));
     }
 
     pub fn add_module(&mut self, module_spec: Box<dyn ModuleSpec>) {
         let key = module_spec.get_name().to_string();
- 
+
         // TODO check that the key isn't already taken
 
         self.0.insert(key, module_spec);
     }
 
     pub fn input_state_index(&self, input_spec: &InputSpec) -> Result<usize, ModuleError> {
-        let module_spec = 
-            self.0.get(&input_spec.module_name)
-                .ok_or(ModuleError::MissingModule { 
-                    module_name: input_spec.module_name.clone() 
-                });
+        let module_spec = self
+            .0
+            .get(&input_spec.module_name)
+            .ok_or(ModuleError::MissingModule {
+                module_name: input_spec.module_name.clone(),
+            });
 
         module_spec?.state_index(&input_spec.state_field)
     }
@@ -108,12 +128,15 @@ impl SynthSpec {
         size
     }
 
-    pub fn make_modules(&self, modules: &mut HashMap<String, Box<dyn Module>>) -> Result<(), ModuleError> {
+    pub fn make_modules(
+        &self,
+        modules: &mut HashMap<String, Box<dyn Module>>,
+    ) -> Result<(), ModuleError> {
         for (k, v) in self.0.iter() {
             modules.insert(k.clone(), v.create_module(self)?);
         }
 
-        Ok( () )
+        Ok(())
     }
 }
 
@@ -129,16 +152,25 @@ pub fn parse_input_spec(s: &str) -> Result<InputSpec, ModuleError> {
     let mut split = s.split(':');
 
     let Some(module_name) = split.next().map(|s| s.to_string()) else {
-        return Err(ModuleError::MalformedInputSpec { value: s.to_string() });
+        return Err(ModuleError::MalformedInputSpec {
+            value: s.to_string(),
+        });
     };
 
     let Some(state_field) = split.next().map(|s| s.to_string()) else {
-        return Err(ModuleError::MalformedInputSpec { value: s.to_string() });
+        return Err(ModuleError::MalformedInputSpec {
+            value: s.to_string(),
+        });
     };
 
     if split.next().is_none() {
-        Ok(InputSpec { module_name, state_field })
+        Ok(InputSpec {
+            module_name,
+            state_field,
+        })
     } else {
-        Err(ModuleError::MalformedInputSpec { value: s.to_string() })
+        Err(ModuleError::MalformedInputSpec {
+            value: s.to_string(),
+        })
     }
 }

@@ -1,10 +1,10 @@
 use clap::Parser;
-use midir::MidiInput;
 use midir::os::unix::VirtualInput;
-use std::process::exit;
-use synth_engine::midi::message::MidiMessage;
+use midir::MidiInput;
 use std::io;
 use std::io::prelude::*;
+use std::process::exit;
+use synth_engine::midi::message::MidiMessage;
 
 #[derive(Parser, Debug, Clone)]
 struct CliArgs {
@@ -33,12 +33,17 @@ fn main() {
         }
     };
 
-    let conn = match input.create_virtual(&args.name, move |_, message, _| {
-        if let Some( (message, channel) ) = MidiMessage::decode(message) {
-            println!("Channel: {}, Message: {:?}", channel, message);
-        } else {
-            println!("Malformed midi message: {:?}", message);
-    }}, ()) {
+    let conn = match input.create_virtual(
+        &args.name,
+        move |_, message, _| {
+            if let Some((message, channel)) = MidiMessage::decode(message) {
+                println!("Channel: {}, Message: {:?}", channel, message);
+            } else {
+                println!("Malformed midi message: {:?}", message);
+            }
+        },
+        (),
+    ) {
         Ok(conn) => conn,
         Err(err) => {
             println!("Midi connection error: {:?}", err);

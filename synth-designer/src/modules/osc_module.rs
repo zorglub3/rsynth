@@ -1,8 +1,8 @@
-use synth_engine::modules::*;
-use synth_engine::simulator::module::Module;
+use crate::modules::*;
 use crate::*;
 use ini::Properties;
-use crate::modules::*;
+use synth_engine::modules::*;
+use synth_engine::simulator::module::Module;
 
 const MODULE_TYPE: &str = "oscillator";
 const MODULE_NAME: &str = "name";
@@ -28,24 +28,40 @@ pub struct OscillatorModuleSpec {
 
 impl OscillatorModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
-        let name =
-            props.get(MODULE_NAME)
-                .ok_or(ModuleError::MissingField {
-                    module_type: MODULE_TYPE.to_string(),
-                    field_name: MODULE_NAME.to_string(),
-                })?;
+        let name = props.get(MODULE_NAME).ok_or(ModuleError::MissingField {
+            module_type: MODULE_TYPE.to_string(),
+            field_name: MODULE_NAME.to_string(),
+        })?;
 
         Ok(Self {
             name: name.to_string(),
             inputs: [
-                props.get(FREQUENCY_CONTROL).map(parse_input_spec).unwrap_or(Ok(zero_input()))?,
-                props.get(PRESSURE_CONTROL).map(parse_input_spec).unwrap_or(Ok(zero_input()))?,
-                props.get(VELOCITY_CONTROL).map(parse_input_spec).unwrap_or(Ok(zero_input()))?,
+                props
+                    .get(FREQUENCY_CONTROL)
+                    .map(parse_input_spec)
+                    .unwrap_or(Ok(zero_input()))?,
+                props
+                    .get(PRESSURE_CONTROL)
+                    .map(parse_input_spec)
+                    .unwrap_or(Ok(zero_input()))?,
+                props
+                    .get(VELOCITY_CONTROL)
+                    .map(parse_input_spec)
+                    .unwrap_or(Ok(zero_input()))?,
             ],
             state: [0; 2],
-            f0: props.get(FREQ0).map(|s| s.parse::<f32>()).unwrap_or(Ok(1.0_f32))?,
-            a: props.get(PARAM_A).map(|s| s.parse::<f32>()).unwrap_or(Ok(1.0_f32))?,
-            b: props.get(PARAM_B).map(|s| s.parse::<f32>()).unwrap_or(Ok(1.0_f32))?,
+            f0: props
+                .get(FREQ0)
+                .map(|s| s.parse::<f32>())
+                .unwrap_or(Ok(1.0_f32))?,
+            a: props
+                .get(PARAM_A)
+                .map(|s| s.parse::<f32>())
+                .unwrap_or(Ok(1.0_f32))?,
+            b: props
+                .get(PARAM_B)
+                .map(|s| s.parse::<f32>())
+                .unwrap_or(Ok(1.0_f32))?,
         })
     }
 }
@@ -74,7 +90,11 @@ impl ModuleSpec for OscillatorModuleSpec {
         match state_field {
             SIGNAL_1_OUTPUT => Ok(self.state[0]),
             SIGNAL_2_OUTPUT => Ok(self.state[1]),
-            _ => Err(ModuleError::MissingStateName { module_type: MODULE_TYPE.to_string(), module_name: self.name.clone(), field_name: state_field.to_string() }),
+            _ => Err(ModuleError::MissingStateName {
+                module_type: MODULE_TYPE.to_string(),
+                module_name: self.name.clone(),
+                field_name: state_field.to_string(),
+            }),
         }
     }
 
