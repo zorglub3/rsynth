@@ -1,4 +1,5 @@
 use crate::midi::message::MidiMessage;
+use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 
@@ -19,26 +20,26 @@ enum EnvType {
 }
 
 pub struct ADEnvelope {
-    input_index: usize,
+    signal_input: InputExpr,
     output_index: usize,
-    attack_index: usize,
-    decay_index: usize,
+    attack_input: InputExpr,
+    decay_input: InputExpr,
     env_state: EnvState,
     env_type: EnvType,
 }
 
 impl ADEnvelope {
     pub fn new(
-        input_index: usize,
+        signal_input: InputExpr,
         output_index: usize,
-        attack_index: usize,
-        decay_index: usize,
+        attack_input: InputExpr,
+        decay_input: InputExpr,
     ) -> Self {
         Self {
-            input_index,
+            signal_input,
             output_index,
-            attack_index,
-            decay_index,
+            attack_input,
+            decay_input,
             env_state: EnvState::Finished,
             env_type: EnvType::AttackRelease,
         }
@@ -53,22 +54,22 @@ fn rise_decay(t: f32) -> f32 {
 
 impl Module for ADEnvelope {
     fn simulate(&self, state: &State, update: &mut StateUpdate) {
-        let attack = state.get(self.attack_index);
-        let decay = state.get(self.decay_index);
+        let attack = self.attack_input.from_state(state);
+        let decay = self.decay_input.from_state(state);
 
         match self.env_state {
             EnvState::Attack => {
                 update.set(
                     self.output_index,
                     rise_decay(attack),
-                    UpdateType::Differentiable,
+                    UpdateType::ClampedDifferentiable(0., 1.),
                 );
             }
             EnvState::Decay => {
                 update.set(
                     self.output_index,
                     -rise_decay(decay),
-                    UpdateType::Differentiable,
+                    UpdateType::ClampedDifferentiable(0., 1.),
                 );
             }
             _ => { /* do nothing */ }
@@ -80,7 +81,7 @@ impl Module for ADEnvelope {
     }
 
     fn finalize(&mut self, state: &mut State) {
-        let input_state = state.get(self.input_index);
+        let input_state = self.signal_input.from_state(state);
         let output_state = state.get(self.output_index);
 
         match self.env_state {

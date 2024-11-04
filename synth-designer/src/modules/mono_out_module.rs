@@ -31,8 +31,8 @@ impl MonoOutputModuleSpec {
                 .unwrap_or(Ok(1))?,
             inputs: [props
                 .get(SIGNAL_INPUT)
-                .map(parse_input_spec)
-                .unwrap_or(Ok(zero_input()))?],
+                .map(InputSpec::parse)
+                .unwrap_or(Ok(InputSpec::zero()))?],
         })
     }
 }
@@ -43,10 +43,8 @@ impl ModuleSpec for MonoOutputModuleSpec {
     }
 
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
-        let mono_output = MonoOutput::new(
-            self.output_index,
-            synth_spec.input_state_index(&self.inputs[0])?,
-        );
+        let mono_output =
+            MonoOutput::new(self.output_index, synth_spec.input_expr(&self.inputs[0])?);
 
         Ok(Box::new(mono_output))
     }

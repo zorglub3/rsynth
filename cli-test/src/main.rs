@@ -1,9 +1,9 @@
 use clap::Parser;
 use std::collections::HashMap;
 use synth_engine::{
-    modules::bowed::BowedOscillator, modules::folder::Folder,
-    modules::quadrature::QuadratureOscillator, simulator::module::Module,
-    simulator::rungekutta::RungeKutta,
+    modules::bowed::BowedOscillator, modules::folder::Folder, modules::input_expr::InputExpr,
+    modules::mono_output::MonoOutput, modules::quadrature::QuadratureOscillator,
+    simulator::module::Module, simulator::rungekutta::RungeKutta,
 };
 
 #[derive(Parser, Debug, Clone)]
@@ -37,18 +37,43 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
                 "quad_osc".to_string(),
                 Box::new(QuadratureOscillator::new(110., 4, 5, 6)),
             );
-            result.insert("folder".to_string(), Box::new(Folder::new(4, 5, 1)));
+            result.insert(
+                "folder".to_string(),
+                Box::new(Folder::new(InputExpr::zero(), InputExpr::zero(), 1)),
+            );
+            result.insert(
+                "mono_out".to_string(),
+                Box::new(MonoOutput::new(0, InputExpr::from_index(1))),
+            );
         }
         1 => {
             result.insert(
                 "quad_osc".to_string(),
                 Box::new(QuadratureOscillator::new(110., 1, 2, 3)),
             );
+            result.insert(
+                "mono_out".to_string(),
+                Box::new(MonoOutput::new(0, InputExpr::from_index(1))),
+            );
         }
         2 => {
             result.insert(
                 "bowed_osc".to_string(),
-                Box::new(BowedOscillator::new(50., 5.0, 5.0, 2, 1, 0, 0, 0)),
+                Box::new(BowedOscillator::new(
+                    10.,
+                    5.0,
+                    5.0,
+                    2,
+                    1,
+                    InputExpr::constant(5.),
+                    InputExpr::constant(0.),
+                    InputExpr::constant(0.),
+                    InputExpr::constant(0.),
+                )),
+            );
+            result.insert(
+                "mono_out".to_string(),
+                Box::new(MonoOutput::new(0, InputExpr::from_index(2))),
             );
         }
         _ => panic!("No test for {}", test),
@@ -60,9 +85,7 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
 fn main() {
     let args = CliArgs::parse();
 
-    let mut simulator = 
-        test_simulator(&args.simulator, 32)
-            .with_modules(test_modules(args.test));
+    let mut simulator = test_simulator(&args.simulator, 32).with_modules(test_modules(args.test));
 
     let dt = 1.0 / args.sample_rate;
 

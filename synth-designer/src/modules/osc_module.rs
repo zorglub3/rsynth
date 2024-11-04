@@ -7,14 +7,15 @@ use synth_engine::simulator::module::Module;
 const MODULE_TYPE: &str = "oscillator";
 const MODULE_NAME: &str = "name";
 const FREQUENCY_CONTROL: &str = "frequency_control";
+const LINEAR_FREQUENCY_CONTROL: &str = "linear_frequency_control";
 const PRESSURE_CONTROL: &str = "pressure_control";
 const VELOCITY_CONTROL: &str = "velocity_control";
 const SIGNAL_1_OUTPUT: &str = "signal1";
 const SIGNAL_2_OUTPUT: &str = "signal2";
-const FREQ0: &str = "frequenzy_zero";
+const FREQ0: &str = "frequency_zero";
 const PARAM_A: &str = "param_a";
 const PARAM_B: &str = "param_b";
-const INPUT_SIZE: usize = 3;
+const INPUT_SIZE: usize = 4;
 const STATE_SIZE: usize = 2;
 
 pub struct OscillatorModuleSpec {
@@ -38,16 +39,20 @@ impl OscillatorModuleSpec {
             inputs: [
                 props
                     .get(FREQUENCY_CONTROL)
-                    .map(parse_input_spec)
-                    .unwrap_or(Ok(zero_input()))?,
+                    .map(InputSpec::parse)
+                    .unwrap_or(Ok(InputSpec::zero()))?,
+                props
+                    .get(LINEAR_FREQUENCY_CONTROL)
+                    .map(InputSpec::parse)
+                    .unwrap_or(Ok(InputSpec::zero()))?,
                 props
                     .get(PRESSURE_CONTROL)
-                    .map(parse_input_spec)
-                    .unwrap_or(Ok(zero_input()))?,
+                    .map(InputSpec::parse)
+                    .unwrap_or(Ok(InputSpec::zero()))?,
                 props
                     .get(VELOCITY_CONTROL)
-                    .map(parse_input_spec)
-                    .unwrap_or(Ok(zero_input()))?,
+                    .map(InputSpec::parse)
+                    .unwrap_or(Ok(InputSpec::zero()))?,
             ],
             state: [0; 2],
             f0: props
@@ -78,9 +83,10 @@ impl ModuleSpec for OscillatorModuleSpec {
             self.b,
             self.state[0],
             self.state[1],
-            synth_spec.input_state_index(&self.inputs[0])?,
-            synth_spec.input_state_index(&self.inputs[1])?,
-            synth_spec.input_state_index(&self.inputs[2])?,
+            synth_spec.input_expr(&self.inputs[0])?,
+            synth_spec.input_expr(&self.inputs[1])?,
+            synth_spec.input_expr(&self.inputs[2])?,
+            synth_spec.input_expr(&self.inputs[3])?,
         );
 
         Ok(Box::new(osc))

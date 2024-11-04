@@ -1,7 +1,9 @@
 pub mod ad_envelope;
 pub mod amplifier;
 pub mod bowed;
+// pub mod delay_line;
 pub mod folder;
+pub mod input_expr;
 pub mod midi_cc;
 pub mod midi_mono;
 pub mod mixer;
@@ -14,6 +16,8 @@ pub mod zero;
 pub use ad_envelope::ADEnvelope;
 pub use amplifier::Amplifier;
 pub use bowed::BowedOscillator;
+// pub use delay_line::DelayLine;
+pub use input_expr::{InputExpr, InputTerm};
 pub use midi_cc::MidiCC;
 pub use midi_mono::MidiMono;
 pub use mixer::Mixer;

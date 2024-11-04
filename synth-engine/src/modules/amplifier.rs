@@ -1,26 +1,27 @@
 use crate::midi::message::MidiMessage;
+use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 
 pub struct Amplifier {
-    input_index: usize,
+    signal_input: InputExpr,
     output_index: usize,
-    lin_control_index: usize,
-    exp_control_index: usize,
+    lin_control_input: InputExpr,
+    exp_control_input: InputExpr,
 }
 
 impl Amplifier {
     pub fn new(
-        input_index: usize,
+        signal_input: InputExpr,
         output_index: usize,
-        lin_control_index: usize,
-        exp_control_index: usize,
+        lin_control_input: InputExpr,
+        exp_control_input: InputExpr,
     ) -> Self {
         Self {
-            input_index,
+            signal_input,
             output_index,
-            lin_control_index,
-            exp_control_index,
+            lin_control_input,
+            exp_control_input,
         }
     }
 }
@@ -38,18 +39,11 @@ fn amplifier_amount(lin_control: f32, exp_control: f32) -> f32 {
 
 impl Module for Amplifier {
     fn simulate(&self, state: &State, update: &mut StateUpdate) {
-        let input = state.get(self.input_index);
+        let input = self.signal_input.from_state(state);
         let m = amplifier_amount(
-            state.get(self.lin_control_index),
-            state.get(self.exp_control_index),
+            self.lin_control_input.from_state(state),
+            self.exp_control_input.from_state(state),
         );
-        /*
-        if m > 0. {
-            println!("out: {}, signal: {}, amp: {}", input * m, input, m);
-            println!("lin control: {}", state.get(self.lin_control_index));
-            println!("exp control: {}", state.get(self.exp_control_index));
-        }
-        */
         update.set(self.output_index, input * m, UpdateType::Absolute);
     }
 

@@ -31,16 +31,16 @@ impl AmpModuleSpec {
             inputs: [
                 props
                     .get(SIGNAL_INPUT)
-                    .map(parse_input_spec)
-                    .unwrap_or(Ok(zero_input()))?,
+                    .map(InputSpec::parse)
+                    .unwrap_or(Ok(InputSpec::zero()))?,
                 props
                     .get(LINEAR_CONTROL)
-                    .map(parse_input_spec)
-                    .unwrap_or(Ok(zero_input()))?,
+                    .map(InputSpec::parse)
+                    .unwrap_or(Ok(InputSpec::zero()))?,
                 props
                     .get(EXP_CONTROL)
-                    .map(parse_input_spec)
-                    .unwrap_or(Ok(zero_input()))?,
+                    .map(InputSpec::parse)
+                    .unwrap_or(Ok(InputSpec::zero()))?,
             ],
             state: [0],
         })
@@ -54,10 +54,10 @@ impl ModuleSpec for AmpModuleSpec {
 
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
         let amplifier = Amplifier::new(
-            synth_spec.input_state_index(&self.inputs[0])?,
+            synth_spec.input_expr(&self.inputs[0])?,
             self.state[0],
-            synth_spec.input_state_index(&self.inputs[1])?,
-            synth_spec.input_state_index(&self.inputs[2])?,
+            synth_spec.input_expr(&self.inputs[1])?,
+            synth_spec.input_expr(&self.inputs[2])?,
         );
 
         Ok(Box::new(amplifier))

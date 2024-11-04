@@ -1,6 +1,7 @@
 mod amp_module;
 mod contour_module;
 mod filter_module;
+mod input_spec;
 mod midi_cc_module;
 mod midi_mono_module;
 mod mono_out_module;
@@ -10,6 +11,8 @@ mod zero;
 pub use amp_module::AmpModuleSpec;
 pub use contour_module::ContourModuleSpec;
 pub use filter_module::FilterModuleSpec;
+pub use input_spec::InputSpec;
+pub use input_spec::InputSpecTerm;
 pub use midi_cc_module::MidiCCModuleSpec;
 pub use midi_mono_module::MidiMonoModuleSpec;
 pub use mono_out_module::MonoOutputModuleSpec;
@@ -21,11 +24,13 @@ use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::num::ParseFloatError;
 use std::num::ParseIntError;
+use synth_engine::modules::{InputExpr, InputTerm};
 use synth_engine::simulator::module::Module;
 
 pub const ZERO_MODULE: &str = "zero";
 pub const ZERO_FIELD: &str = "zero";
 
+/*
 pub struct InputSpec {
     module_name: String,
     state_field: String,
@@ -37,6 +42,7 @@ pub fn zero_input() -> InputSpec {
         state_field: ZERO_FIELD.to_string(),
     }
 }
+*/
 
 #[derive(Debug)]
 pub enum ModuleError {
@@ -95,16 +101,44 @@ impl SynthSpec {
         self.0.insert(key, module_spec);
     }
 
-    pub fn input_state_index(&self, input_spec: &InputSpec) -> Result<usize, ModuleError> {
-        let module_spec = self
-            .0
-            .get(&input_spec.module_name)
-            .ok_or(ModuleError::MissingModule {
-                module_name: input_spec.module_name.clone(),
-            });
+    pub fn input_state_index(
+        &self,
+        module_name: &str,
+        module_field: &str,
+    ) -> Result<usize, ModuleError> {
+        let module_spec = self.0.get(module_name).ok_or(ModuleError::MissingModule {
+            module_name: module_name.to_string(),
+        });
 
-        module_spec?.state_index(&input_spec.state_field)
+        module_spec?.state_index(module_field)
     }
+
+    pub fn input_expr(&self, input_spec: &InputSpec) -> Result<InputExpr, ModuleError> {
+        let mut result = vec![];
+
+        for term in input_spec.0.iter() {
+            match term {
+                InputSpecTerm::Constant(v) => result.push(InputTerm::constant(*v)),
+                InputSpecTerm::Term {
+                    module_name,
+                    module_field,
+                    scale,
+                } => {
+                    let state_index = self.input_state_index(module_name, module_field)?;
+                    result.push(InputTerm::term(state_index, *scale));
+                }
+            }
+        }
+
+        Ok(InputExpr::new(result))
+    }
+    /*
+    pub fn input_expr(&self, input_spec: &InputSpec) -> Result<InputExpr, ModuleError> {
+        let state_index = self.input_state_index(input_spec)?;
+
+        Ok(InputExpr::new(vec![InputTerm::term(state_index, 1.)]))
+    }
+    */
 
     fn state_size(&self) -> usize {
         let mut state_size: usize = 0;
@@ -148,6 +182,7 @@ pub trait ModuleSpec {
     fn state_size(&self) -> usize;
 }
 
+/*
 pub fn parse_input_spec(s: &str) -> Result<InputSpec, ModuleError> {
     let mut split = s.split(':');
 
@@ -174,3 +209,4 @@ pub fn parse_input_spec(s: &str) -> Result<InputSpec, ModuleError> {
         })
     }
 }
+*/

@@ -1,18 +1,19 @@
 use crate::midi::message::MidiMessage;
+use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 
 pub struct Modulator {
-    input1_index: usize,
-    input2_index: usize,
+    signal_1_input: InputExpr,
+    signal_2_input: InputExpr,
     output_index: usize,
 }
 
 impl Modulator {
-    pub fn new(input1_index: usize, input2_index: usize, output_index: usize) -> Self {
+    pub fn new(signal_1_input: InputExpr, signal_2_input: InputExpr, output_index: usize) -> Self {
         Self {
-            input1_index,
-            input2_index,
+            signal_1_input,
+            signal_2_input,
             output_index,
         }
     }
@@ -20,11 +21,10 @@ impl Modulator {
 
 impl Module for Modulator {
     fn simulate(&self, state: &State, update: &mut StateUpdate) {
-        update.set(
-            self.output_index,
-            state.get(self.input1_index) * state.get(self.input2_index),
-            UpdateType::Absolute,
-        );
+        let u = self.signal_1_input.from_state(state);
+        let v = self.signal_2_input.from_state(state);
+
+        update.set(self.output_index, u * v, UpdateType::Absolute);
     }
 
     fn process_event(&mut self, _event: &MidiMessage, _channel: u8) {

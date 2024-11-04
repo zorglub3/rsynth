@@ -3,7 +3,6 @@ pub enum UpdateType {
     Differentiable,
     Absolute,
     ClampedDifferentiable(f32, f32),
-    // TODO - more value types? Something for delay lines?
 }
 
 #[derive(Debug, Clone)]

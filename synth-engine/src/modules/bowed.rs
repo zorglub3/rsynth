@@ -1,4 +1,5 @@
 use crate::midi::message::MidiMessage;
+use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use std::f32::consts::PI;
@@ -9,9 +10,10 @@ pub struct BowedOscillator {
     b: f32,
     state_u_index: usize,
     state_v_index: usize,
-    control_index: usize,
-    pressure_index: usize,
-    velocity_index: usize,
+    control_input: InputExpr,
+    linear_control: InputExpr,
+    pressure_input: InputExpr,
+    velocity_input: InputExpr,
 }
 
 impl BowedOscillator {
@@ -21,9 +23,10 @@ impl BowedOscillator {
         b: f32,
         state_u_index: usize,
         state_v_index: usize,
-        control_index: usize,
-        pressure_index: usize,
-        velocity_index: usize,
+        control_input: InputExpr,
+        linear_control: InputExpr,
+        pressure_input: InputExpr,
+        velocity_input: InputExpr,
     ) -> Self {
         Self {
             f0,
@@ -31,9 +34,10 @@ impl BowedOscillator {
             b,
             state_u_index,
             state_v_index,
-            control_index,
-            pressure_index,
-            velocity_index,
+            control_input,
+            linear_control,
+            pressure_input,
+            velocity_input,
         }
     }
 }
@@ -48,15 +52,18 @@ fn friction(a: f32, b: f32, x: f32) -> f32 {
 
 impl Module for BowedOscillator {
     fn simulate(&self, state: &State, update: &mut StateUpdate) {
-        let omega = control_to_frequency(self.f0, state.get(self.control_index), 0.0) * (2. * PI);
+        let omega = control_to_frequency(
+            self.f0,
+            self.control_input.from_state(state),
+            self.linear_control.from_state(state),
+        ) * 2.0
+            * PI;
+
         let u = state.get(self.state_u_index);
         let v = state.get(self.state_v_index);
 
-        // vb should be in [-1, 1]
-        let vb = state.get(self.velocity_index);
-        let force = state.get(self.pressure_index);
-
-        let force: f32 = force.min(omega / 2.);
+        let vb = self.velocity_input.from_state(state).max(-1.).min(1.);
+        let force = self.pressure_input.from_state(state).min(omega / 2.);
 
         let f = force * friction(self.a, self.b, v - vb);
 

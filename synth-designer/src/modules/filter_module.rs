@@ -33,16 +33,16 @@ impl FilterModuleSpec {
             inputs: [
                 props
                     .get(SIGNAL_INPUT)
-                    .map(parse_input_spec)
-                    .unwrap_or(Ok(zero_input()))?,
+                    .map(InputSpec::parse)
+                    .unwrap_or(Ok(InputSpec::zero()))?,
                 props
                     .get(CUTOFF_CONTROL)
-                    .map(parse_input_spec)
-                    .unwrap_or(Ok(zero_input()))?,
+                    .map(InputSpec::parse)
+                    .unwrap_or(Ok(InputSpec::zero()))?,
                 props
                     .get(RESONANCE_CONTROL)
-                    .map(parse_input_spec)
-                    .unwrap_or(Ok(zero_input()))?,
+                    .map(InputSpec::parse)
+                    .unwrap_or(Ok(InputSpec::zero()))?,
             ],
             state: [0; 4],
             f0: props
@@ -65,9 +65,9 @@ impl ModuleSpec for FilterModuleSpec {
             self.state[1],
             self.state[2],
             self.state[3],
-            synth_spec.input_state_index(&self.inputs[1])?,
-            synth_spec.input_state_index(&self.inputs[2])?,
-            synth_spec.input_state_index(&self.inputs[0])?,
+            synth_spec.input_expr(&self.inputs[1])?,
+            synth_spec.input_expr(&self.inputs[2])?,
+            synth_spec.input_expr(&self.inputs[0])?,
         );
 
         Ok(Box::new(filter))
