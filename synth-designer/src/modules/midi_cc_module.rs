@@ -6,7 +6,6 @@ use synth_engine::simulator::module::Module;
 
 const MODULE_TYPE: &str = "midi_cc";
 const MODULE_NAME: &str = "name";
-const CHANNEL: &str = "channel";
 const CONTROL: &str = "control";
 const SIGNAL_OUTPUT: &str = "signal_output";
 const MIN_VALUE: &str = "min_value";
@@ -15,8 +14,7 @@ const STATE_SIZE: usize = 1;
 
 pub struct MidiCCModuleSpec {
     name: String,
-    channel: u8,
-    control: u8,
+    control: usize,
     state: [usize; STATE_SIZE],
     min_value: f32,
     max_value: f32,
@@ -24,30 +22,32 @@ pub struct MidiCCModuleSpec {
 
 impl MidiCCModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
-        let name = props.get(MODULE_NAME).ok_or(ModuleError::MissingField {
-            module_type: MODULE_TYPE.to_string(),
-            field_name: MODULE_NAME.to_string(),
-        })?;
+        let mut name: String = MODULE_TYPE.to_string();
+        let mut control: usize = 0;
+        let mut min_value: f32 = 0.;
+        let mut max_value: f32 = 1.;
+
+        for (k, v) in props {
+            match k.as_str() {
+                MODULE_NAME => name = v.to_string(),
+                CONTROL => control = v.parse::<usize>()?,
+                MIN_VALUE => min_value = v.parse::<f32>()?,
+                MAX_VALUE => max_value = v.parse::<f32>()?,
+                _ => {
+                    return Err(ModuleError::InvalidField {
+                        module_type: MODULE_TYPE.to_string(),
+                        field_name: k,
+                    })
+                }
+            }
+        }
 
         Ok(Self {
-            name: name.to_string(),
-            channel: props
-                .get(CHANNEL)
-                .map(|s| s.parse::<u8>())
-                .unwrap_or(Ok(1_u8))?,
-            control: props
-                .get(CONTROL)
-                .map(|s| s.parse::<u8>())
-                .unwrap_or(Ok(1_u8))?,
+            name,
+            control,
             state: [0; 1],
-            min_value: props
-                .get(MIN_VALUE)
-                .map(|s| s.parse::<f32>())
-                .unwrap_or(Ok(0.))?,
-            max_value: props
-                .get(MAX_VALUE)
-                .map(|s| s.parse::<f32>())
-                .unwrap_or(Ok(1.))?,
+            min_value,
+            max_value,
         })
     }
 }
@@ -58,13 +58,7 @@ impl ModuleSpec for MidiCCModuleSpec {
     }
 
     fn create_module(&self, _synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
-        let midi_cc = MidiCC::new(
-            self.state[0],
-            self.control,
-            self.channel,
-            self.min_value,
-            self.max_value,
-        );
+        let midi_cc = MidiCC::new(self.state[0], self.control, self.min_value, self.max_value);
 
         Ok(Box::new(midi_cc))
     }

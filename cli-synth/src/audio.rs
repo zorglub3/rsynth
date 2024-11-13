@@ -5,7 +5,8 @@ use cpal::{
     SupportedStreamConfigRange,
 };
 use std::sync::mpsc::Receiver;
-use synth_engine::event::Event;
+use synth_engine::event::ControllerEvent;
+// use synth_engine::event::Event;
 use synth_engine::simulator::rungekutta::RungeKutta;
 
 pub struct AudioStream(Box<dyn StreamTrait>);
@@ -53,7 +54,7 @@ pub fn sound_simulation(
     sample_rate: u32,
     buffer_size: u32,
     mut simulation: Box<RungeKutta>,
-    receiver: Receiver<Event>,
+    receiver: Receiver<ControllerEvent>,
 ) -> Result<AudioStream, BuildStreamError> {
     let host = cpal::default_host();
     let device = host

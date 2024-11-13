@@ -1,22 +1,28 @@
 mod amp_module;
 mod contour_module;
-mod filter_module;
+mod filter_12db_module;
+mod folder_module;
 mod input_spec;
+mod lp_filter_24db_module;
 mod midi_cc_module;
 mod midi_mono_module;
 mod mono_out_module;
 mod osc_module;
+mod saw_osc;
 mod zero;
 
 pub use amp_module::AmpModuleSpec;
 pub use contour_module::ContourModuleSpec;
-pub use filter_module::FilterModuleSpec;
+pub use filter_12db_module::Filter12dbModuleSpec;
+pub use folder_module::FolderModuleSpec;
 pub use input_spec::InputSpec;
 pub use input_spec::InputSpecTerm;
+pub use lp_filter_24db_module::LpFilter24dbModuleSpec;
 pub use midi_cc_module::MidiCCModuleSpec;
 pub use midi_mono_module::MidiMonoModuleSpec;
 pub use mono_out_module::MonoOutputModuleSpec;
 pub use osc_module::OscillatorModuleSpec;
+pub use saw_osc::SawOscillatorModuleSpec;
 pub use zero::ZeroModuleSpec;
 
 use crate::StateAllocator;
@@ -30,20 +36,6 @@ use synth_engine::simulator::module::Module;
 pub const ZERO_MODULE: &str = "zero";
 pub const ZERO_FIELD: &str = "zero";
 
-/*
-pub struct InputSpec {
-    module_name: String,
-    state_field: String,
-}
-
-pub fn zero_input() -> InputSpec {
-    InputSpec {
-        module_name: ZERO_MODULE.to_string(),
-        state_field: ZERO_FIELD.to_string(),
-    }
-}
-*/
-
 #[derive(Debug)]
 pub enum ModuleError {
     MissingField {
@@ -52,6 +44,10 @@ pub enum ModuleError {
     },
     MalformedInputSpec {
         value: String,
+    },
+    InvalidField {
+        module_type: String,
+        field_name: String,
     },
     MissingStateName {
         module_type: String,
@@ -132,13 +128,6 @@ impl SynthSpec {
 
         Ok(InputExpr::new(result))
     }
-    /*
-    pub fn input_expr(&self, input_spec: &InputSpec) -> Result<InputExpr, ModuleError> {
-        let state_index = self.input_state_index(input_spec)?;
-
-        Ok(InputExpr::new(vec![InputTerm::term(state_index, 1.)]))
-    }
-    */
 
     fn state_size(&self) -> usize {
         let mut state_size: usize = 0;

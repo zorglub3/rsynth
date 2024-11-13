@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use synth_engine::{
     modules::bowed::BowedOscillator, modules::folder::Folder, modules::input_expr::InputExpr,
     modules::mono_output::MonoOutput, modules::quadrature::QuadratureOscillator,
-    simulator::module::Module, simulator::rungekutta::RungeKutta,
+    modules::saw_osc::SawOscillator, simulator::module::Module, simulator::rungekutta::RungeKutta,
 };
 
 #[derive(Parser, Debug, Clone)]
@@ -69,6 +69,22 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
                     InputExpr::constant(0.),
                     InputExpr::constant(0.),
                     InputExpr::constant(0.),
+                )),
+            );
+            result.insert(
+                "mono_out".to_string(),
+                Box::new(MonoOutput::new(0, InputExpr::from_index(2))),
+            );
+        }
+        3 => {
+            result.insert(
+                "saw_osc".to_string(),
+                Box::new(SawOscillator::new(
+                    0.,
+                    1,
+                    2,
+                    InputExpr::constant(0.),
+                    InputExpr::constant(200.),
                 )),
             );
             result.insert(

@@ -1,4 +1,4 @@
-use crate::midi::message::MidiMessage;
+use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use std::f32::consts::PI;
@@ -35,11 +35,11 @@ impl Module for QuadratureOscillator {
         update.set(self.state_y_index, -omega * x, UpdateType::Differentiable);
     }
 
-    fn process_event(&mut self, _event: &MidiMessage, _channel: u8) {
+    fn process_event(&mut self, _event: &ControllerEvent) {
         /* do nothing */
     }
 
-    fn finalize(&mut self, state: &mut State) {
+    fn finalize(&mut self, state: &mut State, _time_step: f32) {
         let x = state.get(self.state_x_index);
         let y = state.get(self.state_y_index);
         let s = (x * x + y * y).sqrt();

@@ -7,7 +7,9 @@
 //! program for suggestions. (It does provide an `enum` to represent the MIDI
 //! messages though).
 
+// TODO clean up
 pub mod event;
-pub mod midi;
+// pub mod midi;
+pub mod interpolation;
 pub mod modules;
 pub mod simulator;

@@ -1,4 +1,4 @@
-use crate::midi::message::MidiMessage;
+use crate::event::ControllerEvent;
 use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
@@ -50,12 +50,22 @@ fn friction(a: f32, b: f32, x: f32) -> f32 {
     a * x * (-b * x * x + 0.5).exp()
 }
 
+fn sign(v: f32) -> f32 {
+    if v < 0. {
+        -1.
+    } else {
+        1.
+    }
+}
+
 impl Module for BowedOscillator {
     fn simulate(&self, state: &State, update: &mut StateUpdate) {
+        let linear_control = self.linear_control.from_state(state);
+
         let omega = control_to_frequency(
             self.f0,
             self.control_input.from_state(state),
-            self.linear_control.from_state(state),
+            linear_control,
         ) * 2.0
             * PI;
 
@@ -75,11 +85,11 @@ impl Module for BowedOscillator {
         );
     }
 
-    fn process_event(&mut self, _event: &MidiMessage, _channel: u8) {
+    fn process_event(&mut self, _event: &ControllerEvent) {
         /* do nothing */
     }
 
-    fn finalize(&mut self, state: &mut State) {
+    fn finalize(&mut self, state: &mut State, _time_step: f32) {
         let u = state.get(self.state_u_index);
         let v = state.get(self.state_v_index);
         let s = (u * u + v * v).sqrt();

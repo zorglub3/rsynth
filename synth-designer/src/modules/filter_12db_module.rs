@@ -4,34 +4,44 @@ use ini::Properties;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
 
-const MODULE_TYPE: &str = "contour";
+const MODULE_TYPE: &str = "filter_12db";
 const MODULE_NAME: &str = "name";
 const SIGNAL_INPUT: &str = "signal_input";
-const SIGNAL_OUTPUT: &str = "signal_output";
-const RISE_CONTROL: &str = "rise_control";
-const DECAY_CONTROL: &str = "decay_control";
-const INPUT_SIZE: usize = 3;
-const STATE_SIZE: usize = 1;
+const FREQUENCY_ZERO: &str = "frequency_zero";
+const CUTOFF_CONTROL: &str = "cutoff_frequency";
+const RESONANCE_CONTROL: &str = "resonance";
+const LINEAR_CONTROL: &str = "linear_control";
+const LP_OUTPUT: &str = "lp_output";
+const BP_OUTPUT: &str = "bp_output";
+const HP_OUTPUT: &str = "hp_output";
 
-pub struct ContourModuleSpec {
+const INPUT_SIZE: usize = 4;
+const STATE_SIZE: usize = 3;
+
+pub struct Filter12dbModuleSpec {
     name: String,
     inputs: [InputSpec; INPUT_SIZE],
     state: [usize; STATE_SIZE],
+    f0: f32,
 }
 
-impl ContourModuleSpec {
+impl Filter12dbModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
-        let mut signal_in: InputSpec = InputSpec::zero();
-        let mut rise_control: InputSpec = InputSpec::zero();
-        let mut decay_control: InputSpec = InputSpec::zero();
+        let mut f0: f32 = 1.;
+        let mut fc: Option<InputSpec> = None;
+        let mut lc: Option<InputSpec> = None;
+        let mut rc: Option<InputSpec> = None;
+        let mut input: Option<InputSpec> = None;
 
         for (k, v) in props {
             match k.as_str() {
                 MODULE_NAME => name = v.to_string(),
-                SIGNAL_INPUT => signal_in = InputSpec::parse(&v)?,
-                RISE_CONTROL => rise_control = InputSpec::parse(&v)?,
-                DECAY_CONTROL => decay_control = InputSpec::parse(&v)?,
+                SIGNAL_INPUT => input = Some(InputSpec::parse(&v)?),
+                CUTOFF_CONTROL => fc = Some(InputSpec::parse(&v)?),
+                RESONANCE_CONTROL => rc = Some(InputSpec::parse(&v)?),
+                LINEAR_CONTROL => lc = Some(InputSpec::parse(&v)?),
+                FREQUENCY_ZERO => f0 = v.parse::<f32>()?,
                 _ => {
                     return Err(ModuleError::InvalidField {
                         module_type: MODULE_TYPE.to_string(),
@@ -43,31 +53,43 @@ impl ContourModuleSpec {
 
         Ok(Self {
             name,
-            inputs: [signal_in, rise_control, decay_control],
+            f0,
+            inputs: [
+                input.unwrap_or(InputSpec::zero()),
+                fc.unwrap_or(InputSpec::zero()),
+                lc.unwrap_or(InputSpec::zero()),
+                rc.unwrap_or(InputSpec::zero()),
+            ],
             state: [0; STATE_SIZE],
         })
     }
 }
 
-impl ModuleSpec for ContourModuleSpec {
+impl ModuleSpec for Filter12dbModuleSpec {
     fn allocate_state(&mut self, alloc: &mut StateAllocator) {
         alloc.allocate(&mut self.state);
     }
 
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
-        let env = ADEnvelope::new(
-            synth_spec.input_expr(&self.inputs[0])?,
+        let filter = Filter12db::new(
+            self.f0,
             self.state[0],
+            self.state[1],
+            self.state[2],
             synth_spec.input_expr(&self.inputs[1])?,
             synth_spec.input_expr(&self.inputs[2])?,
+            synth_spec.input_expr(&self.inputs[3])?,
+            synth_spec.input_expr(&self.inputs[0])?,
         );
 
-        Ok(Box::new(env))
+        Ok(Box::new(filter))
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
         match state_field {
-            SIGNAL_OUTPUT => Ok(self.state[0]),
+            HP_OUTPUT => Ok(self.state[0]),
+            BP_OUTPUT => Ok(self.state[1]),
+            LP_OUTPUT => Ok(self.state[2]),
             _ => Err(ModuleError::MissingStateName {
                 module_type: MODULE_TYPE.to_string(),
                 module_name: self.name.clone(),

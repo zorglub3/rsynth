@@ -93,7 +93,11 @@ fn main() -> Result<(), RuntimeError> {
     println!("done");
 
     print!("Creating the midi interface...");
-    let midi = Midi::new(args.name.as_str(), send)?;
+    let midi = Midi::new(
+        args.name.as_str(),
+        args.channel.map(|x| x.try_into().unwrap()),
+        send,
+    )?;
     println!("done");
 
     println!("Running the simulation...");

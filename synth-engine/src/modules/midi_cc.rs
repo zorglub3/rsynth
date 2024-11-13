@@ -1,60 +1,61 @@
-use crate::midi::message::MidiMessage;
+use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
+use core::f32::consts::PI;
 
 pub struct MidiCC {
     output_index: usize,
-    control: u8,
-    value: u8,
-    channel: u8,
+    control: usize,
+    value: f32,
     min_value: f32,
     max_value: f32,
+    filter_freq: Option<f32>,
 }
 
 impl MidiCC {
-    pub fn new(
-        output_index: usize,
-        control: u8,
-        channel: u8,
-        min_value: f32,
-        max_value: f32,
-    ) -> Self {
+    pub fn new(output_index: usize, control: usize, min_value: f32, max_value: f32) -> Self {
         Self {
             output_index,
             control,
-            value: 0,
-            channel,
+            value: 0.,
             min_value,
             max_value,
+            filter_freq: Some(50.),
         }
     }
 
     fn compute_value(&self) -> f32 {
-        (self.max_value - self.min_value) * (self.value as f32) / 127. + self.min_value
+        (self.max_value - self.min_value) * self.value + self.min_value
     }
 }
 
 impl Module for MidiCC {
-    fn simulate(&self, _state: &State, update: &mut StateUpdate) {
-        update.set(
-            self.output_index,
-            self.compute_value(),
-            UpdateType::Absolute,
-        );
-    }
+    fn simulate(&self, state: &State, update: &mut StateUpdate) {
+        if let Some(freq) = self.filter_freq {
+            let k = 2. * PI * freq;
+            let v = self.compute_value();
+            let d = v - state.get(self.output_index);
 
-    fn process_event(&mut self, event: &MidiMessage, channel: u8) {
-        if channel == self.channel {
-            match event {
-                MidiMessage::ContinuousControl { control, value } if *control == self.control => {
-                    self.value = *value;
-                }
-                _ => { /* do nothing */ }
-            }
+            update.set(self.output_index, k * d, UpdateType::Differentiable);
+        } else {
+            update.set(
+                self.output_index,
+                self.compute_value(),
+                UpdateType::Absolute,
+            );
         }
     }
 
-    fn finalize(&mut self, _state: &mut State) {
+    fn process_event(&mut self, event: &ControllerEvent) {
+        match event {
+            ControllerEvent::ContinuousControl { control, value } if *control == self.control => {
+                self.value = *value;
+            }
+            _ => { /* do nothing */ }
+        }
+    }
+
+    fn finalize(&mut self, _state: &mut State, _time_step: f32) {
         /* do nothing */
     }
 }

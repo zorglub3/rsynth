@@ -1,4 +1,4 @@
-use crate::midi::message::MidiMessage;
+use crate::event::ControllerEvent;
 use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
@@ -47,11 +47,11 @@ impl Module for Amplifier {
         update.set(self.output_index, input * m, UpdateType::Absolute);
     }
 
-    fn process_event(&mut self, _event: &MidiMessage, _channel: u8) {
+    fn process_event(&mut self, _event: &ControllerEvent) {
         /* do nothing */
     }
 
-    fn finalize(&mut self, _state: &mut State) {
+    fn finalize(&mut self, _state: &mut State, _time_step: f32) {
         /* do nothing */
     }
 }

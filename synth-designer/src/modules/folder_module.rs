@@ -4,34 +4,32 @@ use ini::Properties;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
 
-const MODULE_TYPE: &str = "contour";
+const MODULE_TYPE: &str = "folder";
 const MODULE_NAME: &str = "name";
 const SIGNAL_INPUT: &str = "signal_input";
+const CONTROL: &str = "control";
 const SIGNAL_OUTPUT: &str = "signal_output";
-const RISE_CONTROL: &str = "rise_control";
-const DECAY_CONTROL: &str = "decay_control";
-const INPUT_SIZE: usize = 3;
-const STATE_SIZE: usize = 1;
 
-pub struct ContourModuleSpec {
+const STATE_SIZE: usize = 1;
+const INPUT_SIZE: usize = 2;
+
+pub struct FolderModuleSpec {
     name: String,
     inputs: [InputSpec; INPUT_SIZE],
     state: [usize; STATE_SIZE],
 }
 
-impl ContourModuleSpec {
+impl FolderModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
         let mut signal_in: InputSpec = InputSpec::zero();
-        let mut rise_control: InputSpec = InputSpec::zero();
-        let mut decay_control: InputSpec = InputSpec::zero();
+        let mut control: InputSpec = InputSpec::zero();
 
         for (k, v) in props {
             match k.as_str() {
                 MODULE_NAME => name = v.to_string(),
                 SIGNAL_INPUT => signal_in = InputSpec::parse(&v)?,
-                RISE_CONTROL => rise_control = InputSpec::parse(&v)?,
-                DECAY_CONTROL => decay_control = InputSpec::parse(&v)?,
+                CONTROL => control = InputSpec::parse(&v)?,
                 _ => {
                     return Err(ModuleError::InvalidField {
                         module_type: MODULE_TYPE.to_string(),
@@ -43,26 +41,25 @@ impl ContourModuleSpec {
 
         Ok(Self {
             name,
-            inputs: [signal_in, rise_control, decay_control],
+            inputs: [signal_in, control],
             state: [0; STATE_SIZE],
         })
     }
 }
 
-impl ModuleSpec for ContourModuleSpec {
+impl ModuleSpec for FolderModuleSpec {
     fn allocate_state(&mut self, alloc: &mut StateAllocator) {
         alloc.allocate(&mut self.state);
     }
 
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
-        let env = ADEnvelope::new(
+        let folder = Folder::new(
             synth_spec.input_expr(&self.inputs[0])?,
-            self.state[0],
             synth_spec.input_expr(&self.inputs[1])?,
-            synth_spec.input_expr(&self.inputs[2])?,
+            self.state[0],
         );
 
-        Ok(Box::new(env))
+        Ok(Box::new(folder))
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

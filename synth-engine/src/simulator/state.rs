@@ -15,6 +15,7 @@ pub struct StateUpdate {
     updates: Vec<f32>,
     update_types: Vec<UpdateType>,
     delta_time: f32,
+    time_step: f32,
 }
 
 impl State {
@@ -29,11 +30,12 @@ impl State {
         self.values.len()
     }
 
-    pub fn update_data(&self, delta_time: f32) -> StateUpdate {
+    pub fn update_data(&self, delta_time: f32, time_step: f32) -> StateUpdate {
         StateUpdate {
             updates: vec![0.0_f32; self.len()],
             update_types: vec![UpdateType::Differentiable; self.len()],
             delta_time,
+            time_step,
         }
     }
 
@@ -129,5 +131,9 @@ impl StateUpdate {
 
     pub fn get_delta_time(&self) -> f32 {
         self.delta_time
+    }
+
+    pub fn get_time_step(&self) -> f32 {
+        self.time_step
     }
 }

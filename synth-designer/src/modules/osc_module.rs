@@ -29,44 +29,41 @@ pub struct OscillatorModuleSpec {
 
 impl OscillatorModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
-        let name = props.get(MODULE_NAME).ok_or(ModuleError::MissingField {
-            module_type: MODULE_TYPE.to_string(),
-            field_name: MODULE_NAME.to_string(),
-        })?;
+        let mut name: String = MODULE_TYPE.to_string();
+        let mut fc: InputSpec = InputSpec::zero();
+        let mut lc: InputSpec = InputSpec::zero();
+        let mut pc: InputSpec = InputSpec::zero();
+        let mut vc: InputSpec = InputSpec::zero();
+        let mut f0: f32 = 1.;
+        let mut a: f32 = 0.;
+        let mut b: f32 = 0.;
+
+        for (k, v) in props {
+            match k.as_str() {
+                MODULE_NAME => name = v.to_string(),
+                FREQUENCY_CONTROL => fc = InputSpec::parse(&v)?,
+                LINEAR_FREQUENCY_CONTROL => lc = InputSpec::parse(&v)?,
+                PRESSURE_CONTROL => pc = InputSpec::parse(&v)?,
+                VELOCITY_CONTROL => vc = InputSpec::parse(&v)?,
+                FREQ0 => f0 = v.parse::<f32>()?,
+                PARAM_A => a = v.parse::<f32>()?,
+                PARAM_B => b = v.parse::<f32>()?,
+                _ => {
+                    return Err(ModuleError::InvalidField {
+                        module_type: MODULE_TYPE.to_string(),
+                        field_name: k,
+                    })
+                }
+            }
+        }
 
         Ok(Self {
-            name: name.to_string(),
-            inputs: [
-                props
-                    .get(FREQUENCY_CONTROL)
-                    .map(InputSpec::parse)
-                    .unwrap_or(Ok(InputSpec::zero()))?,
-                props
-                    .get(LINEAR_FREQUENCY_CONTROL)
-                    .map(InputSpec::parse)
-                    .unwrap_or(Ok(InputSpec::zero()))?,
-                props
-                    .get(PRESSURE_CONTROL)
-                    .map(InputSpec::parse)
-                    .unwrap_or(Ok(InputSpec::zero()))?,
-                props
-                    .get(VELOCITY_CONTROL)
-                    .map(InputSpec::parse)
-                    .unwrap_or(Ok(InputSpec::zero()))?,
-            ],
-            state: [0; 2],
-            f0: props
-                .get(FREQ0)
-                .map(|s| s.parse::<f32>())
-                .unwrap_or(Ok(1.0_f32))?,
-            a: props
-                .get(PARAM_A)
-                .map(|s| s.parse::<f32>())
-                .unwrap_or(Ok(1.0_f32))?,
-            b: props
-                .get(PARAM_B)
-                .map(|s| s.parse::<f32>())
-                .unwrap_or(Ok(1.0_f32))?,
+            name,
+            inputs: [fc, lc, pc, vc],
+            state: [0; STATE_SIZE],
+            f0,
+            a,
+            b,
         })
     }
 }

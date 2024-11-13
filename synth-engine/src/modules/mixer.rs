@@ -1,7 +1,8 @@
-use crate::midi::message::MidiMessage;
+use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 
+// TODO delete this file and module
 pub struct Mixer {
     input_indices: Vec<usize>,
     attenuation_indices: Vec<usize>,
@@ -36,11 +37,11 @@ impl Module for Mixer {
         update.set(self.output_index, output_value, UpdateType::Absolute);
     }
 
-    fn process_event(&mut self, _event: &MidiMessage, _channel: u8) {
+    fn process_event(&mut self, _event: &ControllerEvent) {
         /* do nothing */
     }
 
-    fn finalize(&mut self, _state: &mut State) {
+    fn finalize(&mut self, _state: &mut State, _time_step: f32) {
         /* do nothing */
     }
 }

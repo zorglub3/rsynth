@@ -18,21 +18,28 @@ pub struct MonoOutputModuleSpec {
 
 impl MonoOutputModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
-        let name = props.get(MODULE_NAME).ok_or(ModuleError::MissingField {
-            module_type: MODULE_TYPE.to_string(),
-            field_name: MODULE_NAME.to_string(),
-        })?;
+        let mut name = MODULE_TYPE.to_string();
+        let mut output_index: usize = 0;
+        let mut signal_in: InputSpec = InputSpec::zero();
+
+        for (k, v) in props {
+            match k.as_str() {
+                MODULE_NAME => name = v.to_string(),
+                SIGNAL_INPUT => signal_in = InputSpec::parse(&v)?,
+                OUTPUT_INDEX => output_index = v.parse::<usize>()?,
+                _ => {
+                    return Err(ModuleError::InvalidField {
+                        module_type: MODULE_TYPE.to_string(),
+                        field_name: k,
+                    })
+                }
+            }
+        }
 
         Ok(Self {
-            name: name.to_string(),
-            output_index: props
-                .get(OUTPUT_INDEX)
-                .map(|s| s.parse::<usize>())
-                .unwrap_or(Ok(1))?,
-            inputs: [props
-                .get(SIGNAL_INPUT)
-                .map(InputSpec::parse)
-                .unwrap_or(Ok(InputSpec::zero()))?],
+            name,
+            output_index,
+            inputs: [signal_in],
         })
     }
 }

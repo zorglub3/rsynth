@@ -1,4 +1,4 @@
-use crate::midi::message::MidiMessage;
+use crate::event::ControllerEvent;
 use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
@@ -76,11 +76,11 @@ impl Module for ADEnvelope {
         }
     }
 
-    fn process_event(&mut self, _event: &MidiMessage, _channel: u8) {
+    fn process_event(&mut self, _event: &ControllerEvent) {
         /* do nothing */
     }
 
-    fn finalize(&mut self, state: &mut State) {
+    fn finalize(&mut self, state: &mut State, _time_step: f32) {
         let input_state = self.signal_input.from_state(state);
         let output_state = state.get(self.output_index);
 

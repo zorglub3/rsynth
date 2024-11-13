@@ -21,28 +21,30 @@ pub struct AmpModuleSpec {
 
 impl AmpModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
-        let name = props.get(MODULE_NAME).ok_or(ModuleError::MissingField {
-            module_type: MODULE_TYPE.to_string(),
-            field_name: MODULE_NAME.to_string(),
-        })?;
+        let mut name: String = MODULE_TYPE.to_string();
+        let mut signal_in: InputSpec = InputSpec::zero();
+        let mut lin_control: InputSpec = InputSpec::zero();
+        let mut exp_control: InputSpec = InputSpec::zero();
+
+        for (k, v) in props {
+            match k.as_str() {
+                MODULE_NAME => name = v.to_string(),
+                SIGNAL_INPUT => signal_in = InputSpec::parse(&v)?,
+                LINEAR_CONTROL => lin_control = InputSpec::parse(&v)?,
+                EXP_CONTROL => exp_control = InputSpec::parse(&v)?,
+                _ => {
+                    return Err(ModuleError::InvalidField {
+                        module_type: MODULE_TYPE.to_string(),
+                        field_name: k,
+                    })
+                }
+            }
+        }
 
         Ok(Self {
-            name: name.to_string(),
-            inputs: [
-                props
-                    .get(SIGNAL_INPUT)
-                    .map(InputSpec::parse)
-                    .unwrap_or(Ok(InputSpec::zero()))?,
-                props
-                    .get(LINEAR_CONTROL)
-                    .map(InputSpec::parse)
-                    .unwrap_or(Ok(InputSpec::zero()))?,
-                props
-                    .get(EXP_CONTROL)
-                    .map(InputSpec::parse)
-                    .unwrap_or(Ok(InputSpec::zero()))?,
-            ],
-            state: [0],
+            name,
+            inputs: [signal_in, lin_control, exp_control],
+            state: [0; STATE_SIZE],
         })
     }
 }

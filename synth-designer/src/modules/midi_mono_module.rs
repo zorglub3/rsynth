@@ -6,7 +6,6 @@ use synth_engine::simulator::module::Module;
 
 const MODULE_TYPE: &str = "midi_mono";
 const MODULE_NAME: &str = "name";
-const CHANNEL: &str = "channel";
 const PITCH_OUTPUT: &str = "pitch";
 const GATE_OUTPUT: &str = "gate";
 const PRESSURE_OUTPUT: &str = "aftertouch";
@@ -15,23 +14,27 @@ const STATE_SIZE: usize = 4;
 
 pub struct MidiMonoModuleSpec {
     name: String,
-    channel: u8,
     state: [usize; STATE_SIZE],
 }
 
 impl MidiMonoModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
-        let name = props.get(MODULE_NAME).ok_or(ModuleError::MissingField {
-            module_type: MODULE_TYPE.to_string(),
-            field_name: MODULE_NAME.to_string(),
-        })?;
+        let mut name: String = MODULE_TYPE.to_string();
+
+        for (k, v) in props {
+            match k.as_str() {
+                MODULE_NAME => name = v.to_string(),
+                _ => {
+                    return Err(ModuleError::InvalidField {
+                        module_type: MODULE_TYPE.to_string(),
+                        field_name: k,
+                    })
+                }
+            }
+        }
 
         Ok(Self {
-            name: name.to_string(),
-            channel: props
-                .get(CHANNEL)
-                .map(|s| s.parse::<u8>())
-                .unwrap_or(Ok(1_u8))?,
+            name,
             state: [0; STATE_SIZE],
         })
     }
@@ -43,13 +46,7 @@ impl ModuleSpec for MidiMonoModuleSpec {
     }
 
     fn create_module(&self, _synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
-        let midi_mono = MidiMono::new(
-            self.state[0],
-            self.state[1],
-            self.state[2],
-            self.state[3],
-            self.channel,
-        );
+        let midi_mono = MidiMono::new(self.state[0], self.state[1], self.state[2], self.state[3]);
 
         Ok(Box::new(midi_mono))
     }

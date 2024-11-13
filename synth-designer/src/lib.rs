@@ -78,8 +78,12 @@ pub fn from_ini_file(
                     let module_spec = ContourModuleSpec::from_ini_properties(props)?;
                     synth_spec.add_module(Box::new(module_spec));
                 }
-                "filter" => {
-                    let module_spec = FilterModuleSpec::from_ini_properties(props)?;
+                "lp_filter_24db" => {
+                    let module_spec = LpFilter24dbModuleSpec::from_ini_properties(props)?;
+                    synth_spec.add_module(Box::new(module_spec));
+                }
+                "filter_12db" => {
+                    let module_spec = Filter12dbModuleSpec::from_ini_properties(props)?;
                     synth_spec.add_module(Box::new(module_spec));
                 }
                 "midi_cc" => {
@@ -96,6 +100,10 @@ pub fn from_ini_file(
                 }
                 "oscillator" => {
                     let module_spec = OscillatorModuleSpec::from_ini_properties(props)?;
+                    synth_spec.add_module(Box::new(module_spec));
+                }
+                "saw_oscillator" => {
+                    let module_spec = SawOscillatorModuleSpec::from_ini_properties(props)?;
                     synth_spec.add_module(Box::new(module_spec));
                 }
                 x => return Err(SynthError::UnknownModule(x.to_string())),

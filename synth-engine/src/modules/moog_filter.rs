@@ -1,4 +1,4 @@
-use crate::midi::message::MidiMessage;
+use crate::event::ControllerEvent;
 use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
@@ -47,7 +47,7 @@ impl Module for MoogFilter {
     fn simulate(&self, state: &State, update: &mut StateUpdate) {
         let f: f32 = control_to_frequency(self.f0, self.freq_control_input.from_state(state), 0.);
         let g: f32 = f * 2. * PI;
-        let r: f32 = self.res_control_input.from_state(state).max(0.).min(1.);
+        let r: f32 = self.res_control_input.from_state(state).max(0.);
 
         let input = self.signal_input.from_state(state);
 
@@ -75,11 +75,11 @@ impl Module for MoogFilter {
         );
     }
 
-    fn process_event(&mut self, _event: &MidiMessage, _channel: u8) {
+    fn process_event(&mut self, _event: &ControllerEvent) {
         /* do nothing */
     }
 
-    fn finalize(&mut self, _state: &mut State) {
+    fn finalize(&mut self, _state: &mut State, _time_step: f32) {
         /* do nothing */
     }
 }

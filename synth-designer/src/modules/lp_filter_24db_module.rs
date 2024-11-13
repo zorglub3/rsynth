@@ -4,61 +4,66 @@ use ini::Properties;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
 
-const MODULE_TYPE: &str = "lowpass_filter";
+const MODULE_TYPE: &str = "lowpass_filter_24db";
 const MODULE_NAME: &str = "name";
 const SIGNAL_INPUT: &str = "signal_input";
 const FREQ0: &str = "frequency_zero";
 const CUTOFF_CONTROL: &str = "cutoff_frequency";
+const LINEAR_CONTROL: &str = "linear_frequency";
 const RESONANCE_CONTROL: &str = "resonance";
 const SIGNAL_OUTPUT: &str = "signal_output";
-const INPUT_SIZE: usize = 3;
+const INPUT_SIZE: usize = 4;
 const STATE_SIZE: usize = 4;
 
-pub struct FilterModuleSpec {
+pub struct LpFilter24dbModuleSpec {
     name: String,
     inputs: [InputSpec; INPUT_SIZE],
     state: [usize; STATE_SIZE],
     f0: f32,
 }
 
-impl FilterModuleSpec {
+impl LpFilter24dbModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
-        let name = props.get(MODULE_NAME).ok_or(ModuleError::MissingField {
-            module_type: MODULE_TYPE.to_string(),
-            field_name: MODULE_NAME.to_string(),
-        })?;
+        let mut name: String = MODULE_TYPE.to_string();
+        let mut signal_in: InputSpec = InputSpec::zero();
+        let mut fc: InputSpec = InputSpec::zero();
+        let mut lc: InputSpec = InputSpec::zero();
+        let mut rc: InputSpec = InputSpec::zero();
+        let mut f0: f32 = 1.0_f32;
+
+        for (k, v) in props {
+            match k.as_str() {
+                MODULE_NAME => name = v.to_string(),
+                SIGNAL_INPUT => signal_in = InputSpec::parse(&v)?,
+                CUTOFF_CONTROL => fc = InputSpec::parse(&v)?,
+                LINEAR_CONTROL => lc = InputSpec::parse(&v)?,
+                RESONANCE_CONTROL => rc = InputSpec::parse(&v)?,
+                FREQ0 => f0 = v.parse::<f32>()?,
+                _ => {
+                    return Err(ModuleError::InvalidField {
+                        module_type: MODULE_TYPE.to_string(),
+                        field_name: k,
+                    })
+                }
+            }
+        }
 
         Ok(Self {
-            name: name.to_string(),
-            inputs: [
-                props
-                    .get(SIGNAL_INPUT)
-                    .map(InputSpec::parse)
-                    .unwrap_or(Ok(InputSpec::zero()))?,
-                props
-                    .get(CUTOFF_CONTROL)
-                    .map(InputSpec::parse)
-                    .unwrap_or(Ok(InputSpec::zero()))?,
-                props
-                    .get(RESONANCE_CONTROL)
-                    .map(InputSpec::parse)
-                    .unwrap_or(Ok(InputSpec::zero()))?,
-            ],
+            name,
+            inputs: [signal_in, fc, rc, lc],
             state: [0; 4],
-            f0: props
-                .get(FREQ0)
-                .map(|s| s.parse::<f32>())
-                .unwrap_or(Ok(1.0_f32))?,
+            f0,
         })
     }
 }
 
-impl ModuleSpec for FilterModuleSpec {
+impl ModuleSpec for LpFilter24dbModuleSpec {
     fn allocate_state(&mut self, alloc: &mut StateAllocator) {
         alloc.allocate(&mut self.state);
     }
 
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
+        // TODO linear control
         let filter = MoogFilter::new(
             self.f0,
             self.state[0],

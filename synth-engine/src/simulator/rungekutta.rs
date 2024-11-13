@@ -1,8 +1,9 @@
-use crate::event::Event;
+use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::State;
 use std::collections::HashMap;
 
+// TODO clean up
 pub struct RungeKutta {
     state: State,
     a: Vec<Vec<f32>>,
@@ -88,7 +89,7 @@ impl RungeKutta {
         let mut updates = vec![];
 
         for stage in 0..self.stages {
-            let mut update = self.state.update_data(dt * self.c[stage]);
+            let mut update = self.state.update_data(dt * self.c[stage], dt);
             let mut temp_state = self.state.clone();
 
             temp_state.apply_updates(&updates, &self.a[stage], dt);
@@ -103,7 +104,7 @@ impl RungeKutta {
         self.state.apply_updates(&updates, &self.b, dt);
 
         for (_ix, module) in &mut self.modules {
-            module.finalize(&mut self.state);
+            module.finalize(&mut self.state, dt);
         }
     }
 
@@ -111,7 +112,11 @@ impl RungeKutta {
         (self.state.get_output(0), self.state.get_output(1))
     }
 
-    pub fn process_event(&mut self, event: Event) {
+    pub fn process_event(&mut self, event: ControllerEvent) {
+        for (_id, module) in self.modules.iter_mut() {
+            module.process_event(&event);
+        }
+        /*
         match event {
             Event::MidiEvent { event, channel } => {
                 for (_id, module) in self.modules.iter_mut() {
@@ -120,6 +125,7 @@ impl RungeKutta {
             }
             _ => {}
         }
+        */
     }
 
     pub fn get_state(&mut self) -> &mut State {
