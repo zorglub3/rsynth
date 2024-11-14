@@ -2,6 +2,7 @@ use crate::audio::sound_simulation;
 use crate::midi::{Midi, MidiError};
 use clap::Parser;
 use cpal::{BuildStreamError, PlayStreamError};
+use scale::Scale;
 use std::io;
 use std::io::prelude::*;
 use std::sync::mpsc::channel;
@@ -16,6 +17,9 @@ const DEFAULT_NAME: &str = "rsynth";
 const DEFAULT_SAMPLE_RATE: u32 = 44100;
 const DEFAULT_BUFFER_SIZE: u32 = 2048;
 const DEFAULT_SIMULATOR: &str = "rk4";
+const DEFAULT_BASE_PITCH: usize = 0;
+const DEFAULT_PITCH_WHEEL_RANGE: f32 = 1.;
+const DEFAULT_DEBUG_EVENTS: bool = false;
 
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
@@ -32,6 +36,14 @@ struct CliArgs {
     sample_rate: u32,
     #[arg(short, long, default_value_t = DEFAULT_BUFFER_SIZE)]
     buffer_size: u32,
+    #[arg(short, long, default_value_t = DEFAULT_PITCH_WHEEL_RANGE)]
+    pitch_wheel_range: f32,
+    #[arg(long)]
+    scale: Option<String>,
+    #[arg(long, default_value_t = DEFAULT_BASE_PITCH)]
+    base_pitch: usize,
+    #[arg(long, default_value_t = DEFAULT_DEBUG_EVENTS)]
+    debug_events: bool,
 }
 
 #[derive(Error, Debug)]
@@ -56,6 +68,13 @@ fn make_simulator(simulator_name: &str, state_size: usize) -> RungeKutta {
     }
 }
 
+fn make_scale(scale: Option<String>, base_pitch: usize) -> Scale {
+    match scale {
+        None => Scale::equal_temperament(),
+        Some(filename) => Scale::from_file(&filename, base_pitch),
+    }
+}
+
 fn pause() {
     let mut stdin = io::stdin();
     let mut stdout = io::stdout();
@@ -76,7 +95,10 @@ fn main() -> Result<(), RuntimeError> {
             panic!("Error initializing the synth model: {:?}", err);
         }
     };
+    println!("done");
 
+    println!("Getting scale...");
+    let scale = make_scale(args.scale, args.base_pitch);
     println!("done");
 
     print!("Creating simulator...");
@@ -89,7 +111,15 @@ fn main() -> Result<(), RuntimeError> {
     println!("done");
 
     print!("Creating the simulation runner...");
-    let simulation = sound_simulation(args.sample_rate, args.buffer_size, simulator, receive)?;
+    let simulation = sound_simulation(
+        args.sample_rate,
+        args.buffer_size,
+        simulator,
+        receive,
+        scale,
+        args.pitch_wheel_range,
+        args.debug_events,
+    )?;
     println!("done");
 
     print!("Creating the midi interface...");

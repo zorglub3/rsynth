@@ -4,9 +4,9 @@ use cpal::{
     Device, PlayStreamError, SampleFormat, SampleRate, SupportedBufferSize, SupportedStreamConfig,
     SupportedStreamConfigRange,
 };
+use scale::Scale;
 use std::sync::mpsc::Receiver;
 use synth_engine::event::ControllerEvent;
-// use synth_engine::event::Event;
 use synth_engine::simulator::rungekutta::RungeKutta;
 
 pub struct AudioStream(Box<dyn StreamTrait>);
@@ -55,6 +55,9 @@ pub fn sound_simulation(
     buffer_size: u32,
     mut simulation: Box<RungeKutta>,
     receiver: Receiver<ControllerEvent>,
+    scale: Scale,
+    pitch_wheel_range: f32,
+    debug_events: bool,
 ) -> Result<AudioStream, BuildStreamError> {
     let host = cpal::default_host();
     let device = host
@@ -93,7 +96,26 @@ pub fn sound_simulation(
 
             loop {
                 if let Some(event) = receiver.try_recv().ok() {
-                    // println!("Got event: {:?}", event);
+                    use ControllerEvent::*;
+
+                    let event = match event {
+                        NoteOn {
+                            pitch, velocity, ..
+                        } => NoteOn {
+                            pitch,
+                            velocity,
+                            pitch_value: scale.pitch_value(pitch),
+                        },
+                        PitchWheel { amount } => PitchWheel {
+                            amount: amount * pitch_wheel_range,
+                        },
+                        e => e,
+                    };
+
+                    if debug_events {
+                        println!("controller event: {:?}", event);
+                    }
+
                     simulation.process_event(event);
                 } else {
                     break;
