@@ -11,37 +11,24 @@ fn cubic(p0: f32, p1: f32, p2: f32, p3: f32, x: f32) -> f32 {
         + p1
 }
 
-fn sinc(x: f32) -> f32 {
-    if x.abs() < f32::EPSILON {
-        1.
-    } else {
-        x.sin() / x
-    }
-}
-
 pub trait Interpolation {
     fn cubic_interpolate(&self, x: f32) -> f32;
-    fn sinc_interpolate(&self, x: f32) -> f32;
     fn linear_interpolate(&self, x: f32) -> f32;
 }
 
 impl<T: Deref<Target = [f32]>> Interpolation for T {
     fn cubic_interpolate(&self, x: f32) -> f32 {
-        let len = self.len();
-        let index: usize = x.floor() as usize;
+        let len = self.len() as i32;
+        let index: i32 = x.floor() as i32;
 
-        let i0 = (((index - 2) % len) + len) % len;
-        let i1 = (((index - 1) % len) + len) % len;
-        let i2 = ((index % len) + len) % len;
-        let i3 = (((index + 1) % len) + len) % len;
+        let i0 = ((((index - 1) % len) + len) % len) as usize;
+        let i1 = (((index % len) + len) % len) as usize;
+        let i2 = ((((index + 1) % len) + len) % len) as usize;
+        let i3 = ((((index + 2) % len) + len) % len) as usize;
 
         let x = x - x.floor();
 
         cubic(self[i0], self[i1], self[i2], self[i3], x)
-    }
-
-    fn sinc_interpolate(&self, x: f32) -> f32 {
-        todo!()
     }
 
     fn linear_interpolate(&self, x: f32) -> f32 {
@@ -57,5 +44,32 @@ impl<T: Deref<Target = [f32]>> Interpolation for T {
         let p1 = self[i1];
 
         p0 + (p1 - p0) * x
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn cubic_interpolation_on_line() {
+        let ys: Vec<f32> = vec![0., 1., 2., 3., 4., 5.];
+
+        assert_eq!(ys.cubic_interpolate(3.), 3.);
+
+        assert_eq!(ys.cubic_interpolate(1.), 1.);
+
+        assert_eq!(ys.cubic_interpolate(3.5), 3.5);
+
+        assert_eq!(ys.cubic_interpolate(0.5), 0.125);
+    }
+
+    #[test]
+    fn linear_interpolation_on_line() {
+        let ys: Vec<f32> = vec![0., 1., 2., 3., 4., 5.];
+
+        assert_eq!(ys.linear_interpolate(0.), 0.);
+        assert_eq!(ys.linear_interpolate(1.), 1.);
+        assert_eq!(ys.linear_interpolate(1.5), 1.5);
     }
 }

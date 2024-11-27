@@ -4,12 +4,10 @@
 //!
 //! This library does _not_ provide an interface with audio or MIDI. This should
 //! be provided in the program using the synth simulator. See the `cli-synth` example
-//! program for suggestions. (It does provide an `enum` to represent the MIDI
-//! messages though).
+//! program for suggestions.
 
-// TODO clean up
 pub mod event;
-// pub mod midi;
 pub mod interpolation;
 pub mod modules;
 pub mod simulator;
+pub mod sinc_filter;

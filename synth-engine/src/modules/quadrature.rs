@@ -1,3 +1,4 @@
+use super::control_to_frequency;
 use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
@@ -19,10 +20,6 @@ impl QuadratureOscillator {
             control_index,
         }
     }
-}
-
-fn control_to_frequency(f0: f32, exp_control: f32, lin_control: f32) -> f32 {
-    f0 * 2.0_f32.powf(exp_control) + lin_control
 }
 
 impl Module for QuadratureOscillator {

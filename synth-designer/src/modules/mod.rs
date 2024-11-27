@@ -9,6 +9,7 @@ mod midi_mono_module;
 mod mono_out_module;
 mod osc_module;
 mod saw_osc;
+mod wavetable;
 mod zero;
 
 pub use amp_module::AmpModuleSpec;
@@ -23,6 +24,7 @@ pub use midi_mono_module::MidiMonoModuleSpec;
 pub use mono_out_module::MonoOutputModuleSpec;
 pub use osc_module::OscillatorModuleSpec;
 pub use saw_osc::SawOscillatorModuleSpec;
+pub use wavetable::WavetableOscillatorModuleSpec;
 pub use zero::ZeroModuleSpec;
 
 use crate::StateAllocator;
@@ -63,6 +65,15 @@ pub enum ModuleError {
     ParseIntError {
         parse_error: ParseIntError,
     },
+    HoundError {
+        hound_error: hound::Error,
+    },
+}
+
+impl From<hound::Error> for ModuleError {
+    fn from(hound_error: hound::Error) -> Self {
+        Self::HoundError { hound_error }
+    }
 }
 
 impl From<ParseFloatError> for ModuleError {
@@ -170,32 +181,3 @@ pub trait ModuleSpec {
     fn get_name(&self) -> &str;
     fn state_size(&self) -> usize;
 }
-
-/*
-pub fn parse_input_spec(s: &str) -> Result<InputSpec, ModuleError> {
-    let mut split = s.split(':');
-
-    let Some(module_name) = split.next().map(|s| s.to_string()) else {
-        return Err(ModuleError::MalformedInputSpec {
-            value: s.to_string(),
-        });
-    };
-
-    let Some(state_field) = split.next().map(|s| s.to_string()) else {
-        return Err(ModuleError::MalformedInputSpec {
-            value: s.to_string(),
-        });
-    };
-
-    if split.next().is_none() {
-        Ok(InputSpec {
-            module_name,
-            state_field,
-        })
-    } else {
-        Err(ModuleError::MalformedInputSpec {
-            value: s.to_string(),
-        })
-    }
-}
-*/

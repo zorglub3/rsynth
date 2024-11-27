@@ -63,7 +63,6 @@ impl ModuleSpec for LpFilter24dbModuleSpec {
     }
 
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
-        // TODO linear control
         let filter = MoogFilter::new(
             self.f0,
             self.state[0],
@@ -71,6 +70,7 @@ impl ModuleSpec for LpFilter24dbModuleSpec {
             self.state[2],
             self.state[3],
             synth_spec.input_expr(&self.inputs[1])?,
+            synth_spec.input_expr(&self.inputs[3])?,
             synth_spec.input_expr(&self.inputs[2])?,
             synth_spec.input_expr(&self.inputs[0])?,
         );

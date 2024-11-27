@@ -1,9 +1,9 @@
 use clap::Parser;
 use std::collections::HashMap;
+use std::f32::consts::PI;
 use synth_engine::{
-    modules::bowed::BowedOscillator, modules::folder::Folder, modules::input_expr::InputExpr,
-    modules::mono_output::MonoOutput, modules::quadrature::QuadratureOscillator,
-    modules::saw_osc::SawOscillator, simulator::module::Module, simulator::rungekutta::RungeKutta,
+    modules::input_expr::InputExpr, modules::*, simulator::module::Module,
+    simulator::rungekutta::RungeKutta,
 };
 
 #[derive(Parser, Debug, Clone)]
@@ -85,6 +85,34 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
                     2,
                     InputExpr::constant(0.),
                     InputExpr::constant(200.),
+                )),
+            );
+            result.insert(
+                "mono_out".to_string(),
+                Box::new(MonoOutput::new(0, InputExpr::from_index(2))),
+            );
+        }
+        4 => {
+            let mut wavetable1: Vec<f32> = Vec::new();
+            let mut wavetable2: Vec<f32> = Vec::new();
+            for i in 0..256 {
+                let x = (i as f32) / 256.;
+                let v = 0.5 * ((i as f32) * 2. * PI / 256.).sin() + x - 0.5;
+                wavetable1.push(v);
+                let v2 = ((i as f32) * 2. * PI / 256.).sin();
+                wavetable2.push(v2);
+            }
+            result.insert(
+                "wavetable".to_string(),
+                Box::new(Wavetable::new(
+                    0.,
+                    3,
+                    1,
+                    2,
+                    InputExpr::constant(0.),
+                    InputExpr::constant(500.),
+                    InputExpr::constant(0.0),
+                    vec![wavetable2, wavetable1],
                 )),
             );
             result.insert(

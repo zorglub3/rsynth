@@ -46,12 +46,13 @@ fn pitchwheel(msb: u8, lsb: u8) -> f32 {
 }
 
 pub fn decode_midi_bytes(bytes: &[u8], channel: Option<u8>) -> Option<ControllerEvent> {
-    let mut bytes_mut = match bytes.len() {
-        2 | 3 => [0_u8; 3],
-        _ => return None,
-    };
+    let mut bytes_mut = [0_u8; 3];
 
-    bytes_mut.copy_from_slice(bytes);
+    match bytes.len() {
+        x @ (2 | 3) => bytes_mut[0..x].copy_from_slice(bytes),
+        // 3 => bytes_mut.copy_from_slice(bytes),
+        _ => return None,
+    }
 
     if channel.is_none() || Some(bytes_mut[0] & 0xF) == channel {
         bytes_mut[0] &= 0xF0;
@@ -79,7 +80,7 @@ pub fn decode_midi_bytes(bytes: &[u8], channel: Option<u8>) -> Option<Controller
             [MIDI_CHANNEL_AFTERTOUCH, v, ..] => Some(Aftertouch {
                 amount: u7_to_f32(v),
             }),
-            [MIDI_PROGRAM_CHANGE, amount, ..] => None,
+            [MIDI_PROGRAM_CHANGE, _amount, ..] => None,
             [MIDI_PITCH_WHEEL, d1, d2] => Some(PitchWheel {
                 amount: pitchwheel(d1, d2),
             }),

@@ -1,3 +1,4 @@
+use super::control_to_frequency;
 use crate::event::ControllerEvent;
 use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
@@ -40,7 +41,7 @@ impl Filter12db {
 }
 
 fn amp(f0: f32, f: f32, l: f32) -> f32 {
-    let freq = f0 * 2.0_f32.powf(f) + l;
+    let freq = control_to_frequency(f0, f, l);
     2. * PI * freq
 }
 

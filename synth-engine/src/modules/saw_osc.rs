@@ -1,5 +1,5 @@
+use super::control_to_frequency;
 use crate::event::ControllerEvent;
-use crate::interpolation::Interpolation;
 use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
@@ -51,18 +51,15 @@ impl SawOscillator {
 
         i_end - i_start
     }
-
-    fn control_to_frequency(&self, exp_fc: f32, lin_fc: f32) -> f32 {
-        self.f0 * 2.0_f32.powf(exp_fc) + lin_fc
-    }
 }
 
 impl Module for SawOscillator {
     fn simulate(&self, state: &State, update: &mut StateUpdate) {
-        let exp_fc = self.pitch_control.from_state(state);
-        let lin_fc = self.linear_modulation.from_state(state);
-
-        let velocity = self.control_to_frequency(exp_fc, lin_fc);
+        let velocity = control_to_frequency(
+            self.f0,
+            self.pitch_control.from_state(state),
+            self.linear_modulation.from_state(state),
+        );
 
         let distance = update.get_time_step() * velocity;
         let start = self.current_position + update.get_delta_time() * velocity;
@@ -94,10 +91,11 @@ impl Module for SawOscillator {
     }
 
     fn finalize(&mut self, state: &mut State, time_step: f32) {
-        let exp_fc = self.pitch_control.from_state(state);
-        let lin_fc = self.linear_modulation.from_state(state);
-
-        let velocity = self.control_to_frequency(exp_fc, lin_fc);
+        let velocity = control_to_frequency(
+            self.f0,
+            self.pitch_control.from_state(state),
+            self.linear_modulation.from_state(state),
+        );
 
         let p = self.current_position + velocity * time_step;
 

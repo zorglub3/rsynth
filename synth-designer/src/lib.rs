@@ -6,6 +6,9 @@ use ini::Ini;
 use std::collections::HashMap;
 use synth_engine::simulator::module::Module;
 
+/// This matches the frequency of note zero for the default MIDI spec.
+pub const DEFAULT_FREQUENCY_ZERO: f32 = 8.18;
+
 #[derive(Debug)]
 pub enum SynthError {
     FileError(ini::Error),
@@ -104,6 +107,10 @@ pub fn from_ini_file(
                 }
                 "saw_oscillator" => {
                     let module_spec = SawOscillatorModuleSpec::from_ini_properties(props)?;
+                    synth_spec.add_module(Box::new(module_spec));
+                }
+                "wavetable" => {
+                    let module_spec = WavetableOscillatorModuleSpec::from_ini_properties(props)?;
                     synth_spec.add_module(Box::new(module_spec));
                 }
                 x => return Err(SynthError::UnknownModule(x.to_string())),

@@ -1,3 +1,4 @@
+use super::control_to_frequency;
 use crate::event::ControllerEvent;
 use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
@@ -8,6 +9,7 @@ pub struct Filter6db {
     f0: f32,
     signal_output: usize,
     freq_control_input: InputExpr,
+    linear_control: InputExpr,
     signal_input: InputExpr,
 }
 
@@ -16,12 +18,14 @@ impl Filter6db {
         f0: f32,
         signal_output: usize,
         freq_control_input: InputExpr,
+        linear_control: InputExpr,
         signal_input: InputExpr,
     ) -> Self {
         Self {
             f0,
             signal_output,
             freq_control_input,
+            linear_control,
             signal_input,
         }
     }
@@ -29,7 +33,11 @@ impl Filter6db {
 
 impl Module for Filter6db {
     fn simulate(&self, state: &State, update: &mut StateUpdate) {
-        let a = self.f0 * 2.0_f32.powf(self.freq_control_input.from_state(state));
+        let a = control_to_frequency(
+            self.f0,
+            self.freq_control_input.from_state(state),
+            self.linear_control.from_state(state),
+        );
         let b = 1. - (-2. * a * PI).exp();
         let c = (1. - b).max(0.0001);
 

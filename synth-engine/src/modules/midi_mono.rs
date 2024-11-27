@@ -6,7 +6,7 @@ use std::cmp::Ord;
 use std::cmp::Ordering;
 use std::collections::BTreeSet;
 
-const PRESSURE_FILTER_CONSTANT: f32 = 2. * PI * 50.;
+const PRESSURE_FILTER_CONSTANT: f32 = 2. * PI * 20.;
 
 // TODO
 // - rename file and struct (not MIDI)
@@ -94,11 +94,6 @@ impl Module for MidiMono {
             UpdateType::Differentiable,
         );
         update.set(
-            self.pressure_output_index,
-            self.current_pressure,
-            UpdateType::Absolute,
-        );
-        update.set(
             self.velocity_output_index,
             self.current_velocity,
             UpdateType::Absolute,
@@ -120,7 +115,7 @@ impl Module for MidiMono {
                     pitch_value: *pitch_value,
                 });
             }
-            NoteOff { pitch, velocity } => {
+            NoteOff { pitch, .. } => {
                 self.active_notes.remove(&ActiveNote {
                     pitch_code: *pitch,
                     pitch_value: 0.,

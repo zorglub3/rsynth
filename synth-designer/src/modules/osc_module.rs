@@ -1,4 +1,5 @@
 use crate::modules::*;
+use crate::DEFAULT_FREQUENCY_ZERO;
 use crate::*;
 use ini::Properties;
 use synth_engine::modules::*;
@@ -34,7 +35,7 @@ impl OscillatorModuleSpec {
         let mut lc: InputSpec = InputSpec::zero();
         let mut pc: InputSpec = InputSpec::zero();
         let mut vc: InputSpec = InputSpec::zero();
-        let mut f0: f32 = 1.;
+        let mut f0: f32 = DEFAULT_FREQUENCY_ZERO;
         let mut a: f32 = 0.;
         let mut b: f32 = 0.;
 

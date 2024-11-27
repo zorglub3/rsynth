@@ -2,6 +2,7 @@ use crate::audio::sound_simulation;
 use crate::midi::{Midi, MidiError};
 use clap::Parser;
 use cpal::{BuildStreamError, PlayStreamError};
+use scale::scl::SclError;
 use scale::Scale;
 use std::io;
 use std::io::prelude::*;
@@ -56,6 +57,8 @@ pub enum RuntimeError {
     PlayError(#[from] PlayStreamError),
     #[error("Midi setup error: {0:?}")]
     MidiSetupError(#[from] MidiError),
+    #[error("Scale error: {0:?}")]
+    SclError(#[from] SclError),
 }
 
 fn make_simulator(simulator_name: &str, state_size: usize) -> RungeKutta {
@@ -68,10 +71,10 @@ fn make_simulator(simulator_name: &str, state_size: usize) -> RungeKutta {
     }
 }
 
-fn make_scale(scale: Option<String>, base_pitch: usize) -> Scale {
+fn make_scale(scale: Option<String>, base_pitch: usize) -> Result<Scale, RuntimeError> {
     match scale {
-        None => Scale::equal_temperament(),
-        Some(filename) => Scale::from_file(&filename, base_pitch),
+        None => Ok(Scale::equal_temperament()),
+        Some(filename) => Ok(Scale::from_file(&filename, base_pitch)?),
     }
 }
 
@@ -98,7 +101,7 @@ fn main() -> Result<(), RuntimeError> {
     println!("done");
 
     println!("Getting scale...");
-    let scale = make_scale(args.scale, args.base_pitch);
+    let scale = make_scale(args.scale, args.base_pitch).expect("Could not get scale");
     println!("done");
 
     print!("Creating simulator...");

@@ -104,7 +104,7 @@ pub fn sound_simulation(
                         } => NoteOn {
                             pitch,
                             velocity,
-                            pitch_value: scale.pitch_value(pitch),
+                            pitch_value: scale.pitch_value(pitch as usize).unwrap_or(0.),
                         },
                         PitchWheel { amount } => PitchWheel {
                             amount: amount * pitch_wheel_range,

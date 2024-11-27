@@ -1,3 +1,4 @@
+use super::control_to_frequency;
 use crate::event::ControllerEvent;
 use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
@@ -42,20 +43,8 @@ impl BowedOscillator {
     }
 }
 
-fn control_to_frequency(f0: f32, exp_control: f32, lin_control: f32) -> f32 {
-    f0 * 2.0_f32.powf(exp_control) + lin_control
-}
-
 fn friction(a: f32, b: f32, x: f32) -> f32 {
     a * x * (-b * x * x + 0.5).exp()
-}
-
-fn sign(v: f32) -> f32 {
-    if v < 0. {
-        -1.
-    } else {
-        1.
-    }
 }
 
 impl Module for BowedOscillator {

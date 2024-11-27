@@ -11,6 +11,7 @@ pub enum InputSpecTerm {
 
 impl InputSpecTerm {
     pub fn parse(s: &str, complete: &str) -> Result<Self, ModuleError> {
+        // TODO ignore whitespace characters
         if let Ok(v) = s.parse::<f32>() {
             return Ok(InputSpecTerm::Constant(v));
         } else {
