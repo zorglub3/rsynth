@@ -6,15 +6,28 @@ for running the simulation. This method is good for simulating systems that can
 be described with partial differential equations. It is very bad at simulating
 systems with break points.
 
-Currently, the modules can only be set up at compile time, but in the future,
-this may change. Adding and removing modules while the simulation is running
-should be possilbe. Also, connecting and disconnecting modules should be
-possible as well. 
+The configuration of the synthesizer system, the modules and interconnections,
+can be defined with an INI file. The command line synth reads such a file and 
+simulates the synthesizer system. It can receive MIDI events and play sound.
 
 ## Future work
 
-- More modules... Especially for control, but also delay and some reverbs
-- Improved support for various scales. Just intonation. That sort of thing.
+- More modules... Especially for control, but also delay and some reverbs.
+- Improved "input expressions" for defining module interconnections.
+- Compile time parsing of INI files to generate Rust code for defining a synth.
+- Compile to more exotic targets: Raspberry Pi and Daisy Seed. 
+- Build unikernel deployments of a complete synth to Raspberry Pi to make a 
+  "hardware synth" that starts up real quick. Have a look at unikraft.
+- More testing.
+- Documentation.
+
+### Stuff to do soon
+
+- Improve/simplify the wavetable module
+- Use PolyBLEP for the sawtooth oscillator (and make a PWM/square oscillator).
+- Clean up modules. Some are redundant (quadrature oscillator), some should be
+  renamed (`midi_cc` and `midi_mono` - they are not really MIDI), some of the 
+  code can probably be improved a lot.
 
 ## Testing
 
@@ -46,3 +59,8 @@ the running instance of the synth. Play music and enjoy!
 
 - Unsampled Digital Synthesis: Computing the Output of Implicit and Non-Linear
   Systems, David Medine, 2015
+- Source of single cycle wav-files for the wavetable oscillator, see the
+  [AKWF-FREE repository](https://github.com/KristofferKarlAxelEkstrand/AKWF-FREE.git).
+- For a quick introduction to waveguide synthesis, look [here](https://www.osar.fr/notes/waveguides/)
+- A thorough exposition on physical modelling, is [here](https://ccrma.stanford.edu/~jos/) on 
+  Julius Orion Smith III homepage.

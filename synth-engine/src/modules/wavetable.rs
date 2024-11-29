@@ -10,6 +10,12 @@ use std::f32::consts::PI;
 const FREQUENCY_LIMIT: f32 = 18_000.0;
 const RESONANCE_FEEDBACK: f32 = 1.5;
 
+// TODO - check if we can get away with just using either:
+// 1) the downsampled versions of each wavetable entry
+// 2) the integral approach
+// 3) simplified simpsons rule for integration
+// 4) ... or if we have to use the convoluted current approach.
+
 fn compute_cumulative_sums(samples: &[f32]) -> Vec<f32> {
     if samples.len() == 0 {
         Vec::new()

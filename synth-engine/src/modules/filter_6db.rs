@@ -7,7 +7,8 @@ use std::f32::consts::PI;
 
 pub struct Filter6db {
     f0: f32,
-    signal_output: usize,
+    lowpass_output: usize,
+    highpass_output: usize,
     freq_control_input: InputExpr,
     linear_control: InputExpr,
     signal_input: InputExpr,
@@ -16,14 +17,16 @@ pub struct Filter6db {
 impl Filter6db {
     pub fn new(
         f0: f32,
-        signal_output: usize,
+        lowpass_output: usize,
+        highpass_output: usize,
         freq_control_input: InputExpr,
         linear_control: InputExpr,
         signal_input: InputExpr,
     ) -> Self {
         Self {
             f0,
-            signal_output,
+            lowpass_output,
+            highpass_output,
             freq_control_input,
             linear_control,
             signal_input,
@@ -42,9 +45,14 @@ impl Module for Filter6db {
         let c = (1. - b).max(0.0001);
 
         update.set(
-            self.signal_output,
-            self.signal_input.from_state(state) * b - state.get(self.signal_output) * c,
+            self.lowpass_output,
+            self.signal_input.from_state(state) * b - state.get(self.lowpass_output) * c,
             UpdateType::Differentiable,
+        );
+        update.set(
+            self.highpass_output,
+            self.signal_input.from_state(state) - state.get(self.lowpass_output),
+            UpdateType::Absolute,
         );
     }
 

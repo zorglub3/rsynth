@@ -5,7 +5,7 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use std::f32::consts::PI;
 
-pub struct MoogFilter {
+pub struct Filter24db {
     f0: f32,
     state0_index: usize,
     state1_index: usize,
@@ -17,7 +17,7 @@ pub struct MoogFilter {
     signal_input: InputExpr,
 }
 
-impl MoogFilter {
+impl Filter24db {
     pub fn new(
         f0: f32,
         state0_index: usize,
@@ -43,7 +43,7 @@ impl MoogFilter {
     }
 }
 
-impl Module for MoogFilter {
+impl Module for Filter24db {
     fn simulate(&self, state: &State, update: &mut StateUpdate) {
         let f: f32 = control_to_frequency(
             self.f0,
@@ -55,6 +55,8 @@ impl Module for MoogFilter {
 
         let input = self.signal_input.from_state(state);
 
+        // previous version of this filter - don't delete until we know if
+        // the new version really sounds better.
         /*
         update.set(
             self.state0_index,

@@ -1,41 +1,41 @@
 use crate::modules::*;
 use crate::*;
 use ini::Properties;
+use synth_engine::modules::noise::A_PARAMETER_DEFAULT;
+use synth_engine::modules::noise::B_PARAMETER_DEFAULT;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
 
-const MODULE_TYPE: &str = "lowpass_filter_6db";
+const MODULE_TYPE: &str = "noise";
 const MODULE_NAME: &str = "name";
-const SIGNAL_INPUT: &str = "signal_input";
-const FREQ0: &str = "frequency_zero";
-const CUTOFF_CONTROL: &str = "cutoff_control";
-const LINEAR_CONTROL: &str = "linear_control";
 const SIGNAL_OUTPUT: &str = "signal_output";
-const INPUT_SIZE: usize = 3;
+const SEED: &str = "seed";
+const PARAMETER_A: &str = "a";
+const PARAMETER_B: &str = "b";
+
 const STATE_SIZE: usize = 1;
 
-pub struct LpFilter6dbModuleSpec {
+pub struct NoiseGeneratorModuleSpec {
     name: String,
-    inputs: [InputSpec; INPUT_SIZE],
     state: [usize; STATE_SIZE],
-    f0: f32,
+    a: u32,
+    b: u32,
+    seed: u32,
 }
 
-impl LpFilter6dbModuleSpec {
+impl NoiseGeneratorModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
-        let mut signal_in: InputSpec = InputSpec::zero();
-        let mut fc: InputSpec = InputSpec::zero();
-        let mut lc: InputSpec = InputSpec::zero();
-        let mut f0: f32 = 1.0;
+        let mut a: u32 = A_PARAMETER_DEFAULT;
+        let mut b: u32 = B_PARAMETER_DEFAULT;
+        let mut seed: u32 = 1;
 
         for (k, v) in props {
             match k.as_str() {
                 MODULE_NAME => name = v.to_string(),
-                SIGNAL_INPUT => signal_in = InputSpec::parse(&v)?,
-                CUTOFF_CONTROL => fc = InputSpec::parse(&v)?,
-                LINEAR_CONTROL => lc = InputSpec::parse(&v)?,
-                FREQ0 => f0 = v.parse::<f32>()?,
+                PARAMETER_A => a = v.parse::<u32>()?,
+                PARAMETER_B => b = v.parse::<u32>()?,
+                SEED => seed = v.parse::<u32>()?,
                 _ => {
                     return Err(ModuleError::InvalidField {
                         module_type: MODULE_TYPE.to_string(),
@@ -47,28 +47,23 @@ impl LpFilter6dbModuleSpec {
 
         Ok(Self {
             name,
-            inputs: [signal_in, fc, lc],
             state: [0; STATE_SIZE],
-            f0,
+            a,
+            b,
+            seed,
         })
     }
 }
 
-impl ModuleSpec for LpFilter6dbModuleSpec {
+impl ModuleSpec for NoiseGeneratorModuleSpec {
     fn allocate_state(&mut self, alloc: &mut StateAllocator) {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
-        let filter = Filter6db::new(
-            self.f0,
-            self.state[0],
-            synth_spec.input_expr(&self.inputs[0])?,
-            synth_spec.input_expr(&self.inputs[1])?,
-            synth_spec.input_expr(&self.inputs[2])?,
-        );
+    fn create_module(&self, _synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
+        let noise = NoiseGenerator::new(self.a, self.b, self.seed, self.state[0]);
 
-        Ok(Box::new(filter))
+        Ok(Box::new(noise))
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

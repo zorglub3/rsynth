@@ -11,18 +11,19 @@ const FREQ0: &str = "frequency_zero";
 const CUTOFF_CONTROL: &str = "cutoff_frequency";
 const LINEAR_CONTROL: &str = "linear_frequency";
 const RESONANCE_CONTROL: &str = "resonance";
-const SIGNAL_OUTPUT: &str = "signal_output";
+const LOWPASS_OUTPUT: &str = "lowpass_output";
+const HIGHPASS_OUTPUT: &str = "highpass_output";
 const INPUT_SIZE: usize = 4;
 const STATE_SIZE: usize = 4;
 
-pub struct LpFilter24dbModuleSpec {
+pub struct Filter24dbModuleSpec {
     name: String,
     inputs: [InputSpec; INPUT_SIZE],
     state: [usize; STATE_SIZE],
     f0: f32,
 }
 
-impl LpFilter24dbModuleSpec {
+impl Filter24dbModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
         let mut signal_in: InputSpec = InputSpec::zero();
@@ -57,13 +58,13 @@ impl LpFilter24dbModuleSpec {
     }
 }
 
-impl ModuleSpec for LpFilter24dbModuleSpec {
+impl ModuleSpec for Filter24dbModuleSpec {
     fn allocate_state(&mut self, alloc: &mut StateAllocator) {
         alloc.allocate(&mut self.state);
     }
 
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
-        let filter = MoogFilter::new(
+        let filter = Filter24db::new(
             self.f0,
             self.state[0],
             self.state[1],
@@ -80,7 +81,8 @@ impl ModuleSpec for LpFilter24dbModuleSpec {
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
         match state_field {
-            SIGNAL_OUTPUT => Ok(self.state[3]),
+            LOWPASS_OUTPUT => Ok(self.state[3]),
+            HIGHPASS_OUTPUT => Ok(self.state[0]),
             _ => Err(ModuleError::MissingStateName {
                 module_type: MODULE_TYPE.to_string(),
                 module_name: self.name.clone(),

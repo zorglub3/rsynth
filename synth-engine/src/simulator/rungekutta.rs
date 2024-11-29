@@ -116,16 +116,6 @@ impl RungeKutta {
         for (_id, module) in self.modules.iter_mut() {
             module.process_event(&event);
         }
-        /*
-        match event {
-            Event::MidiEvent { event, channel } => {
-                for (_id, module) in self.modules.iter_mut() {
-                    module.process_event(&event, channel);
-                }
-            }
-            _ => {}
-        }
-        */
     }
 
     pub fn get_state(&mut self) -> &mut State {

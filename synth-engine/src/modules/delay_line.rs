@@ -62,7 +62,7 @@ impl Module for DelayLine {
             self.linear_modulation.from_state(state),
         );
 
-        let index = (f / d).min(l - 1.).max(3.);
+        let index = (d / f).min(l - 3.).max(3.);
         let index = (((index + wi) % l) + l) % l;
 
         update.set(

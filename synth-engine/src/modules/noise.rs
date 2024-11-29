@@ -2,11 +2,11 @@ use crate::event::ControllerEvent;
 use crate::interpolation::Interpolation;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
-use core::f32::MAX;
+use core::u32::MAX;
 
 // From the book, "Musical applications of Microprocessors", Chamberlin
-const A_PARAMETER: u32 = 196314165;
-const B_PARAMETER: u32 = 907633515;
+pub const A_PARAMETER_DEFAULT: u32 = 196314165;
+pub const B_PARAMETER_DEFAULT: u32 = 907633515;
 
 pub struct NoiseGenerator {
     a: u32,
@@ -29,7 +29,7 @@ impl NoiseGenerator {
     }
 
     pub fn new_with_default(seed: u32, output_index: usize) -> Self {
-        Self::new(A_PARAMETER, B_PARAMETER, seed, output_index)
+        Self::new(A_PARAMETER_DEFAULT, B_PARAMETER_DEFAULT, seed, output_index)
     }
 
     pub fn next(&self, state: u32) -> u32 {
@@ -55,6 +55,6 @@ impl Module for NoiseGenerator {
     fn finalize(&mut self, _state: &mut State, _time_step: f32) {
         self.data.copy_within(0..3, 1);
         self.m = self.next(self.m);
-        self.data[0] = 2. * (self.m as f32) / (MAX as f32);
+        self.data[0] = 2. * (self.m as f32) / (MAX as f32) - 1.;
     }
 }

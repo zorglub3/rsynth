@@ -120,6 +120,16 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
                 Box::new(MonoOutput::new(0, InputExpr::from_index(2))),
             );
         }
+        5 => {
+            result.insert(
+                "noise".to_string(),
+                Box::new(NoiseGenerator::new_with_default(1, 2)),
+            );
+            result.insert(
+                "mono_out".to_string(),
+                Box::new(MonoOutput::new(0, InputExpr::from_index(2))),
+            );
+        }
         _ => panic!("No test for {}", test),
     }
 

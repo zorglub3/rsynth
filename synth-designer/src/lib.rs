@@ -81,12 +81,16 @@ pub fn from_ini_file(
                     let module_spec = ContourModuleSpec::from_ini_properties(props)?;
                     synth_spec.add_module(Box::new(module_spec));
                 }
-                "lp_filter_24db" => {
-                    let module_spec = LpFilter24dbModuleSpec::from_ini_properties(props)?;
+                "filter_24db" => {
+                    let module_spec = Filter24dbModuleSpec::from_ini_properties(props)?;
                     synth_spec.add_module(Box::new(module_spec));
                 }
                 "filter_12db" => {
                     let module_spec = Filter12dbModuleSpec::from_ini_properties(props)?;
+                    synth_spec.add_module(Box::new(module_spec));
+                }
+                "filter_6db" => {
+                    let module_spec = Filter6dbModuleSpec::from_ini_properties(props)?;
                     synth_spec.add_module(Box::new(module_spec));
                 }
                 "midi_cc" => {

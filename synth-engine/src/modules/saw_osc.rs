@@ -7,6 +7,8 @@ use std::f32::consts::PI;
 
 const FILTER_FREQUENCY: f32 = 15_000.0;
 
+// TODO - try out polyBLEP
+
 pub struct SawOscillator {
     f0: f32,
     filter_state: usize,
