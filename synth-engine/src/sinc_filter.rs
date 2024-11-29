@@ -6,7 +6,7 @@ fn sinc(fc: f32, x: isize) -> f32 {
     if x.abs() < f32::EPSILON {
         1.
     } else {
-        (fc * x).sin() / x
+        (2. * PI * fc * x).sin() / x
     }
 }
 
@@ -27,12 +27,23 @@ fn blackman_window(i: isize, m: usize) -> f32 {
 }
 
 pub fn sinc_kernel(fc: f32, m: usize) -> Vec<f32> {
-    let mut result = vec![0.; m];
+    let m2 = (m as isize) / 2;
+    let mut result = Vec::with_capacity((m2 * 2 + 1) as usize);
+    let mut k: f32 = 0.;
 
-    for index in 0..m {
-        let i: isize = (index as isize).saturating_sub((m as isize) / 2);
+    for i in -m2..=m2 {
+        let window = blackman_window(i + m2, m);
+        let filter = sinc(fc, i);
+        let v = filter * window;
 
-        result[index] = sinc(fc, i) * blackman_window(i, m);
+        k += v;
+        result.push(v);
+    }
+
+    let k = 1. / k;
+
+    for i in 0..result.len() {
+        result[i] *= k;
     }
 
     result
@@ -50,15 +61,16 @@ pub fn convolve(kernel: &[f32], samples: &[f32], index: usize) -> f32 {
 }
 
 pub fn downsample_half(m: usize, samples: &[f32]) -> Vec<f32> {
-    let kernel = sinc_kernel(0.5, m);
+    let kernel = sinc_kernel(0.25, m);
 
     let mut result = vec![0.; samples.len() / 2];
 
     let m2 = m / 2;
 
     for i in 0..result.len() {
+        let i2 = i * 2;
         let index = (i + m2) % result.len();
-        result[index] = convolve(&kernel, samples, i);
+        result[index] = convolve(&kernel, samples, i2);
     }
 
     result

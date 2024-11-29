@@ -1,9 +1,11 @@
 mod amp_module;
 mod contour_module;
+mod delay_line;
 mod filter_12db_module;
 mod folder_module;
 mod input_spec;
 mod lp_filter_24db_module;
+mod lp_filter_6db;
 mod midi_cc_module;
 mod midi_mono_module;
 mod mono_out_module;
@@ -14,11 +16,13 @@ mod zero;
 
 pub use amp_module::AmpModuleSpec;
 pub use contour_module::ContourModuleSpec;
+pub use delay_line::DelayLineModuleSpec;
 pub use filter_12db_module::Filter12dbModuleSpec;
 pub use folder_module::FolderModuleSpec;
 pub use input_spec::InputSpec;
 pub use input_spec::InputSpecTerm;
 pub use lp_filter_24db_module::LpFilter24dbModuleSpec;
+pub use lp_filter_6db::LpFilter6dbModuleSpec;
 pub use midi_cc_module::MidiCCModuleSpec;
 pub use midi_mono_module::MidiMonoModuleSpec;
 pub use mono_out_module::MonoOutputModuleSpec;

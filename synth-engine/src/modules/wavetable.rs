@@ -7,10 +7,8 @@ use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::sinc_filter::downsample_half;
 use std::f32::consts::PI;
 
-const FREQUENCY_LIMIT: f32 = 20_000.0;
+const FREQUENCY_LIMIT: f32 = 18_000.0;
 const RESONANCE_FEEDBACK: f32 = 1.5;
-
-// TODO susceptible to offset errors - preprocess each wavetable to make average=0
 
 fn compute_cumulative_sums(samples: &[f32]) -> Vec<f32> {
     if samples.len() == 0 {
@@ -73,7 +71,7 @@ impl WavetableData {
         if self.samples.len() < 4 {
             None
         } else {
-            let m = self.samples.len() / 2;
+            let m = self.samples.len().min(128);
             let samples_downsampled = downsample_half(m, &self.samples);
             Some(WavetableData::from_slice(&samples_downsampled))
         }
@@ -137,7 +135,7 @@ impl WavetableEntry {
         let mut samples_per_step = (self.base_data_len as f32) * cycles_per_step;
 
         for i in 0..self.data.len() {
-            if samples_per_step < 1. {
+            if samples_per_step <= 1. {
                 return Some(&self.data[i]);
             } else {
                 samples_per_step /= 2.;
@@ -258,80 +256,15 @@ impl Module for Wavetable {
             UpdateType::Differentiable,
         );
         update.set(self.position_state, velocity, UpdateType::Differentiable);
-
-        /*
-        let velocity =
-            control_to_frequency(
-                self.f0,
-                self.pitch_control.from_state(state),
-                self.linear_modulation.from_state(state));
-
-        let distance = update.get_time_step() * velocity;
-        let start = self.current_position + update.get_delta_time() * velocity;
-        let end = start + distance;
-
-        let i =
-            if self.wavetables.len() == 1 {
-                if distance.abs() < f32::EPSILON {
-                    self.eval(0, start)
-                } else {
-                    self.integral(0, start, end) / distance
-                }
-            } else {
-                let scan =
-                    self.wavetable_select.from_state(state).min(1.).max(0.);
-                let scan_index = scan * (self.wavetables.len() as f32);
-                let index = scan_index.floor() as usize;
-                let x = scan_index.fract();
-                let index0 = index.min(self.wavetables.len() - 1);
-                let index1 = (index + 1).min(self.wavetables.len() - 1);
-
-                if distance.abs() < f32::EPSILON {
-                    let v1 = self.eval(index0, start);
-                    let v2 = self.eval(index1, start);
-
-                    v1 + (v2 - v1) * x
-                } else {
-                    let v1 = self.integral(index0, start, end) / distance;
-                    let v2 = self.integral(index1, start, end) / distance;
-
-                    v1 + (v2 - v1) * x
-                }
-            };
-
-        let a = self.amp;
-        let b = 1.5;
-
-        update.set(
-            self.filter_state,
-            a * (i - b * state.get(self.filter_state) - state.get(self.signal_output)),
-            UpdateType::Differentiable);
-        update.set(
-            self.signal_output,
-            a * state.get(self.filter_state),
-            UpdateType::Differentiable);
-            */
     }
 
     fn process_event(&mut self, _event: &ControllerEvent) {
         /* do nothing */
     }
 
-    fn finalize(&mut self, state: &mut State, time_step: f32) {
+    fn finalize(&mut self, state: &mut State, _time_step: f32) {
         let p = ((state.get(self.position_state) % 1.) + 1.) % 1.;
 
         state.set(self.position_state, p);
-
-        /*
-        let velocity =
-            control_to_frequency(
-                self.f0,
-                self.pitch_control.from_state(state),
-                self.linear_modulation.from_state(state));
-
-        let p = self.current_position + velocity * time_step;
-
-        self.current_position = ((p % 1.) + 1.) % 1.;
-        */
     }
 }

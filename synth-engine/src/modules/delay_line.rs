@@ -1,4 +1,6 @@
+use super::control_to_frequency;
 use crate::event::ControllerEvent;
+use crate::interpolation::Interpolation;
 use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
@@ -6,28 +8,30 @@ use crate::simulator::state::{State, StateUpdate, UpdateType};
 pub struct DelayLine {
     data: Vec<f32>,
     current_index: usize,
-    output_index: usize,
+    signal_output: usize,
+    f0: f32,
     signal_input: InputExpr,
-}
-
-// see https://www.paulinternet.nl/?page=bicubic
-fn cubic_interpolation(p0: f32, p1: f32, p2: f32, p3: f32, x: f32) -> f32 {
-    let x2 = x * x;
-    let x3 = x2 * x;
-
-    (-0.5 * p0 + 1.5 * p1 - 1.5 * p2 + 0.5 * p3) * x3
-        + (p0 - 2.5 * p1 + 2. * p2 - 0.5 * p3) * x2
-        + (-0.5 * p0 + 0.5 * p2) * x
-        + p1
+    pitch_control: InputExpr,
+    linear_modulation: InputExpr,
 }
 
 impl DelayLine {
-    pub fn new(size: usize, signal_input: InputExpr, output_index: usize) -> Self {
+    pub fn new(
+        f0: f32,
+        signal_output: usize,
+        signal_input: InputExpr,
+        pitch_control: InputExpr,
+        linear_modulation: InputExpr,
+        data_size: usize,
+    ) -> Self {
         Self {
-            data: vec![0.0_f32; size],
-            current_index: 0,
-            output_index,
+            f0,
+            signal_output,
             signal_input,
+            pitch_control,
+            linear_modulation,
+            current_index: 0,
+            data: vec![0.; data_size],
         }
     }
 
@@ -41,26 +45,31 @@ impl DelayLine {
         self.current_index = self.index_modulo(self.current_index + 1);
     }
 
-    fn read_index(&self) -> usize {
-        self.index_modulo(self.current_index + 1)
-    }
-
     fn write_index(&self) -> usize {
         self.current_index
-    }
-
-    fn data_point(&self, delta: usize) -> f32 {
-        todo!()
     }
 }
 
 impl Module for DelayLine {
     fn simulate(&self, state: &State, update: &mut StateUpdate) {
-        let y0 = self.data[self.read_index()];
-        let y1 = self.data[self.index_modulo(self.current_index + 2)];
-        let y2 = self.data[self.index_modulo(self.current_index + 3)];
+        let wi = self.write_index() as f32;
+        let l = self.data.len() as f32;
+        let d = update.get_time_step();
 
-        let y = todo!();
+        let f = control_to_frequency(
+            self.f0,
+            self.pitch_control.from_state(state),
+            self.linear_modulation.from_state(state),
+        );
+
+        let index = (f / d).min(l - 1.).max(3.);
+        let index = (((index + wi) % l) + l) % l;
+
+        update.set(
+            self.signal_output,
+            self.data.cubic_interpolate(index),
+            UpdateType::Absolute,
+        );
     }
 
     fn process_event(&mut self, _event: &ControllerEvent) {

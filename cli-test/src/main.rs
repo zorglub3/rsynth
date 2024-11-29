@@ -110,8 +110,8 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
                     1,
                     2,
                     InputExpr::constant(0.),
-                    InputExpr::constant(500.),
-                    InputExpr::constant(0.0),
+                    InputExpr::constant(5000.),
+                    InputExpr::constant(0.5),
                     vec![wavetable2, wavetable1],
                 )),
             );

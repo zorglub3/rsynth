@@ -113,6 +113,10 @@ pub fn from_ini_file(
                     let module_spec = WavetableOscillatorModuleSpec::from_ini_properties(props)?;
                     synth_spec.add_module(Box::new(module_spec));
                 }
+                "delay_line" => {
+                    let module_spec = DelayLineModuleSpec::from_ini_properties(props)?;
+                    synth_spec.add_module(Box::new(module_spec));
+                }
                 x => return Err(SynthError::UnknownModule(x.to_string())),
             }
         } else {
