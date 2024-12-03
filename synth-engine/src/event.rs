@@ -50,7 +50,6 @@ pub fn decode_midi_bytes(bytes: &[u8], channel: Option<u8>) -> Option<Controller
 
     match bytes.len() {
         x @ (2 | 3) => bytes_mut[0..x].copy_from_slice(bytes),
-        // 3 => bytes_mut.copy_from_slice(bytes),
         _ => return None,
     }
 
@@ -82,7 +81,7 @@ pub fn decode_midi_bytes(bytes: &[u8], channel: Option<u8>) -> Option<Controller
             }),
             [MIDI_PROGRAM_CHANGE, _amount, ..] => None,
             [MIDI_PITCH_WHEEL, d1, d2] => Some(PitchWheel {
-                amount: pitchwheel(d1, d2),
+                amount: pitchwheel(d2, d1),
             }),
             _ => None,
         }

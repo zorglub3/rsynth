@@ -49,12 +49,7 @@ impl OscillatorModuleSpec {
                 FREQ0 => f0 = v.parse::<f32>()?,
                 PARAM_A => a = v.parse::<f32>()?,
                 PARAM_B => b = v.parse::<f32>()?,
-                _ => {
-                    return Err(ModuleError::InvalidField {
-                        module_type: MODULE_TYPE.to_string(),
-                        field_name: k,
-                    })
-                }
+                _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
             }
         }
 
@@ -94,11 +89,11 @@ impl ModuleSpec for OscillatorModuleSpec {
         match state_field {
             SIGNAL_1_OUTPUT => Ok(self.state[0]),
             SIGNAL_2_OUTPUT => Ok(self.state[1]),
-            _ => Err(ModuleError::MissingStateName {
-                module_type: MODULE_TYPE.to_string(),
-                module_name: self.name.clone(),
-                field_name: state_field.to_string(),
-            }),
+            _ => Err(ModuleError::MissingStateName(
+                MODULE_TYPE.to_string(),
+                self.name.clone(),
+                state_field.to_string(),
+            )),
         }
     }
 

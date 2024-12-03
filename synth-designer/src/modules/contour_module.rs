@@ -32,12 +32,7 @@ impl ContourModuleSpec {
                 SIGNAL_INPUT => signal_in = InputSpec::parse(&v)?,
                 RISE_CONTROL => rise_control = InputSpec::parse(&v)?,
                 DECAY_CONTROL => decay_control = InputSpec::parse(&v)?,
-                _ => {
-                    return Err(ModuleError::InvalidField {
-                        module_type: MODULE_TYPE.to_string(),
-                        field_name: k,
-                    })
-                }
+                _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
             }
         }
 
@@ -68,11 +63,11 @@ impl ModuleSpec for ContourModuleSpec {
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
         match state_field {
             SIGNAL_OUTPUT => Ok(self.state[0]),
-            _ => Err(ModuleError::MissingStateName {
-                module_type: MODULE_TYPE.to_string(),
-                module_name: self.name.clone(),
-                field_name: state_field.to_string(),
-            }),
+            _ => Err(ModuleError::MissingStateName(
+                MODULE_TYPE.to_string(),
+                self.name.clone(),
+                state_field.to_string(),
+            )),
         }
     }
 

@@ -106,7 +106,6 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
                 "wavetable".to_string(),
                 Box::new(Wavetable::new(
                     0.,
-                    3,
                     1,
                     2,
                     InputExpr::constant(0.),

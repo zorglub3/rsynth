@@ -1,3 +1,4 @@
+pub mod input_expr;
 pub mod modules;
 
 use crate::modules::*;
@@ -119,6 +120,10 @@ pub fn from_ini_file(
                 }
                 "delay_line" => {
                     let module_spec = DelayLineModuleSpec::from_ini_properties(props)?;
+                    synth_spec.add_module(Box::new(module_spec));
+                }
+                "noise" => {
+                    let module_spec = NoiseGeneratorModuleSpec::from_ini_properties(props)?;
                     synth_spec.add_module(Box::new(module_spec));
                 }
                 x => return Err(SynthError::UnknownModule(x.to_string())),

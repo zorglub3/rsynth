@@ -24,6 +24,16 @@ pub struct NoiseGeneratorModuleSpec {
 }
 
 impl NoiseGeneratorModuleSpec {
+    pub fn new(name: &str, out_index: usize) -> Self {
+        Self {
+            name: name.to_string(),
+            state: [out_index],
+            a: A_PARAMETER_DEFAULT,
+            b: B_PARAMETER_DEFAULT,
+            seed: 1,
+        }
+    }
+
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
         let mut a: u32 = A_PARAMETER_DEFAULT;
@@ -36,12 +46,7 @@ impl NoiseGeneratorModuleSpec {
                 PARAMETER_A => a = v.parse::<u32>()?,
                 PARAMETER_B => b = v.parse::<u32>()?,
                 SEED => seed = v.parse::<u32>()?,
-                _ => {
-                    return Err(ModuleError::InvalidField {
-                        module_type: MODULE_TYPE.to_string(),
-                        field_name: k,
-                    })
-                }
+                _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
             }
         }
 
@@ -69,11 +74,11 @@ impl ModuleSpec for NoiseGeneratorModuleSpec {
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
         match state_field {
             SIGNAL_OUTPUT => Ok(self.state[0]),
-            _ => Err(ModuleError::MissingStateName {
-                module_type: MODULE_TYPE.to_string(),
-                module_name: self.name.clone(),
-                field_name: state_field.to_string(),
-            }),
+            _ => Err(ModuleError::MissingStateName(
+                MODULE_TYPE.to_string(),
+                self.name.clone(),
+                state_field.to_string(),
+            )),
         }
     }
 

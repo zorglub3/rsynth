@@ -11,9 +11,9 @@ const FREQUENCY_ZERO: &str = "frequency_zero";
 const CUTOFF_CONTROL: &str = "cutoff_frequency";
 const RESONANCE_CONTROL: &str = "resonance";
 const LINEAR_CONTROL: &str = "linear_control";
-const LP_OUTPUT: &str = "lp_output";
-const BP_OUTPUT: &str = "bp_output";
-const HP_OUTPUT: &str = "hp_output";
+const LP_OUTPUT: &str = "lowpass_output";
+const BP_OUTPUT: &str = "bandpass_output";
+const HP_OUTPUT: &str = "highpass_output";
 
 const INPUT_SIZE: usize = 4;
 const STATE_SIZE: usize = 3;
@@ -42,12 +42,7 @@ impl Filter12dbModuleSpec {
                 RESONANCE_CONTROL => rc = Some(InputSpec::parse(&v)?),
                 LINEAR_CONTROL => lc = Some(InputSpec::parse(&v)?),
                 FREQUENCY_ZERO => f0 = v.parse::<f32>()?,
-                _ => {
-                    return Err(ModuleError::InvalidField {
-                        module_type: MODULE_TYPE.to_string(),
-                        field_name: k,
-                    })
-                }
+                _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
             }
         }
 
@@ -90,11 +85,11 @@ impl ModuleSpec for Filter12dbModuleSpec {
             HP_OUTPUT => Ok(self.state[0]),
             BP_OUTPUT => Ok(self.state[1]),
             LP_OUTPUT => Ok(self.state[2]),
-            _ => Err(ModuleError::MissingStateName {
-                module_type: MODULE_TYPE.to_string(),
-                module_name: self.name.clone(),
-                field_name: state_field.to_string(),
-            }),
+            _ => Err(ModuleError::MissingStateName(
+                MODULE_TYPE.to_string(),
+                self.name.clone(),
+                state_field.to_string(),
+            )),
         }
     }
 

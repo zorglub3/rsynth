@@ -36,17 +36,15 @@ impl Filter6db {
 
 impl Module for Filter6db {
     fn simulate(&self, state: &State, update: &mut StateUpdate) {
-        let a = control_to_frequency(
+        let f = control_to_frequency(
             self.f0,
             self.freq_control_input.from_state(state),
             self.linear_control.from_state(state),
         );
-        let b = 1. - (-2. * a * PI).exp();
-        let c = (1. - b).max(0.0001);
 
         update.set(
             self.lowpass_output,
-            self.signal_input.from_state(state) * b - state.get(self.lowpass_output) * c,
+            2.0 * PI * f * (self.signal_input.from_state(state) - state.get(self.lowpass_output)),
             UpdateType::Differentiable,
         );
         update.set(

@@ -18,21 +18,15 @@ impl InputSpecTerm {
             let mut split = s.split(':');
 
             let Some(module_name) = split.next().map(|s| s.to_string()) else {
-                return Err(ModuleError::MalformedInputSpec {
-                    value: complete.to_string(),
-                });
+                return Err(ModuleError::MalformedInputSpec(complete.to_string()));
             };
 
             let Some(module_field) = split.next().map(|s| s.to_string()) else {
-                return Err(ModuleError::MalformedInputSpec {
-                    value: complete.to_string(),
-                });
+                return Err(ModuleError::MalformedInputSpec(complete.to_string()));
             };
 
             let Some(Ok(scale)) = split.next().map(|s| s.parse::<f32>()) else {
-                return Err(ModuleError::MalformedInputSpec {
-                    value: complete.to_string(),
-                });
+                return Err(ModuleError::MalformedInputSpec(complete.to_string()));
             };
 
             if split.next().is_none() {
@@ -42,9 +36,7 @@ impl InputSpecTerm {
                     scale,
                 });
             } else {
-                return Err(ModuleError::MalformedInputSpec {
-                    value: complete.to_string(),
-                });
+                return Err(ModuleError::MalformedInputSpec(complete.to_string()));
             }
         }
     }

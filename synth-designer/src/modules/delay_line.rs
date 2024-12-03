@@ -42,12 +42,7 @@ impl DelayLineModuleSpec {
                 FREQUENCY_CONTROL => fc = InputSpec::parse(&v)?,
                 LINEAR_CONTROL => lc = InputSpec::parse(&v)?,
                 DATA_SIZE_FIELD => data_size = v.parse::<usize>()?,
-                _ => {
-                    return Err(ModuleError::InvalidField {
-                        module_type: MODULE_TYPE.to_string(),
-                        field_name: k,
-                    })
-                }
+                _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
             }
         }
 
@@ -82,11 +77,11 @@ impl ModuleSpec for DelayLineModuleSpec {
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
         match state_field {
             SIGNAL_OUTPUT => Ok(self.state[0]),
-            _ => Err(ModuleError::MissingStateName {
-                module_type: MODULE_TYPE.to_string(),
-                module_name: self.name.clone(),
-                field_name: state_field.to_string(),
-            }),
+            _ => Err(ModuleError::MissingStateName(
+                MODULE_TYPE.to_string(),
+                self.name.clone(),
+                state_field.to_string(),
+            )),
         }
     }
 

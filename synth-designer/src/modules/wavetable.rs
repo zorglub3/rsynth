@@ -15,7 +15,7 @@ const SCAN_CONTROL: &str = "scan_control";
 const WAVETABLE_FIELD: &str = "wavetable";
 const SIGNAL_OUTPUT: &str = "signal_output";
 const INPUT_SIZE: usize = 3;
-const STATE_SIZE: usize = 3;
+const STATE_SIZE: usize = 2;
 
 pub struct WavetableOscillatorModuleSpec {
     name: String,
@@ -54,20 +54,15 @@ impl WavetableOscillatorModuleSpec {
                 SCAN_CONTROL => sc = InputSpec::parse(&v)?,
                 FREQUENCY_ZERO => f0 = v.parse::<f32>()?,
                 WAVETABLE_FIELD => wavetables.push(load_wavetable(&v)?),
-                _ => {
-                    return Err(ModuleError::InvalidField {
-                        module_type: MODULE_TYPE.to_string(),
-                        field_name: k,
-                    })
-                }
+                _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
             }
         }
 
         if wavetables.len() == 0 {
-            Err(ModuleError::MissingField {
-                module_type: MODULE_TYPE.to_string(),
-                field_name: WAVETABLE_FIELD.to_string(),
-            })
+            Err(ModuleError::MissingField(
+                MODULE_TYPE.to_string(),
+                WAVETABLE_FIELD.to_string(),
+            ))
         } else {
             Ok(Self {
                 name,
@@ -88,7 +83,6 @@ impl ModuleSpec for WavetableOscillatorModuleSpec {
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
         let module = Wavetable::new(
             self.f0,
-            self.state[2],
             self.state[0],
             self.state[1],
             synth_spec.input_expr(&self.inputs[0])?,
@@ -103,11 +97,11 @@ impl ModuleSpec for WavetableOscillatorModuleSpec {
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
         match state_field {
             SIGNAL_OUTPUT => Ok(self.state[1]),
-            _ => Err(ModuleError::MissingStateName {
-                module_type: MODULE_TYPE.to_string(),
-                module_name: self.name.clone(),
-                field_name: state_field.to_string(),
-            }),
+            _ => Err(ModuleError::MissingStateName(
+                MODULE_TYPE.to_string(),
+                self.name.clone(),
+                state_field.to_string(),
+            )),
         }
     }
 

@@ -40,58 +40,29 @@ use std::num::ParseFloatError;
 use std::num::ParseIntError;
 use synth_engine::modules::{InputExpr, InputTerm};
 use synth_engine::simulator::module::Module;
+use thiserror::Error;
 
 pub const ZERO_MODULE: &str = "zero";
 pub const ZERO_FIELD: &str = "zero";
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum ModuleError {
-    MissingField {
-        module_type: String,
-        field_name: String,
-    },
-    MalformedInputSpec {
-        value: String,
-    },
-    InvalidField {
-        module_type: String,
-        field_name: String,
-    },
-    MissingStateName {
-        module_type: String,
-        module_name: String,
-        field_name: String,
-    },
-    MissingModule {
-        module_name: String,
-    },
-    ParseFloatError {
-        parse_error: ParseFloatError,
-    },
-    ParseIntError {
-        parse_error: ParseIntError,
-    },
-    HoundError {
-        hound_error: hound::Error,
-    },
-}
-
-impl From<hound::Error> for ModuleError {
-    fn from(hound_error: hound::Error) -> Self {
-        Self::HoundError { hound_error }
-    }
-}
-
-impl From<ParseFloatError> for ModuleError {
-    fn from(err: ParseFloatError) -> Self {
-        Self::ParseFloatError { parse_error: err }
-    }
-}
-
-impl From<ParseIntError> for ModuleError {
-    fn from(err: ParseIntError) -> Self {
-        Self::ParseIntError { parse_error: err }
-    }
+    #[error("No such field, {1}, on module with type {0}")]
+    MissingField(String, String),
+    #[error("Malformed input spec: {0}")]
+    MalformedInputSpec(String),
+    #[error("Invalid field, {1}, for module with type {0}")]
+    InvalidField(String, String),
+    #[error("No such field, {2}, on module {1} of type {0}")]
+    MissingStateName(String, String, String),
+    #[error("Missing module {0}")]
+    MissingModule(String),
+    #[error("Error parsing float: {0}")]
+    ParseFloatError(#[from] ParseFloatError),
+    #[error("Error parsing integer: {0}")]
+    ParseIntError(#[from] ParseIntError),
+    #[error("Error parsing INI file: {0}")]
+    HoundError(#[from] hound::Error),
 }
 
 pub struct SynthSpec(BTreeMap<String, Box<dyn ModuleSpec>>);
@@ -119,9 +90,10 @@ impl SynthSpec {
         module_name: &str,
         module_field: &str,
     ) -> Result<usize, ModuleError> {
-        let module_spec = self.0.get(module_name).ok_or(ModuleError::MissingModule {
-            module_name: module_name.to_string(),
-        });
+        let module_spec = self
+            .0
+            .get(module_name)
+            .ok_or(ModuleError::MissingModule(module_name.to_string()));
 
         module_spec?.state_index(module_field)
     }

@@ -7,10 +7,12 @@ use std::cmp::Ordering;
 use std::collections::BTreeSet;
 
 const PRESSURE_FILTER_CONSTANT: f32 = 2. * PI * 20.;
+const PITCHWHEEL_FILTER_CONSTANT: f32 = 2. * PI * 20.;
 
 // TODO
 // - rename file and struct (not MIDI)
 // - make highest/lowest priority selectable at creation
+
 struct ActiveNote {
     pitch_code: u8,
     pitch_value: f32,
@@ -45,6 +47,7 @@ pub struct MidiMono {
     gate_output_index: usize,
     pressure_output_index: usize,
     velocity_output_index: usize,
+    pitchwheel_output_index: usize,
     active_notes: BTreeSet<ActiveNote>,
     current_pressure: f32,
     current_velocity: f32,
@@ -59,12 +62,14 @@ impl MidiMono {
         gate_output_index: usize,
         pressure_output_index: usize,
         velocity_output_index: usize,
+        pitchwheel_output_index: usize,
     ) -> Self {
         Self {
             pitch_output_index,
             gate_output_index,
             pressure_output_index,
             velocity_output_index,
+            pitchwheel_output_index,
             active_notes: BTreeSet::new(),
             current_pressure: 0.,
             current_velocity: 0.,
@@ -83,8 +88,14 @@ impl Module for MidiMono {
             UpdateType::Absolute,
         );
         update.set(
+            self.pitchwheel_output_index,
+            PITCHWHEEL_FILTER_CONSTANT
+                * (self.pitch_wheel - state.get(self.pitchwheel_output_index)),
+            UpdateType::Differentiable,
+        );
+        update.set(
             self.pitch_output_index,
-            self.current_pitch_value + self.pitch_wheel,
+            self.current_pitch_value + state.get(self.pitchwheel_output_index),
             UpdateType::Absolute,
         );
         update.set(

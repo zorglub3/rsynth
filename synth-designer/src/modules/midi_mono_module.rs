@@ -10,7 +10,8 @@ const PITCH_OUTPUT: &str = "pitch";
 const GATE_OUTPUT: &str = "gate";
 const PRESSURE_OUTPUT: &str = "aftertouch";
 const VELOCITY_OUTPUT: &str = "velocity";
-const STATE_SIZE: usize = 4;
+const PITCHWHEEL_OUTPUT: &str = "pitchwheel";
+const STATE_SIZE: usize = 5;
 
 pub struct MidiMonoModuleSpec {
     name: String,
@@ -24,12 +25,7 @@ impl MidiMonoModuleSpec {
         for (k, v) in props {
             match k.as_str() {
                 MODULE_NAME => name = v.to_string(),
-                _ => {
-                    return Err(ModuleError::InvalidField {
-                        module_type: MODULE_TYPE.to_string(),
-                        field_name: k,
-                    })
-                }
+                _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
             }
         }
 
@@ -46,7 +42,13 @@ impl ModuleSpec for MidiMonoModuleSpec {
     }
 
     fn create_module(&self, _synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
-        let midi_mono = MidiMono::new(self.state[0], self.state[1], self.state[2], self.state[3]);
+        let midi_mono = MidiMono::new(
+            self.state[0],
+            self.state[1],
+            self.state[2],
+            self.state[3],
+            self.state[4],
+        );
 
         Ok(Box::new(midi_mono))
     }
@@ -57,11 +59,12 @@ impl ModuleSpec for MidiMonoModuleSpec {
             GATE_OUTPUT => Ok(self.state[1]),
             PRESSURE_OUTPUT => Ok(self.state[2]),
             VELOCITY_OUTPUT => Ok(self.state[3]),
-            _ => Err(ModuleError::MissingStateName {
-                module_type: MODULE_TYPE.to_string(),
-                module_name: self.name.clone(),
-                field_name: state_field.to_string(),
-            }),
+            PITCHWHEEL_OUTPUT => Ok(self.state[4]),
+            _ => Err(ModuleError::MissingStateName(
+                MODULE_TYPE.to_string(),
+                self.name.clone(),
+                state_field.to_string(),
+            )),
         }
     }
 

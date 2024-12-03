@@ -5,5 +5,7 @@ edition = "2021"
 
 [dependencies]
 hound = "3.5.1"
+peg = "0.8.4"
 rust-ini = "0.21.1"
 synth-engine = { path = "../synth-engine" }
+thiserror = "2.0.3"

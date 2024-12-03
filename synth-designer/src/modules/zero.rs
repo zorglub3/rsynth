@@ -26,11 +26,11 @@ impl ModuleSpec for ZeroModuleSpec {
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
         match state_field {
             ZERO_FIELD => Ok(self.state[0]),
-            _ => Err(ModuleError::MissingStateName {
-                module_type: ZERO_MODULE.to_string(),
-                module_name: ZERO_MODULE.to_string(),
-                field_name: state_field.to_string(),
-            }),
+            _ => Err(ModuleError::MissingStateName(
+                ZERO_MODULE.to_string(),
+                ZERO_MODULE.to_string(),
+                state_field.to_string(),
+            )),
         }
     }
 
