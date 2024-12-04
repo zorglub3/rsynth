@@ -1,3 +1,4 @@
+use crate::input_expr::*;
 use crate::modules::*;
 use crate::*;
 use ini::Properties;
@@ -15,21 +16,21 @@ const INPUT_SIZE: usize = 2;
 
 pub struct FolderModuleSpec {
     name: String,
-    inputs: [InputSpec; INPUT_SIZE],
+    inputs: [Expr; INPUT_SIZE],
     state: [usize; STATE_SIZE],
 }
 
 impl FolderModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
-        let mut signal_in: InputSpec = InputSpec::zero();
-        let mut control: InputSpec = InputSpec::zero();
+        let mut signal_in: Expr = Expr::zero();
+        let mut control: Expr = Expr::zero();
 
         for (k, v) in props {
             match k.as_str() {
                 MODULE_NAME => name = v.to_string(),
-                SIGNAL_INPUT => signal_in = InputSpec::parse(&v)?,
-                CONTROL => control = InputSpec::parse(&v)?,
+                SIGNAL_INPUT => signal_in = Expr::parse(&v)?,
+                CONTROL => control = Expr::parse(&v)?,
                 _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
             }
         }
@@ -49,8 +50,8 @@ impl ModuleSpec for FolderModuleSpec {
 
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
         let folder = Folder::new(
-            synth_spec.input_expr(&self.inputs[0])?,
-            synth_spec.input_expr(&self.inputs[1])?,
+            self.inputs[0].compile(&synth_spec)?,
+            self.inputs[1].compile(&synth_spec)?,
             self.state[0],
         );
 

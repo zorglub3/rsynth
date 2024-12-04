@@ -1,3 +1,4 @@
+use crate::input_expr::*;
 use crate::modules::*;
 use crate::*;
 use ini::Properties;
@@ -15,23 +16,23 @@ const INPUT_SIZE: usize = 3;
 
 pub struct AmpModuleSpec {
     name: String,
-    inputs: [InputSpec; INPUT_SIZE],
+    inputs: [Expr; INPUT_SIZE],
     state: [usize; STATE_SIZE],
 }
 
 impl AmpModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
-        let mut signal_in: InputSpec = InputSpec::zero();
-        let mut lin_control: InputSpec = InputSpec::zero();
-        let mut exp_control: InputSpec = InputSpec::zero();
+        let mut signal_in: Expr = Expr::zero();
+        let mut lin_control: Expr = Expr::zero();
+        let mut exp_control: Expr = Expr::zero();
 
         for (k, v) in props {
             match k.as_str() {
                 MODULE_NAME => name = v.to_string(),
-                SIGNAL_INPUT => signal_in = InputSpec::parse(&v)?,
-                LINEAR_CONTROL => lin_control = InputSpec::parse(&v)?,
-                EXP_CONTROL => exp_control = InputSpec::parse(&v)?,
+                SIGNAL_INPUT => signal_in = Expr::parse(&v)?,
+                LINEAR_CONTROL => lin_control = Expr::parse(&v)?,
+                EXP_CONTROL => exp_control = Expr::parse(&v)?,
                 _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
             }
         }
@@ -51,10 +52,10 @@ impl ModuleSpec for AmpModuleSpec {
 
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
         let amplifier = Amplifier::new(
-            synth_spec.input_expr(&self.inputs[0])?,
+            self.inputs[0].compile(&synth_spec)?,
             self.state[0],
-            synth_spec.input_expr(&self.inputs[1])?,
-            synth_spec.input_expr(&self.inputs[2])?,
+            self.inputs[1].compile(&synth_spec)?,
+            self.inputs[2].compile(&synth_spec)?,
         );
 
         Ok(Box::new(amplifier))

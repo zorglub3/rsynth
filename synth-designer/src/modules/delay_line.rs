@@ -1,3 +1,4 @@
+use crate::input_expr::*;
 use crate::modules::*;
 use crate::*;
 use ini::Properties;
@@ -19,7 +20,7 @@ const DATA_SIZE_VALUE: usize = 1024;
 
 pub struct DelayLineModuleSpec {
     name: String,
-    inputs: [InputSpec; INPUT_SIZE],
+    inputs: [Expr; INPUT_SIZE],
     f0: f32,
     state: [usize; STATE_SIZE],
     data_size: usize,
@@ -29,18 +30,18 @@ impl DelayLineModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
         let mut f0: f32 = 1.;
-        let mut fc: InputSpec = InputSpec::zero();
-        let mut lc: InputSpec = InputSpec::zero();
-        let mut input: InputSpec = InputSpec::zero();
+        let mut fc: Expr = Expr::zero();
+        let mut lc: Expr = Expr::zero();
+        let mut input: Expr = Expr::zero();
         let mut data_size: usize = DATA_SIZE_VALUE;
 
         for (k, v) in props {
             match k.as_str() {
                 MODULE_NAME => name = v.to_string(),
-                SIGNAL_INPUT => input = InputSpec::parse(&v)?,
+                SIGNAL_INPUT => input = Expr::parse(&v)?,
                 FREQUENCY_ZERO => f0 = v.parse::<f32>()?,
-                FREQUENCY_CONTROL => fc = InputSpec::parse(&v)?,
-                LINEAR_CONTROL => lc = InputSpec::parse(&v)?,
+                FREQUENCY_CONTROL => fc = Expr::parse(&v)?,
+                LINEAR_CONTROL => lc = Expr::parse(&v)?,
                 DATA_SIZE_FIELD => data_size = v.parse::<usize>()?,
                 _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
             }
@@ -65,9 +66,9 @@ impl ModuleSpec for DelayLineModuleSpec {
         let delay_line = DelayLine::new(
             self.f0,
             self.state[0],
-            synth_spec.input_expr(&self.inputs[0])?,
-            synth_spec.input_expr(&self.inputs[1])?,
-            synth_spec.input_expr(&self.inputs[2])?,
+            self.inputs[0].compile(&synth_spec)?,
+            self.inputs[1].compile(&synth_spec)?,
+            self.inputs[2].compile(&synth_spec)?,
             self.data_size,
         );
 

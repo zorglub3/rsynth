@@ -1,10 +1,8 @@
 use clap::Parser;
 use std::collections::HashMap;
 use std::f32::consts::PI;
-use synth_engine::{
-    modules::input_expr::InputExpr, modules::*, simulator::module::Module,
-    simulator::rungekutta::RungeKutta,
-};
+use synth_engine::stack_program::*;
+use synth_engine::{modules::*, simulator::module::Module, simulator::rungekutta::RungeKutta};
 
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
@@ -39,11 +37,11 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
             );
             result.insert(
                 "folder".to_string(),
-                Box::new(Folder::new(InputExpr::zero(), InputExpr::zero(), 1)),
+                Box::new(Folder::new(StackProgram::zero(), StackProgram::zero(), 1)),
             );
             result.insert(
                 "mono_out".to_string(),
-                Box::new(MonoOutput::new(0, InputExpr::from_index(1))),
+                Box::new(MonoOutput::new(0, StackProgram::from_index(1))),
             );
         }
         1 => {
@@ -53,7 +51,7 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
             );
             result.insert(
                 "mono_out".to_string(),
-                Box::new(MonoOutput::new(0, InputExpr::from_index(1))),
+                Box::new(MonoOutput::new(0, StackProgram::from_index(1))),
             );
         }
         2 => {
@@ -65,15 +63,15 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
                     5.0,
                     2,
                     1,
-                    InputExpr::constant(5.),
-                    InputExpr::constant(0.),
-                    InputExpr::constant(0.),
-                    InputExpr::constant(0.),
+                    StackProgram::constant(5.),
+                    StackProgram::constant(0.),
+                    StackProgram::constant(0.),
+                    StackProgram::constant(0.),
                 )),
             );
             result.insert(
                 "mono_out".to_string(),
-                Box::new(MonoOutput::new(0, InputExpr::from_index(2))),
+                Box::new(MonoOutput::new(0, StackProgram::from_index(2))),
             );
         }
         3 => {
@@ -83,13 +81,13 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
                     0.,
                     1,
                     2,
-                    InputExpr::constant(0.),
-                    InputExpr::constant(200.),
+                    StackProgram::constant(0.),
+                    StackProgram::constant(200.),
                 )),
             );
             result.insert(
                 "mono_out".to_string(),
-                Box::new(MonoOutput::new(0, InputExpr::from_index(2))),
+                Box::new(MonoOutput::new(0, StackProgram::from_index(2))),
             );
         }
         4 => {
@@ -108,15 +106,15 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
                     0.,
                     1,
                     2,
-                    InputExpr::constant(0.),
-                    InputExpr::constant(5000.),
-                    InputExpr::constant(0.5),
+                    StackProgram::constant(0.),
+                    StackProgram::constant(5000.),
+                    StackProgram::constant(0.5),
                     vec![wavetable2, wavetable1],
                 )),
             );
             result.insert(
                 "mono_out".to_string(),
-                Box::new(MonoOutput::new(0, InputExpr::from_index(2))),
+                Box::new(MonoOutput::new(0, StackProgram::from_index(2))),
             );
         }
         5 => {
@@ -126,7 +124,7 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
             );
             result.insert(
                 "mono_out".to_string(),
-                Box::new(MonoOutput::new(0, InputExpr::from_index(2))),
+                Box::new(MonoOutput::new(0, StackProgram::from_index(2))),
             );
         }
         _ => panic!("No test for {}", test),

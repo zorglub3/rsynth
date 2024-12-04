@@ -1,27 +1,27 @@
 use super::control_to_frequency;
 use crate::event::ControllerEvent;
 use crate::interpolation::Interpolation;
-use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
+use crate::stack_program::*;
 
 pub struct DelayLine {
     data: Vec<f32>,
     current_index: usize,
     signal_output: usize,
     f0: f32,
-    signal_input: InputExpr,
-    pitch_control: InputExpr,
-    linear_modulation: InputExpr,
+    signal_input: StackProgram,
+    pitch_control: StackProgram,
+    linear_modulation: StackProgram,
 }
 
 impl DelayLine {
     pub fn new(
         f0: f32,
         signal_output: usize,
-        signal_input: InputExpr,
-        pitch_control: InputExpr,
-        linear_modulation: InputExpr,
+        signal_input: StackProgram,
+        pitch_control: StackProgram,
+        linear_modulation: StackProgram,
         data_size: usize,
     ) -> Self {
         Self {
@@ -51,15 +51,15 @@ impl DelayLine {
 }
 
 impl Module for DelayLine {
-    fn simulate(&self, state: &State, update: &mut StateUpdate) {
+    fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let wi = self.write_index() as f32;
         let l = self.data.len() as f32;
         let d = update.get_time_step();
 
         let f = control_to_frequency(
             self.f0,
-            self.pitch_control.from_state(state),
-            self.linear_modulation.from_state(state),
+            self.pitch_control.run(state, stack).unwrap_or(0.),
+            self.linear_modulation.run(state, stack).unwrap_or(0.),
         );
 
         // let index = (d / f).min(l - 3.).max(3.);
@@ -80,10 +80,10 @@ impl Module for DelayLine {
         /* do nothing */
     }
 
-    fn finalize(&mut self, state: &mut State, _time_step: f32) {
+    fn finalize(&mut self, state: &mut State, _time_step: f32, stack: &mut [f32]) {
         let write_index = self.write_index();
 
-        self.data[write_index] = self.signal_input.from_state(state);
+        self.data[write_index] = self.signal_input.run(state, stack).unwrap_or(0.);
         self.increment_index();
     }
 }

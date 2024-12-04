@@ -38,7 +38,7 @@ impl NoiseGenerator {
 }
 
 impl Module for NoiseGenerator {
-    fn simulate(&self, _state: &State, update: &mut StateUpdate) {
+    fn simulate(&self, _state: &State, update: &mut StateUpdate, _stack: &mut [f32]) {
         update.set(
             self.output_index,
             self.data
@@ -52,7 +52,7 @@ impl Module for NoiseGenerator {
         /* do nothing */
     }
 
-    fn finalize(&mut self, _state: &mut State, _time_step: f32) {
+    fn finalize(&mut self, _state: &mut State, _time_step: f32, _stack: &mut [f32]) {
         self.data.copy_within(0..3, 1);
         self.m = self.next(self.m);
         self.data[0] = 2. * (self.m as f32) / (MAX as f32) - 1.;

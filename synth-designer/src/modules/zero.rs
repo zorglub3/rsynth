@@ -1,3 +1,4 @@
+use crate::input_expr::*;
 use crate::modules::*;
 use crate::*;
 use synth_engine::modules::*;

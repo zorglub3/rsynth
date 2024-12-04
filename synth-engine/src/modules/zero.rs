@@ -13,7 +13,7 @@ impl ZeroModule {
 }
 
 impl Module for ZeroModule {
-    fn simulate(&self, _state: &State, update: &mut StateUpdate) {
+    fn simulate(&self, _state: &State, update: &mut StateUpdate, _stack: &mut [f32]) {
         update.set(self.state_index, 0., UpdateType::Absolute);
     }
 
@@ -21,7 +21,7 @@ impl Module for ZeroModule {
         /* do nothing */
     }
 
-    fn finalize(&mut self, state: &mut State, _time_step: f32) {
+    fn finalize(&mut self, state: &mut State, _time_step: f32, _stack: &mut [f32]) {
         state.set(self.state_index, 0.);
     }
 }

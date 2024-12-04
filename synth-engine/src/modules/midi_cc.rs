@@ -31,7 +31,7 @@ impl MidiCC {
 }
 
 impl Module for MidiCC {
-    fn simulate(&self, state: &State, update: &mut StateUpdate) {
+    fn simulate(&self, state: &State, update: &mut StateUpdate, _stack: &mut [f32]) {
         if let Some(freq) = self.filter_freq {
             let k = 2. * PI * freq;
             let v = self.compute_value();
@@ -56,7 +56,7 @@ impl Module for MidiCC {
         }
     }
 
-    fn finalize(&mut self, _state: &mut State, _time_step: f32) {
+    fn finalize(&mut self, _state: &mut State, _time_step: f32, _stack: &mut [f32]) {
         /* do nothing */
     }
 }

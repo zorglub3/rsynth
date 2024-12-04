@@ -1,10 +1,10 @@
 use super::control_to_frequency;
 use crate::event::ControllerEvent;
 use crate::interpolation::Interpolation;
-use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::sinc_filter::downsample_half;
+use crate::stack_program::*;
 use std::f32::consts::PI;
 
 const FREQUENCY_LIMIT: f32 = 18_000.0;
@@ -92,9 +92,9 @@ pub struct Wavetable {
     f0: f32,
     position_state: usize,
     signal_output: usize,
-    pitch_control: InputExpr,
-    linear_modulation: InputExpr,
-    wavetable_select: InputExpr,
+    pitch_control: StackProgram,
+    linear_modulation: StackProgram,
+    wavetable_select: StackProgram,
     wavetables: Vec<WavetableEntry>,
     amp: f32,
 }
@@ -104,9 +104,9 @@ impl Wavetable {
         f0: f32,
         position_state: usize,
         signal_output: usize,
-        pitch_control: InputExpr,
-        linear_modulation: InputExpr,
-        wavetable_select: InputExpr,
+        pitch_control: StackProgram,
+        linear_modulation: StackProgram,
+        wavetable_select: StackProgram,
         wavetables: Vec<Vec<f32>>,
     ) -> Self {
         Self {
@@ -126,11 +126,11 @@ impl Wavetable {
 }
 
 impl Module for Wavetable {
-    fn simulate(&self, state: &State, update: &mut StateUpdate) {
+    fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let velocity = control_to_frequency(
             self.f0,
-            self.pitch_control.from_state(state),
-            self.linear_modulation.from_state(state),
+            self.pitch_control.run(state, stack).unwrap_or(0.),
+            self.linear_modulation.run(state, stack).unwrap_or(0.),
         );
         let distance = update.get_time_step() * velocity;
         let start = state.get(self.position_state);
@@ -138,7 +138,12 @@ impl Module for Wavetable {
         let wavetable_sample = if self.wavetables.len() == 1 {
             self.wavetables[0].eval(distance, start)
         } else if self.wavetables.len() > 1 {
-            let scan = self.wavetable_select.from_state(state).min(1.).max(0.);
+            let scan = self
+                .wavetable_select
+                .run(state, stack)
+                .unwrap_or(0.)
+                .min(1.)
+                .max(0.);
             let scan_select = scan * ((self.wavetables.len() - 1) as f32);
             let index = scan_select.floor() as usize;
             let x = scan_select.fract();
@@ -165,7 +170,7 @@ impl Module for Wavetable {
         /* do nothing */
     }
 
-    fn finalize(&mut self, state: &mut State, _time_step: f32) {
+    fn finalize(&mut self, state: &mut State, _time_step: f32, _stack: &mut [f32]) {
         let p = ((state.get(self.position_state) % 1.) + 1.) % 1.;
 
         state.set(self.position_state, p);

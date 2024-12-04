@@ -1,8 +1,8 @@
 use super::control_to_frequency;
 use crate::event::ControllerEvent;
-use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
+use crate::stack_program::*;
 use std::f32::consts::PI;
 
 pub struct BowedOscillator {
@@ -11,10 +11,10 @@ pub struct BowedOscillator {
     b: f32,
     state_u_index: usize,
     state_v_index: usize,
-    control_input: InputExpr,
-    linear_control: InputExpr,
-    pressure_input: InputExpr,
-    velocity_input: InputExpr,
+    control_input: StackProgram,
+    linear_control: StackProgram,
+    pressure_input: StackProgram,
+    velocity_input: StackProgram,
 }
 
 impl BowedOscillator {
@@ -24,10 +24,10 @@ impl BowedOscillator {
         b: f32,
         state_u_index: usize,
         state_v_index: usize,
-        control_input: InputExpr,
-        linear_control: InputExpr,
-        pressure_input: InputExpr,
-        velocity_input: InputExpr,
+        control_input: StackProgram,
+        linear_control: StackProgram,
+        pressure_input: StackProgram,
+        velocity_input: StackProgram,
     ) -> Self {
         Self {
             f0,
@@ -48,12 +48,14 @@ fn friction(a: f32, b: f32, x: f32) -> f32 {
 }
 
 impl Module for BowedOscillator {
-    fn simulate(&self, state: &State, update: &mut StateUpdate) {
-        let linear_control = self.linear_control.from_state(state);
+    fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
+        let linear_control = self.linear_control.run(state, stack).unwrap_or(0.);
+        // let linear_control = self.linear_control.from_state(state);
 
         let omega = control_to_frequency(
             self.f0,
-            self.control_input.from_state(state),
+            self.control_input.run(state, stack).unwrap_or(0.),
+            // self.control_input.from_state(state),
             linear_control,
         ) * 2.0
             * PI;
@@ -61,8 +63,17 @@ impl Module for BowedOscillator {
         let u = state.get(self.state_u_index);
         let v = state.get(self.state_v_index);
 
-        let vb = self.velocity_input.from_state(state).max(-1.).min(1.);
-        let force = self.pressure_input.from_state(state).min(omega / 2.);
+        let vb = self
+            .velocity_input
+            .run(state, stack)
+            .unwrap_or(0.)
+            .max(-1.)
+            .min(1.);
+        let force = self
+            .pressure_input
+            .run(state, stack)
+            .unwrap_or(0.)
+            .min(omega / 2.);
 
         let f = force * friction(self.a, self.b, v - vb);
 
@@ -78,7 +89,7 @@ impl Module for BowedOscillator {
         /* do nothing */
     }
 
-    fn finalize(&mut self, state: &mut State, _time_step: f32) {
+    fn finalize(&mut self, state: &mut State, _time_step: f32, _stack: &mut [f32]) {
         let u = state.get(self.state_u_index);
         let v = state.get(self.state_v_index);
         let s = (u * u + v * v).sqrt();

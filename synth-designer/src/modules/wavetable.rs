@@ -1,3 +1,4 @@
+use crate::input_expr::*;
 use crate::modules::*;
 use crate::DEFAULT_FREQUENCY_ZERO;
 use crate::*;
@@ -19,7 +20,7 @@ const STATE_SIZE: usize = 2;
 
 pub struct WavetableOscillatorModuleSpec {
     name: String,
-    inputs: [InputSpec; INPUT_SIZE],
+    inputs: [Expr; INPUT_SIZE],
     state: [usize; STATE_SIZE],
     f0: f32,
     wavetables: Vec<Vec<f32>>,
@@ -41,17 +42,17 @@ impl WavetableOscillatorModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
         let mut f0: f32 = DEFAULT_FREQUENCY_ZERO;
-        let mut fc: InputSpec = InputSpec::zero();
-        let mut lc: InputSpec = InputSpec::zero();
-        let mut sc: InputSpec = InputSpec::zero();
+        let mut fc: Expr = Expr::zero();
+        let mut lc: Expr = Expr::zero();
+        let mut sc: Expr = Expr::zero();
         let mut wavetables: Vec<Vec<f32>> = Vec::new();
 
         for (k, v) in props {
             match k.as_str() {
                 MODULE_NAME => name = v.to_string(),
-                FREQUENCY_CONTROL => fc = InputSpec::parse(&v)?,
-                LINEAR_CONTROL => lc = InputSpec::parse(&v)?,
-                SCAN_CONTROL => sc = InputSpec::parse(&v)?,
+                FREQUENCY_CONTROL => fc = Expr::parse(&v)?,
+                LINEAR_CONTROL => lc = Expr::parse(&v)?,
+                SCAN_CONTROL => sc = Expr::parse(&v)?,
                 FREQUENCY_ZERO => f0 = v.parse::<f32>()?,
                 WAVETABLE_FIELD => wavetables.push(load_wavetable(&v)?),
                 _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
@@ -85,9 +86,9 @@ impl ModuleSpec for WavetableOscillatorModuleSpec {
             self.f0,
             self.state[0],
             self.state[1],
-            synth_spec.input_expr(&self.inputs[0])?,
-            synth_spec.input_expr(&self.inputs[1])?,
-            synth_spec.input_expr(&self.inputs[2])?,
+            self.inputs[0].compile(&synth_spec)?,
+            self.inputs[1].compile(&synth_spec)?,
+            self.inputs[2].compile(&synth_spec)?,
             self.wavetables.clone(),
         );
 

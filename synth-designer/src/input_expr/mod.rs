@@ -2,15 +2,23 @@ extern crate peg;
 use crate::modules::ModuleError;
 use crate::modules::SynthSpec;
 use peg::parser;
+use peg::str::LineCol;
 use synth_engine::stack_program::*;
 use thiserror::Error;
 
+#[derive(Debug, PartialEq, Clone)]
+pub struct ParseLocation(String, LineCol);
+
 #[derive(Error, Debug)]
 pub enum ExprError {
-    #[error("Module error: {0}")]
-    ModuleError(#[from] ModuleError),
+    // #[error("Module error: {0}")]
+    // ModuleError(#[from] ModuleError),
     #[error("Unrecognized function: {0}")]
     UnrecognizedFunction(String),
+    #[error("Parse error: {0:?}")]
+    ParseError(#[from] peg::error::ParseError<LineCol>),
+    #[error("Missing module field. Module: {0}, field: {1}")]
+    MissingField(String, String),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -40,8 +48,16 @@ impl Expr {
         }
     }
 
-    pub fn parse(s: &str) -> Option<Self> {
-        arithmetic::expression(s).map(|e| e.simplify()).ok()
+    pub fn parse(s: &str) -> Result<Self, ExprError> {
+        Ok(arithmetic::expression(s).map(|e| e.simplify())?)
+    }
+
+    pub fn zero() -> Self {
+        Expr::Number(0.)
+    }
+
+    pub fn constant(v: f32) -> Self {
+        Expr::Number(v)
     }
 }
 
@@ -98,7 +114,7 @@ impl Expr {
                 for expr in args {
                     expr.compile_helper(synth_spec, program)?;
                 }
-                for i in 0..(args.len() - 1).max(0) {
+                for _i in 0..(args.len() - 1).max(0) {
                     program.push(Instr::Add);
                 }
             }
@@ -106,14 +122,15 @@ impl Expr {
                 for expr in args {
                     expr.compile_helper(synth_spec, program)?;
                 }
-                for i in 0..(args.len() - 1).max(0) {
+                for _i in 0..(args.len() - 1).max(0) {
                     program.push(Instr::Multiply);
                 }
             }
             Number(n) => program.push(Instr::Const(*n)),
-            Output(m, n) => program.push(Instr::State(
-                synth_spec.input_state_index(m.as_str(), n.as_str())?,
-            )),
+            Output(m, n) => match synth_spec.input_state_index(m.as_str(), n.as_str()) {
+                Ok(index) => program.push(Instr::State(index)),
+                Err(_) => return Err(ExprError::MissingField(m.to_string(), n.to_string())),
+            },
             FunCall(f, args) => {
                 // TODO check len() of args matches what's required by function
                 for expr in args {

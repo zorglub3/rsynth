@@ -1,8 +1,8 @@
 use super::control_to_frequency;
 use crate::event::ControllerEvent;
-use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
+use crate::stack_program::*;
 use std::f32::consts::PI;
 
 pub struct Filter24db {
@@ -11,10 +11,10 @@ pub struct Filter24db {
     state1_index: usize,
     state2_index: usize,
     state3_index: usize,
-    freq_control_input: InputExpr,
-    linear_control_input: InputExpr,
-    res_control_input: InputExpr,
-    signal_input: InputExpr,
+    freq_control_input: StackProgram,
+    linear_control_input: StackProgram,
+    res_control_input: StackProgram,
+    signal_input: StackProgram,
 }
 
 impl Filter24db {
@@ -24,10 +24,10 @@ impl Filter24db {
         state1_index: usize,
         state2_index: usize,
         state3_index: usize,
-        freq_control_input: InputExpr,
-        linear_control_input: InputExpr,
-        res_control_input: InputExpr,
-        signal_input: InputExpr,
+        freq_control_input: StackProgram,
+        linear_control_input: StackProgram,
+        res_control_input: StackProgram,
+        signal_input: StackProgram,
     ) -> Self {
         Self {
             f0,
@@ -44,16 +44,20 @@ impl Filter24db {
 }
 
 impl Module for Filter24db {
-    fn simulate(&self, state: &State, update: &mut StateUpdate) {
+    fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let f: f32 = control_to_frequency(
             self.f0,
-            self.freq_control_input.from_state(state),
-            self.linear_control_input.from_state(state),
+            self.freq_control_input.run(state, stack).unwrap_or(0.),
+            self.linear_control_input.run(state, stack).unwrap_or(0.),
         );
         let g: f32 = f * 2. * PI;
-        let r: f32 = self.res_control_input.from_state(state).max(0.);
+        let r: f32 = self
+            .res_control_input
+            .run(state, stack)
+            .unwrap_or(0.)
+            .max(0.);
 
-        let input = self.signal_input.from_state(state);
+        let input = self.signal_input.run(state, stack).unwrap_or(0.);
 
         // previous version of this filter - don't delete until we know if
         // the new version really sounds better.
@@ -104,7 +108,7 @@ impl Module for Filter24db {
         /* do nothing */
     }
 
-    fn finalize(&mut self, _state: &mut State, _time_step: f32) {
+    fn finalize(&mut self, _state: &mut State, _time_step: f32, _stack: &mut [f32]) {
         /* do nothing */
     }
 }

@@ -23,7 +23,7 @@ impl QuadratureOscillator {
 }
 
 impl Module for QuadratureOscillator {
-    fn simulate(&self, state: &State, update: &mut StateUpdate) {
+    fn simulate(&self, state: &State, update: &mut StateUpdate, _stack: &mut [f32]) {
         let omega = control_to_frequency(self.f0, state.get(self.control_index), 0.0) * (2. * PI);
         let x = state.get(self.state_x_index);
         let y = state.get(self.state_y_index);
@@ -36,7 +36,7 @@ impl Module for QuadratureOscillator {
         /* do nothing */
     }
 
-    fn finalize(&mut self, state: &mut State, _time_step: f32) {
+    fn finalize(&mut self, state: &mut State, _time_step: f32, _stack: &mut [f32]) {
         let x = state.get(self.state_x_index);
         let y = state.get(self.state_y_index);
         let s = (x * x + y * y).sqrt();

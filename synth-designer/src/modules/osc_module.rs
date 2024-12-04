@@ -1,3 +1,4 @@
+use crate::input_expr::*;
 use crate::modules::*;
 use crate::DEFAULT_FREQUENCY_ZERO;
 use crate::*;
@@ -21,7 +22,7 @@ const STATE_SIZE: usize = 2;
 
 pub struct OscillatorModuleSpec {
     name: String,
-    inputs: [InputSpec; INPUT_SIZE],
+    inputs: [Expr; INPUT_SIZE],
     state: [usize; STATE_SIZE],
     f0: f32,
     a: f32,
@@ -31,10 +32,10 @@ pub struct OscillatorModuleSpec {
 impl OscillatorModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
-        let mut fc: InputSpec = InputSpec::zero();
-        let mut lc: InputSpec = InputSpec::zero();
-        let mut pc: InputSpec = InputSpec::zero();
-        let mut vc: InputSpec = InputSpec::zero();
+        let mut fc: Expr = Expr::zero();
+        let mut lc: Expr = Expr::zero();
+        let mut pc: Expr = Expr::zero();
+        let mut vc: Expr = Expr::zero();
         let mut f0: f32 = DEFAULT_FREQUENCY_ZERO;
         let mut a: f32 = 0.;
         let mut b: f32 = 0.;
@@ -42,10 +43,10 @@ impl OscillatorModuleSpec {
         for (k, v) in props {
             match k.as_str() {
                 MODULE_NAME => name = v.to_string(),
-                FREQUENCY_CONTROL => fc = InputSpec::parse(&v)?,
-                LINEAR_FREQUENCY_CONTROL => lc = InputSpec::parse(&v)?,
-                PRESSURE_CONTROL => pc = InputSpec::parse(&v)?,
-                VELOCITY_CONTROL => vc = InputSpec::parse(&v)?,
+                FREQUENCY_CONTROL => fc = Expr::parse(&v)?,
+                LINEAR_FREQUENCY_CONTROL => lc = Expr::parse(&v)?,
+                PRESSURE_CONTROL => pc = Expr::parse(&v)?,
+                VELOCITY_CONTROL => vc = Expr::parse(&v)?,
                 FREQ0 => f0 = v.parse::<f32>()?,
                 PARAM_A => a = v.parse::<f32>()?,
                 PARAM_B => b = v.parse::<f32>()?,
@@ -76,10 +77,10 @@ impl ModuleSpec for OscillatorModuleSpec {
             self.b,
             self.state[0],
             self.state[1],
-            synth_spec.input_expr(&self.inputs[0])?,
-            synth_spec.input_expr(&self.inputs[1])?,
-            synth_spec.input_expr(&self.inputs[2])?,
-            synth_spec.input_expr(&self.inputs[3])?,
+            self.inputs[0].compile(&synth_spec)?,
+            self.inputs[1].compile(&synth_spec)?,
+            self.inputs[2].compile(&synth_spec)?,
+            self.inputs[3].compile(&synth_spec)?,
         );
 
         Ok(Box::new(osc))

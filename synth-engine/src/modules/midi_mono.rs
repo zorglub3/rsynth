@@ -81,7 +81,7 @@ impl MidiMono {
 }
 
 impl Module for MidiMono {
-    fn simulate(&self, state: &State, update: &mut StateUpdate) {
+    fn simulate(&self, state: &State, update: &mut StateUpdate, _stack: &mut [f32]) {
         update.set(
             self.gate_output_index,
             self.current_gate,
@@ -148,7 +148,7 @@ impl Module for MidiMono {
         }
     }
 
-    fn finalize(&mut self, _state: &mut State, _time_step: f32) {
+    fn finalize(&mut self, _state: &mut State, _time_step: f32, _stack: &mut [f32]) {
         /* do nothing */
     }
 }

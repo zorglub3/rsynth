@@ -1,3 +1,4 @@
+use crate::input_expr::*;
 use crate::modules::*;
 use crate::*;
 use ini::Properties;
@@ -20,7 +21,7 @@ const STATE_SIZE: usize = 3;
 
 pub struct Filter12dbModuleSpec {
     name: String,
-    inputs: [InputSpec; INPUT_SIZE],
+    inputs: [Expr; INPUT_SIZE],
     state: [usize; STATE_SIZE],
     f0: f32,
 }
@@ -29,18 +30,18 @@ impl Filter12dbModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
         let mut f0: f32 = 1.;
-        let mut fc: Option<InputSpec> = None;
-        let mut lc: Option<InputSpec> = None;
-        let mut rc: Option<InputSpec> = None;
-        let mut input: Option<InputSpec> = None;
+        let mut fc: Option<Expr> = None;
+        let mut lc: Option<Expr> = None;
+        let mut rc: Option<Expr> = None;
+        let mut input: Option<Expr> = None;
 
         for (k, v) in props {
             match k.as_str() {
                 MODULE_NAME => name = v.to_string(),
-                SIGNAL_INPUT => input = Some(InputSpec::parse(&v)?),
-                CUTOFF_CONTROL => fc = Some(InputSpec::parse(&v)?),
-                RESONANCE_CONTROL => rc = Some(InputSpec::parse(&v)?),
-                LINEAR_CONTROL => lc = Some(InputSpec::parse(&v)?),
+                SIGNAL_INPUT => input = Some(Expr::parse(&v)?),
+                CUTOFF_CONTROL => fc = Some(Expr::parse(&v)?),
+                RESONANCE_CONTROL => rc = Some(Expr::parse(&v)?),
+                LINEAR_CONTROL => lc = Some(Expr::parse(&v)?),
                 FREQUENCY_ZERO => f0 = v.parse::<f32>()?,
                 _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
             }
@@ -50,10 +51,10 @@ impl Filter12dbModuleSpec {
             name,
             f0,
             inputs: [
-                input.unwrap_or(InputSpec::zero()),
-                fc.unwrap_or(InputSpec::zero()),
-                lc.unwrap_or(InputSpec::zero()),
-                rc.unwrap_or(InputSpec::zero()),
+                input.unwrap_or(Expr::zero()),
+                fc.unwrap_or(Expr::zero()),
+                lc.unwrap_or(Expr::zero()),
+                rc.unwrap_or(Expr::zero()),
             ],
             state: [0; STATE_SIZE],
         })
@@ -71,10 +72,10 @@ impl ModuleSpec for Filter12dbModuleSpec {
             self.state[0],
             self.state[1],
             self.state[2],
-            synth_spec.input_expr(&self.inputs[1])?,
-            synth_spec.input_expr(&self.inputs[2])?,
-            synth_spec.input_expr(&self.inputs[3])?,
-            synth_spec.input_expr(&self.inputs[0])?,
+            self.inputs[1].compile(&synth_spec)?,
+            self.inputs[2].compile(&synth_spec)?,
+            self.inputs[3].compile(&synth_spec)?,
+            self.inputs[0].compile(&synth_spec)?,
         );
 
         Ok(Box::new(filter))

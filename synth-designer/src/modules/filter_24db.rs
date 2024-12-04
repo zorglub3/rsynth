@@ -1,3 +1,4 @@
+use crate::input_expr::*;
 use crate::modules::*;
 use crate::*;
 use ini::Properties;
@@ -18,7 +19,7 @@ const STATE_SIZE: usize = 4;
 
 pub struct Filter24dbModuleSpec {
     name: String,
-    inputs: [InputSpec; INPUT_SIZE],
+    inputs: [Expr; INPUT_SIZE],
     state: [usize; STATE_SIZE],
     f0: f32,
 }
@@ -26,19 +27,19 @@ pub struct Filter24dbModuleSpec {
 impl Filter24dbModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
-        let mut signal_in: InputSpec = InputSpec::zero();
-        let mut fc: InputSpec = InputSpec::zero();
-        let mut lc: InputSpec = InputSpec::zero();
-        let mut rc: InputSpec = InputSpec::zero();
+        let mut signal_in: Expr = Expr::zero();
+        let mut fc: Expr = Expr::zero();
+        let mut lc: Expr = Expr::zero();
+        let mut rc: Expr = Expr::zero();
         let mut f0: f32 = 1.0_f32;
 
         for (k, v) in props {
             match k.as_str() {
                 MODULE_NAME => name = v.to_string(),
-                SIGNAL_INPUT => signal_in = InputSpec::parse(&v)?,
-                CUTOFF_CONTROL => fc = InputSpec::parse(&v)?,
-                LINEAR_CONTROL => lc = InputSpec::parse(&v)?,
-                RESONANCE_CONTROL => rc = InputSpec::parse(&v)?,
+                SIGNAL_INPUT => signal_in = Expr::parse(&v)?,
+                CUTOFF_CONTROL => fc = Expr::parse(&v)?,
+                LINEAR_CONTROL => lc = Expr::parse(&v)?,
+                RESONANCE_CONTROL => rc = Expr::parse(&v)?,
                 FREQ0 => f0 = v.parse::<f32>()?,
                 _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
             }
@@ -65,10 +66,10 @@ impl ModuleSpec for Filter24dbModuleSpec {
             self.state[1],
             self.state[2],
             self.state[3],
-            synth_spec.input_expr(&self.inputs[1])?,
-            synth_spec.input_expr(&self.inputs[3])?,
-            synth_spec.input_expr(&self.inputs[2])?,
-            synth_spec.input_expr(&self.inputs[0])?,
+            self.inputs[1].compile(&synth_spec)?,
+            self.inputs[3].compile(&synth_spec)?,
+            self.inputs[2].compile(&synth_spec)?,
+            self.inputs[0].compile(&synth_spec)?,
         );
 
         Ok(Box::new(filter))

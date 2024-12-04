@@ -1,3 +1,4 @@
+use crate::input_expr::*;
 use crate::modules::*;
 use crate::*;
 use ini::Properties;
@@ -15,23 +16,23 @@ const STATE_SIZE: usize = 1;
 
 pub struct ContourModuleSpec {
     name: String,
-    inputs: [InputSpec; INPUT_SIZE],
+    inputs: [Expr; INPUT_SIZE],
     state: [usize; STATE_SIZE],
 }
 
 impl ContourModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
-        let mut signal_in: InputSpec = InputSpec::zero();
-        let mut rise_control: InputSpec = InputSpec::zero();
-        let mut decay_control: InputSpec = InputSpec::zero();
+        let mut signal_in: Expr = Expr::zero();
+        let mut rise_control: Expr = Expr::zero();
+        let mut decay_control: Expr = Expr::zero();
 
         for (k, v) in props {
             match k.as_str() {
                 MODULE_NAME => name = v.to_string(),
-                SIGNAL_INPUT => signal_in = InputSpec::parse(&v)?,
-                RISE_CONTROL => rise_control = InputSpec::parse(&v)?,
-                DECAY_CONTROL => decay_control = InputSpec::parse(&v)?,
+                SIGNAL_INPUT => signal_in = Expr::parse(&v)?,
+                RISE_CONTROL => rise_control = Expr::parse(&v)?,
+                DECAY_CONTROL => decay_control = Expr::parse(&v)?,
                 _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
             }
         }
@@ -51,10 +52,10 @@ impl ModuleSpec for ContourModuleSpec {
 
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
         let env = ADEnvelope::new(
-            synth_spec.input_expr(&self.inputs[0])?,
+            self.inputs[0].compile(&synth_spec)?,
             self.state[0],
-            synth_spec.input_expr(&self.inputs[1])?,
-            synth_spec.input_expr(&self.inputs[2])?,
+            self.inputs[1].compile(&synth_spec)?,
+            self.inputs[2].compile(&synth_spec)?,
         );
 
         Ok(Box::new(env))

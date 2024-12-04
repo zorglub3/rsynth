@@ -1,7 +1,7 @@
 use crate::event::ControllerEvent;
-use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
+use crate::stack_program::*;
 
 const MIN_TIME: f32 = 0.0001_f32;
 
@@ -20,20 +20,20 @@ enum EnvType {
 }
 
 pub struct ADEnvelope {
-    signal_input: InputExpr,
+    signal_input: StackProgram,
     output_index: usize,
-    attack_input: InputExpr,
-    decay_input: InputExpr,
+    attack_input: StackProgram,
+    decay_input: StackProgram,
     env_state: EnvState,
     env_type: EnvType,
 }
 
 impl ADEnvelope {
     pub fn new(
-        signal_input: InputExpr,
+        signal_input: StackProgram,
         output_index: usize,
-        attack_input: InputExpr,
-        decay_input: InputExpr,
+        attack_input: StackProgram,
+        decay_input: StackProgram,
     ) -> Self {
         Self {
             signal_input,
@@ -53,9 +53,9 @@ fn rise_decay(t: f32) -> f32 {
 }
 
 impl Module for ADEnvelope {
-    fn simulate(&self, state: &State, update: &mut StateUpdate) {
-        let attack = self.attack_input.from_state(state);
-        let decay = self.decay_input.from_state(state);
+    fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
+        let attack = self.attack_input.run(state, stack).unwrap_or(0.);
+        let decay = self.decay_input.run(state, stack).unwrap_or(0.);
 
         match self.env_state {
             EnvState::Attack => {
@@ -80,8 +80,8 @@ impl Module for ADEnvelope {
         /* do nothing */
     }
 
-    fn finalize(&mut self, state: &mut State, _time_step: f32) {
-        let input_state = self.signal_input.from_state(state);
+    fn finalize(&mut self, state: &mut State, _time_step: f32, stack: &mut [f32]) {
+        let input_state = self.signal_input.run(state, stack).unwrap_or(0.0);
         let output_state = state.get(self.output_index);
 
         match self.env_state {

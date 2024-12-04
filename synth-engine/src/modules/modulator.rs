@@ -1,16 +1,20 @@
 use crate::event::ControllerEvent;
-use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
+use crate::stack_program::*;
 
 pub struct Modulator {
-    signal_1_input: InputExpr,
-    signal_2_input: InputExpr,
+    signal_1_input: StackProgram,
+    signal_2_input: StackProgram,
     output_index: usize,
 }
 
 impl Modulator {
-    pub fn new(signal_1_input: InputExpr, signal_2_input: InputExpr, output_index: usize) -> Self {
+    pub fn new(
+        signal_1_input: StackProgram,
+        signal_2_input: StackProgram,
+        output_index: usize,
+    ) -> Self {
         Self {
             signal_1_input,
             signal_2_input,
@@ -20,9 +24,9 @@ impl Modulator {
 }
 
 impl Module for Modulator {
-    fn simulate(&self, state: &State, update: &mut StateUpdate) {
-        let u = self.signal_1_input.from_state(state);
-        let v = self.signal_2_input.from_state(state);
+    fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
+        let u = self.signal_1_input.run(state, stack).unwrap_or(0.);
+        let v = self.signal_2_input.run(state, stack).unwrap_or(0.);
 
         update.set(self.output_index, u * v, UpdateType::Absolute);
     }
@@ -31,7 +35,7 @@ impl Module for Modulator {
         /* do nothing */
     }
 
-    fn finalize(&mut self, _state: &mut State, _time_step: f32) {
+    fn finalize(&mut self, _state: &mut State, _time_step: f32, _stack: &mut [f32]) {
         /* do nothing */
     }
 }

@@ -3,6 +3,8 @@ use crate::simulator::module::Module;
 use crate::simulator::state::State;
 use std::collections::HashMap;
 
+const DEFAULT_STACK_SIZE: usize = 256;
+
 // TODO clean up
 pub struct RungeKutta {
     state: State,
@@ -11,6 +13,7 @@ pub struct RungeKutta {
     c: Vec<f32>,
     stages: usize,
     modules: HashMap<String, Box<dyn Module>>,
+    stack: Vec<f32>,
 }
 
 impl RungeKutta {
@@ -28,6 +31,7 @@ impl RungeKutta {
             c,
             stages: 4,
             modules: HashMap::new(),
+            stack: vec![0.0_f32; DEFAULT_STACK_SIZE],
         }
     }
 
@@ -50,6 +54,7 @@ impl RungeKutta {
             c,
             stages: 4,
             modules: HashMap::new(),
+            stack: vec![0.0_f32; DEFAULT_STACK_SIZE],
         }
     }
 
@@ -65,6 +70,7 @@ impl RungeKutta {
             c,
             stages: 1,
             modules: HashMap::new(),
+            stack: vec![0.0_f32; DEFAULT_STACK_SIZE],
         }
     }
 
@@ -82,6 +88,7 @@ impl RungeKutta {
             c: self.c.clone(),
             stages: self.stages,
             modules,
+            stack: self.stack.clone(),
         }
     }
 
@@ -95,7 +102,7 @@ impl RungeKutta {
             temp_state.apply_updates(&updates, &self.a[stage], dt);
 
             for (_id, module) in &self.modules {
-                module.simulate(&temp_state, &mut update);
+                module.simulate(&temp_state, &mut update, &mut self.stack);
             }
 
             updates.push(update);
@@ -104,7 +111,7 @@ impl RungeKutta {
         self.state.apply_updates(&updates, &self.b, dt);
 
         for (_ix, module) in &mut self.modules {
-            module.finalize(&mut self.state, dt);
+            module.finalize(&mut self.state, dt, &mut self.stack);
         }
     }
 

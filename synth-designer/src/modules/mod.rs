@@ -33,6 +33,7 @@ pub use saw_osc::SawOscillatorModuleSpec;
 pub use wavetable::WavetableOscillatorModuleSpec;
 pub use zero::ZeroModuleSpec;
 
+use crate::input_expr::ExprError;
 use crate::StateAllocator;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
@@ -63,6 +64,8 @@ pub enum ModuleError {
     ParseIntError(#[from] ParseIntError),
     #[error("Error parsing INI file: {0}")]
     HoundError(#[from] hound::Error),
+    #[error("Error in arithmetic expression: {0}")]
+    ExprError(#[from] ExprError),
 }
 
 pub struct SynthSpec(BTreeMap<String, Box<dyn ModuleSpec>>);

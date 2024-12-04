@@ -1,8 +1,8 @@
 use super::control_to_frequency;
 use crate::event::ControllerEvent;
-use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
+use crate::stack_program::*;
 use std::f32::consts::PI;
 
 const FILTER_FREQUENCY: f32 = 15_000.0;
@@ -13,8 +13,8 @@ pub struct SawOscillator {
     f0: f32,
     filter_state: usize,
     signal_output: usize,
-    pitch_control: InputExpr,
-    linear_modulation: InputExpr,
+    pitch_control: StackProgram,
+    linear_modulation: StackProgram,
     current_position: f32,
     amp: f32,
 }
@@ -24,8 +24,8 @@ impl SawOscillator {
         f0: f32,
         filter_state: usize,
         signal_output: usize,
-        pitch_control: InputExpr,
-        linear_modulation: InputExpr,
+        pitch_control: StackProgram,
+        linear_modulation: StackProgram,
     ) -> Self {
         Self {
             f0,
@@ -56,11 +56,11 @@ impl SawOscillator {
 }
 
 impl Module for SawOscillator {
-    fn simulate(&self, state: &State, update: &mut StateUpdate) {
+    fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let velocity = control_to_frequency(
             self.f0,
-            self.pitch_control.from_state(state),
-            self.linear_modulation.from_state(state),
+            self.pitch_control.run(state, stack).unwrap_or(0.),
+            self.linear_modulation.run(state, stack).unwrap_or(0.),
         );
 
         let distance = update.get_time_step() * velocity;
@@ -92,11 +92,11 @@ impl Module for SawOscillator {
         /* do nothing */
     }
 
-    fn finalize(&mut self, state: &mut State, time_step: f32) {
+    fn finalize(&mut self, state: &mut State, time_step: f32, stack: &mut [f32]) {
         let velocity = control_to_frequency(
             self.f0,
-            self.pitch_control.from_state(state),
-            self.linear_modulation.from_state(state),
+            self.pitch_control.run(state, stack).unwrap_or(0.),
+            self.linear_modulation.run(state, stack).unwrap_or(0.),
         );
 
         let p = self.current_position + velocity * time_step;

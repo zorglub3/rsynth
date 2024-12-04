@@ -1,16 +1,20 @@
 use crate::event::ControllerEvent;
-use crate::modules::input_expr::InputExpr;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
+use crate::stack_program::*;
 
 pub struct Folder {
-    signal_input: InputExpr,
-    control_input: InputExpr,
+    signal_input: StackProgram,
+    control_input: StackProgram,
     output_index: usize,
 }
 
 impl Folder {
-    pub fn new(signal_input: InputExpr, control_input: InputExpr, output_index: usize) -> Self {
+    pub fn new(
+        signal_input: StackProgram,
+        control_input: StackProgram,
+        output_index: usize,
+    ) -> Self {
         Self {
             signal_input,
             control_input,
@@ -20,9 +24,15 @@ impl Folder {
 }
 
 impl Module for Folder {
-    fn simulate(&self, state: &State, update: &mut StateUpdate) {
-        let i = self.signal_input.from_state(state);
-        let c = self.control_input.from_state(state).max(0.).min(5.) + 1.;
+    fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
+        let i = self.signal_input.run(state, stack).unwrap_or(0.);
+        let c = self
+            .control_input
+            .run(state, stack)
+            .unwrap_or(0.)
+            .max(0.)
+            .min(5.)
+            + 1.;
 
         update.set(self.output_index, (i * c).sin(), UpdateType::Absolute);
     }
@@ -31,7 +41,7 @@ impl Module for Folder {
         /* do nothing */
     }
 
-    fn finalize(&mut self, _state: &mut State, _time_step: f32) {
+    fn finalize(&mut self, _state: &mut State, _time_step: f32, _stack: &mut [f32]) {
         /* do nothing */
     }
 }

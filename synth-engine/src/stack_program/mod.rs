@@ -1,3 +1,4 @@
+use crate::simulator::state::State;
 use thiserror::Error;
 
 #[derive(PartialEq, Debug)]
@@ -73,9 +74,30 @@ impl StackProgram {
         Self { code, stack_size }
     }
 
-    pub fn run(&self, state: &Vec<f32>, stack: &mut Vec<f32>) -> Result<f32, ExecError> {
+    pub fn zero() -> Self {
+        Self {
+            code: vec![Instr::Const(0.)],
+            stack_size: 1,
+        }
+    }
+
+    pub fn constant(v: f32) -> Self {
+        Self {
+            code: vec![Instr::Const(v)],
+            stack_size: 1,
+        }
+    }
+
+    pub fn from_index(index: usize) -> Self {
+        Self {
+            code: vec![Instr::State(index)],
+            stack_size: 1,
+        }
+    }
+
+    pub fn run(&self, state: &State, stack: &mut [f32]) -> Result<f32, ExecError> {
         #[inline]
-        fn pop_stack(stack: &Vec<f32>, stack_ptr: &mut usize) -> Result<f32, ExecError> {
+        fn pop_stack(stack: &[f32], stack_ptr: &mut usize) -> Result<f32, ExecError> {
             if stack_ptr < &mut 1 {
                 Err(ExecError::StackUnderflow)
             } else {
@@ -87,7 +109,7 @@ impl StackProgram {
 
         #[inline]
         fn push_stack(
-            stack: &mut Vec<f32>,
+            stack: &mut [f32],
             stack_ptr: &mut usize,
             value: f32,
         ) -> Result<(), ExecError> {
@@ -174,7 +196,8 @@ impl StackProgram {
                     if i >= &state.len() {
                         return Err(ExecError::StateOutOfBounds(*i));
                     } else {
-                        let v = state[*i];
+                        let v = state.get(*i);
+                        // let v = state[*i];
                         push_stack(stack, &mut stack_ptr, v)?;
                     }
                 }
