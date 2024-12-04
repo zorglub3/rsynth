@@ -21,35 +21,29 @@ pub enum ExprError {
 #[derive(Clone, Debug, PartialEq)]
 pub enum Expr {
     Number(f32),
-    Output(String, String),
-    Sum(Vec<Expr>),
-    Product(Vec<Expr>),
+    OutputState(String, String),
+    BinOp(BinaryOperator, Box<Expr>, Box<Expr>),
     FunCall(String, Vec<Expr>),
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub enum BinaryOperator {
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+}
+
+#[allow(dead_code)]
+#[derive(Clone, Debug, PartialEq)]
+pub enum UnaryOperator {
+    Negate,
+    Inverse,
+}
+
 impl Expr {
-    pub fn simplify(self) -> Self {
-        use Expr::*;
-
-        match self {
-            Sum(x) => match &x[..] {
-                [y] => y.clone().simplify(),
-                _ => Sum(x.into_iter().map(|e| e.simplify()).collect()),
-            },
-            Product(x) => match &x[..] {
-                [y] => y.clone().simplify(),
-                _ => Product(x.into_iter().map(|e| e.simplify()).collect()),
-            },
-            FunCall(f, args) => FunCall(f, args.into_iter().map(|e| e.simplify()).collect()),
-            x => x,
-        }
-    }
-
     pub fn parse(s: &str) -> Result<Self, ExprError> {
-        match arithmetic::expression(s) {
-            Ok(e) => Ok(e.simplify()),
-            Err(err) => Err(ExprError::ParseError(s.to_string(), err)),
-        }
+        arithmetic::expression(s).map_err(|err| ExprError::ParseError(s.to_string(), err))
     }
 
     pub fn zero() -> Self {
@@ -63,22 +57,20 @@ impl Expr {
 
 parser! {
     grammar arithmetic() for str {
-        pub rule expression() -> Expr
-            = _ x:sum() _ { x }
+        pub rule expression() -> Expr = precedence!{
+            x:(@) "+" y:@ { Expr::BinOp(BinaryOperator::Add, Box::new(x), Box::new(y)) }
+            x:(@) "-" y:@ { Expr::BinOp(BinaryOperator::Subtract, Box::new(x), Box::new(y)) }
+            --
+            x:(@) "*" y:@ { Expr::BinOp(BinaryOperator::Multiply, Box::new(x), Box::new(y)) }
+            x:(@) "/" y:@ { Expr::BinOp(BinaryOperator::Divide, Box::new(x), Box::new(y)) }
+            --
+            _ n:number() _ { n }
+            _ f:function() _ { f }
+            _ o:output() _ { o }
+            _ "(" e:expression() ")" _ { e }
+        }
 
         rule _ = [' ' | '\n']*
-
-        rule sum() -> Expr
-            = _ l:(term() ** "+") _ { Expr::Sum(l) }
-
-        rule term() -> Expr
-            = _ l:(atom() ** "*") _ { Expr::Product(l) }
-
-        rule atom() -> Expr
-            = _ n:number() _ { n }
-            / _ "(" _ v:sum() _ ")" _ { v }
-            / _ f:function() _ { f }
-            / _ o:output() _ { o }
 
         rule number() -> Expr
             = n:$("-"? ['0'..='9']+ "." ['0'..='9']*) { Expr::Number(n.parse::<f32>().unwrap()) }
@@ -87,7 +79,7 @@ parser! {
             = f:$(['a'..='z'|'A'..='Z'|'_']+) "(" args:(expression() ** ",") ")" { Expr::FunCall(f.to_string(), args) }
 
         rule output() -> Expr
-            = a:$(['a'..='z'|'A'..='Z'|'_']+) "." b:$(['a'..='z'|'A'..='Z'|'_']+) { Expr::Output(a.to_string(), b.to_string()) }
+            = a:$(['a'..='z'|'A'..='Z'|'_']+) "." b:$(['a'..='z'|'A'..='Z'|'_']+) { Expr::OutputState(a.to_string(), b.to_string()) }
     }
 }
 
@@ -110,24 +102,19 @@ impl Expr {
         use Expr::*;
 
         match self {
-            Sum(args) => {
-                for expr in args {
-                    expr.compile_helper(synth_spec, program)?;
-                }
-                for _i in 0..(args.len() - 1).max(0) {
-                    program.push(Instr::Add);
-                }
-            }
-            Product(args) => {
-                for expr in args {
-                    expr.compile_helper(synth_spec, program)?;
-                }
-                for _i in 0..(args.len() - 1).max(0) {
-                    program.push(Instr::Multiply);
-                }
+            BinOp(op, e1, e2) => {
+                e2.compile_helper(synth_spec, program)?;
+                e1.compile_helper(synth_spec, program)?;
+                let op_instr = match op {
+                    BinaryOperator::Add => Instr::Add,
+                    BinaryOperator::Subtract => Instr::Subtract,
+                    BinaryOperator::Multiply => Instr::Multiply,
+                    BinaryOperator::Divide => Instr::Divide,
+                };
+                program.push(op_instr);
             }
             Number(n) => program.push(Instr::Const(*n)),
-            Output(m, n) => match synth_spec.input_state_index(m.as_str(), n.as_str()) {
+            OutputState(m, n) => match synth_spec.input_state_index(m.as_str(), n.as_str()) {
                 Ok(index) => program.push(Instr::State(index)),
                 Err(_) => return Err(ExprError::MissingField(m.to_string(), n.to_string())),
             },
@@ -165,13 +152,15 @@ mod test {
     #[test]
     fn parse_arithmetic() {
         let input = "4.+3.2*xyZ.Zyz";
-        let expected = Sum(vec![
-            Number(4.),
-            Product(vec![
-                Number(3.2),
-                Output("xyZ".to_string(), "Zyz".to_string()),
-            ]),
-        ]);
+        let expected = BinOp(
+            BinaryOperator::Add,
+            Box::new(Number(4.)),
+            Box::new(BinOp(
+                BinaryOperator::Multiply,
+                Box::new(Number(3.2)),
+                Box::new(OutputState("xyZ".to_string(), "Zyz".to_string())),
+            )),
+        );
 
         assert_eq!(Expr::parse(input), Ok(expected));
     }
@@ -179,17 +168,22 @@ mod test {
     #[test]
     fn expression_with_whitespace() {
         let input = "  4. + 3.2          * xyZ.Zyz  + sin(a.b)";
-        let expected = Sum(vec![
-            Number(4.),
-            Product(vec![
-                Number(3.2),
-                Output("xyZ".to_string(), "Zyz".to_string()),
-            ]),
-            FunCall(
+        let expected = BinOp(
+            BinaryOperator::Add,
+            Box::new(BinOp(
+                BinaryOperator::Add,
+                Box::new(Number(4.)),
+                Box::new(BinOp(
+                    BinaryOperator::Multiply,
+                    Box::new(Number(3.2)),
+                    Box::new(OutputState("xyZ".to_string(), "Zyz".to_string())),
+                )),
+            )),
+            Box::new(FunCall(
                 "sin".to_string(),
-                vec![Output("a".to_string(), "b".to_string())],
-            ),
-        ]);
+                vec![OutputState("a".to_string(), "b".to_string())],
+            )),
+        );
 
         assert_eq!(Expr::parse(input), Ok(expected));
     }
@@ -197,7 +191,12 @@ mod test {
     #[test]
     fn negative_constant() {
         let input = "-2. * a.b";
-        let expected = Product(vec![Number(-2.), Output("a".to_string(), "b".to_string())]);
+        let expected = BinOp(
+            BinaryOperator::Multiply,
+            Box::new(Number(-2.)),
+            Box::new(OutputState("a".to_string(), "b".to_string())),
+        );
+
         assert_eq!(Expr::parse(input), Ok(expected));
     }
 
@@ -211,7 +210,7 @@ mod test {
 
         let input = "2. * noise.signal_output";
         let expected =
-            StackProgram::new(vec![Instr::Const(2.), Instr::State(0), Instr::Multiply], 2);
+            StackProgram::new(vec![Instr::State(0), Instr::Const(2.), Instr::Multiply], 2);
 
         assert_eq!(
             Expr::parse(input).unwrap().compile(&synth_spec).unwrap(),
@@ -230,8 +229,8 @@ mod test {
         let input = "sin(2. * noise.signal_output)";
         let expected = StackProgram::new(
             vec![
-                Instr::Const(2.),
                 Instr::State(0),
+                Instr::Const(2.),
                 Instr::Multiply,
                 Instr::Call(Function::Sin),
             ],
