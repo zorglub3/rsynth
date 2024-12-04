@@ -197,7 +197,6 @@ impl StackProgram {
                         return Err(ExecError::StateOutOfBounds(*i));
                     } else {
                         let v = state.get(*i);
-                        // let v = state[*i];
                         push_stack(stack, &mut stack_ptr, v)?;
                     }
                 }
