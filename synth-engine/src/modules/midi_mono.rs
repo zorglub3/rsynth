@@ -9,10 +9,6 @@ use std::collections::BTreeSet;
 const PRESSURE_FILTER_CONSTANT: f32 = 2. * PI * 20.;
 const PITCHWHEEL_FILTER_CONSTANT: f32 = 2. * PI * 20.;
 
-// TODO
-// - rename file and struct (not MIDI)
-// - make highest/lowest priority selectable at creation
-
 struct ActiveNote {
     pitch_code: u8,
     pitch_value: f32,

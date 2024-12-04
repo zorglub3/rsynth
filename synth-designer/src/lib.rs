@@ -76,55 +76,55 @@ pub fn from_ini_file(
             match &section.to_lowercase()[..] {
                 "amplifier" => {
                     let module_spec = AmpModuleSpec::from_ini_properties(props)?;
-                    synth_spec.add_module(Box::new(module_spec));
+                    synth_spec.add_module(Box::new(module_spec))?;
                 }
                 "contour" => {
                     let module_spec = ContourModuleSpec::from_ini_properties(props)?;
-                    synth_spec.add_module(Box::new(module_spec));
+                    synth_spec.add_module(Box::new(module_spec))?;
                 }
                 "filter_24db" => {
                     let module_spec = Filter24dbModuleSpec::from_ini_properties(props)?;
-                    synth_spec.add_module(Box::new(module_spec));
+                    synth_spec.add_module(Box::new(module_spec))?;
                 }
                 "filter_12db" => {
                     let module_spec = Filter12dbModuleSpec::from_ini_properties(props)?;
-                    synth_spec.add_module(Box::new(module_spec));
+                    synth_spec.add_module(Box::new(module_spec))?;
                 }
                 "filter_6db" => {
                     let module_spec = Filter6dbModuleSpec::from_ini_properties(props)?;
-                    synth_spec.add_module(Box::new(module_spec));
+                    synth_spec.add_module(Box::new(module_spec))?;
                 }
                 "midi_cc" => {
                     let module_spec = MidiCCModuleSpec::from_ini_properties(props)?;
-                    synth_spec.add_module(Box::new(module_spec));
+                    synth_spec.add_module(Box::new(module_spec))?;
                 }
                 "midi_mono" => {
                     let module_spec = MidiMonoModuleSpec::from_ini_properties(props)?;
-                    synth_spec.add_module(Box::new(module_spec));
+                    synth_spec.add_module(Box::new(module_spec))?;
                 }
                 "mono_out" => {
                     let module_spec = MonoOutputModuleSpec::from_ini_properties(props)?;
-                    synth_spec.add_module(Box::new(module_spec));
+                    synth_spec.add_module(Box::new(module_spec))?;
                 }
                 "oscillator" => {
                     let module_spec = OscillatorModuleSpec::from_ini_properties(props)?;
-                    synth_spec.add_module(Box::new(module_spec));
+                    synth_spec.add_module(Box::new(module_spec))?;
                 }
                 "saw_oscillator" => {
                     let module_spec = SawOscillatorModuleSpec::from_ini_properties(props)?;
-                    synth_spec.add_module(Box::new(module_spec));
+                    synth_spec.add_module(Box::new(module_spec))?;
                 }
                 "wavetable" => {
                     let module_spec = WavetableOscillatorModuleSpec::from_ini_properties(props)?;
-                    synth_spec.add_module(Box::new(module_spec));
+                    synth_spec.add_module(Box::new(module_spec))?;
                 }
                 "delay_line" => {
                     let module_spec = DelayLineModuleSpec::from_ini_properties(props)?;
-                    synth_spec.add_module(Box::new(module_spec));
+                    synth_spec.add_module(Box::new(module_spec))?;
                 }
                 "noise" => {
                     let module_spec = NoiseGeneratorModuleSpec::from_ini_properties(props)?;
-                    synth_spec.add_module(Box::new(module_spec));
+                    synth_spec.add_module(Box::new(module_spec))?;
                 }
                 x => return Err(SynthError::UnknownModule(x.to_string())),
             }

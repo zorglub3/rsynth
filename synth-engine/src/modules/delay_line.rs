@@ -62,12 +62,8 @@ impl Module for DelayLine {
             self.linear_modulation.run(state, stack).unwrap_or(0.),
         );
 
-        // let index = (d / f).min(l - 3.).max(3.);
         let index = (1. / (d * f)).min(l - 5.).max(5.);
-        // println!("index: {}", index);
         let index = (((wi - index) % l) + l) % l;
-        // println!("write index: {}", wi);
-        // println!("read index: {}", index);
 
         update.set(
             self.signal_output,

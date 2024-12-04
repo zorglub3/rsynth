@@ -211,15 +211,17 @@ impl StackProgram {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::simulator::state::State as SimulatorState;
 
     #[test]
     fn simple_run() {
+        let values = vec![0.; 10];
+        let state = SimulatorState::new_with_values(&values);
+        let mut stack = vec![0.; 2];
+
         use Instr::*;
 
         let prg = StackProgram::new(vec![Const(2.), Const(3.), Add], 2);
-
-        let state = vec![0.; 10];
-        let mut stack = vec![0.; 2];
 
         assert_eq!(prg.run(&state, &mut stack), Ok(5.));
     }

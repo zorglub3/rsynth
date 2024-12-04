@@ -50,12 +50,10 @@ fn friction(a: f32, b: f32, x: f32) -> f32 {
 impl Module for BowedOscillator {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let linear_control = self.linear_control.run(state, stack).unwrap_or(0.);
-        // let linear_control = self.linear_control.from_state(state);
 
         let omega = control_to_frequency(
             self.f0,
             self.control_input.run(state, stack).unwrap_or(0.),
-            // self.control_input.from_state(state),
             linear_control,
         ) * 2.0
             * PI;

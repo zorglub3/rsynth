@@ -50,6 +50,9 @@ impl Module for Filter6db {
                     - state.get(self.lowpass_output)),
             UpdateType::Differentiable,
         );
+
+        // TODO highpass filter does not work :'-(
+
         update.set(
             self.highpass_output,
             self.signal_input.run(state, stack).unwrap_or(0.) - state.get(self.lowpass_output),

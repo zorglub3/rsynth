@@ -1,5 +1,4 @@
 extern crate peg;
-use crate::modules::ModuleError;
 use crate::modules::SynthSpec;
 use peg::parser;
 use peg::str::LineCol;
@@ -9,14 +8,12 @@ use thiserror::Error;
 #[derive(Debug, PartialEq, Clone)]
 pub struct ParseLocation(String, LineCol);
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum ExprError {
-    // #[error("Module error: {0}")]
-    // ModuleError(#[from] ModuleError),
     #[error("Unrecognized function: {0}")]
     UnrecognizedFunction(String),
-    #[error("Parse error: {0:?}")]
-    ParseError(#[from] peg::error::ParseError<LineCol>),
+    #[error("Parse error when parsing {0}: {1:?}")]
+    ParseError(String, peg::error::ParseError<LineCol>),
     #[error("Missing module field. Module: {0}, field: {1}")]
     MissingField(String, String),
 }
@@ -49,7 +46,10 @@ impl Expr {
     }
 
     pub fn parse(s: &str) -> Result<Self, ExprError> {
-        Ok(arithmetic::expression(s).map(|e| e.simplify())?)
+        match arithmetic::expression(s) {
+            Ok(e) => Ok(e.simplify()),
+            Err(err) => Err(ExprError::ParseError(s.to_string(), err)),
+        }
     }
 
     pub fn zero() -> Self {
@@ -173,7 +173,7 @@ mod test {
             ]),
         ]);
 
-        assert_eq!(Expr::parse(input), Some(expected));
+        assert_eq!(Expr::parse(input), Ok(expected));
     }
 
     #[test]
@@ -191,21 +191,23 @@ mod test {
             ),
         ]);
 
-        assert_eq!(Expr::parse(input), Some(expected));
+        assert_eq!(Expr::parse(input), Ok(expected));
     }
 
     #[test]
     fn negative_constant() {
         let input = "-2. * a.b";
         let expected = Product(vec![Number(-2.), Output("a".to_string(), "b".to_string())]);
-        assert_eq!(Expr::parse(input), Some(expected));
+        assert_eq!(Expr::parse(input), Ok(expected));
     }
 
     #[test]
     fn compile() {
         let mut synth_spec = SynthSpec::new();
 
-        synth_spec.add_module(Box::new(NoiseGeneratorModuleSpec::new("noise", 0)));
+        let _ = synth_spec
+            .add_module(Box::new(NoiseGeneratorModuleSpec::new("noise", 0)))
+            .unwrap();
 
         let input = "2. * noise.signal_output";
         let expected =
@@ -221,7 +223,9 @@ mod test {
     fn compile_fun_call() {
         let mut synth_spec = SynthSpec::new();
 
-        synth_spec.add_module(Box::new(NoiseGeneratorModuleSpec::new("noise", 0)));
+        let _ = synth_spec
+            .add_module(Box::new(NoiseGeneratorModuleSpec::new("noise", 0)))
+            .unwrap();
 
         let input = "sin(2. * noise.signal_output)";
         let expected = StackProgram::new(

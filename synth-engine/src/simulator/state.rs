@@ -26,6 +26,13 @@ impl State {
         }
     }
 
+    pub fn new_with_values(values: &[f32]) -> Self {
+        Self {
+            values: values.to_vec(),
+            outputs: vec![0.; 2],
+        }
+    }
+
     pub fn len(&self) -> usize {
         self.values.len()
     }

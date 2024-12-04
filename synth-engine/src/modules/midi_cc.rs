@@ -3,7 +3,6 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use core::f32::consts::PI;
 
-// TODO rename file and module (not MIDI)
 pub struct MidiCC {
     output_index: usize,
     control: usize,

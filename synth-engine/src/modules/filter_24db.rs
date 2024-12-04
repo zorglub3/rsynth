@@ -59,29 +59,6 @@ impl Module for Filter24db {
 
         let input = self.signal_input.run(state, stack).unwrap_or(0.);
 
-        // previous version of this filter - don't delete until we know if
-        // the new version really sounds better.
-        /*
-        update.set(
-            self.state0_index,
-            g * (input
-                - r * state.get(self.state3_index).tanh()
-                - state.get(self.state0_index).tanh()),
-            UpdateType::Differentiable);
-        update.set(
-            self.state1_index,
-            g * (state.get(self.state0_index).tanh() - state.get(self.state1_index).tanh()),
-            UpdateType::Differentiable);
-        update.set(
-            self.state2_index,
-            g * (state.get(self.state1_index).tanh() - state.get(self.state2_index).tanh()),
-            UpdateType::Differentiable);
-        update.set(
-            self.state3_index,
-            g * (state.get(self.state2_index).tanh() - state.get(self.state3_index).tanh()),
-            UpdateType::Differentiable);
-            */
-
         update.set(
             self.state0_index,
             g * (input - r * state.get(self.state3_index) - state.get(self.state0_index)),
