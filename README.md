@@ -12,22 +12,25 @@ simulates the synthesizer system. It can receive MIDI events and play sound.
 
 ## Future work
 
-- More modules... Especially for control, but also delay and some reverbs.
-- Improved "input expressions" for defining module interconnections.
 - Compile time parsing of INI files to generate Rust code for defining a synth.
-- Compile to more exotic targets: Raspberry Pi and Daisy Seed. 
+- Compile to more exotic targets: Raspberry Pi and Daisy Seed. Use `no_std` in
+  `synth-engine` and allow for INI file to Rust compilation at build time.
 - Build unikernel deployments of a complete synth to Raspberry Pi to make a 
   "hardware synth" that starts up real quick. Have a look at unikraft.
 - More testing.
 - Documentation.
+- Allow for toplevel expression definitions in INI files. To work like "define"
+  in eg C/C++.
 
-### Stuff to do soon
+### More modules
 
-- Improve/simplify the wavetable module
-- Use PolyBLEP for the sawtooth oscillator (and make a PWM/square oscillator).
-- Clean up modules. Some are redundant (quadrature oscillator), some should be
-  renamed (`midi_cc` and `midi_mono` - they are not really MIDI), some of the 
-  code can probably be improved a lot.
+- Simple Sum and Integral modules for composing more advanced modules without 
+  recompiling everything.
+- Allpass filters and cascaded allpass filters. To build waveguide modules.
+- Highpass filter (6db).
+- DC reject filter.
+- Various reed models, bowed string, et.c.
+- Vosim variant on wavetable module
 
 ## Testing
 

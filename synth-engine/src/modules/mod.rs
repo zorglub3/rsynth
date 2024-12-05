@@ -1,4 +1,5 @@
 pub mod ad_envelope;
+pub mod allpass;
 pub mod amplifier;
 pub mod bowed;
 pub mod delay_line;
@@ -17,6 +18,7 @@ pub mod wavetable;
 pub mod zero;
 
 pub use ad_envelope::ADEnvelope;
+pub use allpass::AllpassFilter;
 pub use amplifier::Amplifier;
 pub use bowed::BowedOscillator;
 pub use delay_line::DelayLine;

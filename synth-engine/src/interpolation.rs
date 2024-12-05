@@ -20,6 +20,8 @@ fn lagrange_helper(d: &[f32; 4], i: usize) -> f32 {
     C1[i] * d[0] + C2[i] * d[1] + C3[i] * d[2] + C4[i] * d[3]
 }
 
+// see "Fractional Delay Farrow Filter" by Josef Hoffmann
+// (Note paper has error in C3 above)
 fn lagrange(p0: f32, p1: f32, p2: f32, p3: f32, delta: f32) -> f32 {
     let d: [f32; 4] = [delta * delta * delta, delta * delta, delta, 1.];
     let v: [f32; 4] = [

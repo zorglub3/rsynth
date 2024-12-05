@@ -3,6 +3,7 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 
+// TODO env type selectable
 const MIN_TIME: f32 = 0.0001_f32;
 
 enum EnvState {

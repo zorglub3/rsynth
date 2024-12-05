@@ -55,6 +55,7 @@ impl Module for DelayLine {
         let wi = self.write_index() as f32;
         let l = self.data.len() as f32;
         let d = update.get_time_step();
+        let s = update.get_delta_time();
 
         let f = control_to_frequency(
             self.f0,
@@ -62,12 +63,12 @@ impl Module for DelayLine {
             self.linear_modulation.run(state, stack).unwrap_or(0.),
         );
 
-        let index = (1. / (d * f)).min(l - 5.).max(5.);
+        let index = (1. / (d * f) - s / d).min(l - 5.).max(5.);
         let index = (((wi - index) % l) + l) % l;
 
         update.set(
             self.signal_output,
-            self.data.cubic_interpolate(index),
+            self.data.lagrange_interpolate(index),
             UpdateType::Absolute,
         );
     }

@@ -5,28 +5,28 @@ use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use std::f32::consts::PI;
 
-pub struct Filter6db {
+pub struct AllpassFilter {
     f0: f32,
-    lowpass_output: usize,
-    highpass_output: usize,
+    cap_state: usize,
+    signal_output: usize,
     freq_control_input: StackProgram,
     linear_control: StackProgram,
     signal_input: StackProgram,
 }
 
-impl Filter6db {
+impl AllpassFilter {
     pub fn new(
         f0: f32,
-        lowpass_output: usize,
-        highpass_output: usize,
+        cap_state: usize,
+        signal_output: usize,
         freq_control_input: StackProgram,
         linear_control: StackProgram,
         signal_input: StackProgram,
     ) -> Self {
         Self {
             f0,
-            lowpass_output,
-            highpass_output,
+            cap_state,
+            signal_output,
             freq_control_input,
             linear_control,
             signal_input,
@@ -34,7 +34,7 @@ impl Filter6db {
     }
 }
 
-impl Module for Filter6db {
+impl Module for AllpassFilter {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let input = self.signal_input.run(state, stack).unwrap_or(0.);
         let f = control_to_frequency(
@@ -43,20 +43,16 @@ impl Module for Filter6db {
             self.linear_control.run(state, stack).unwrap_or(0.),
         );
 
-        // TODO fix this (it doesn't work)
-        let a = (-2. * PI * f).exp();
-        let b = 1. - a.abs();
-
         update.set(
-            self.lowpass_output,
-            b * input - a * state.get(self.lowpass_output),
+            self.cap_state,
+            2.0 * PI * f * (input - state.get(self.cap_state)),
             UpdateType::Differentiable,
         );
 
         update.set(
-            self.highpass_output,
-            b * input + a * state.get(self.highpass_output),
-            UpdateType::Differentiable,
+            self.signal_output,
+            2. * state.get(self.cap_state) - input,
+            UpdateType::Absolute,
         );
     }
 
