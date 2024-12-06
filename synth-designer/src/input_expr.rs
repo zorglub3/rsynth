@@ -132,6 +132,10 @@ impl Expr {
                     "abs" => Function::Abs,
                     "min" => Function::Min,
                     "max" => Function::Max,
+                    "ln" => Function::Ln,
+                    "exp" => Function::Exp,
+                    "logistic" => Function::Logistic,
+                    "lerp" => Function::Lerp,
                     _ => return Err(ExprError::UnrecognizedFunction(f.to_string())),
                 };
 
@@ -147,6 +151,7 @@ impl Expr {
 mod test {
     use super::*;
     use crate::modules::NoiseGeneratorModuleSpec;
+    use synth_engine::simulator::state::State as SimulatorState;
     use Expr::*;
 
     #[test]
@@ -240,6 +245,47 @@ mod test {
         assert_eq!(
             Expr::parse(input).unwrap().compile(&synth_spec).unwrap(),
             expected
+        );
+    }
+
+    #[test]
+    fn test_functions() {
+        let mut synth_spec = SynthSpec::new();
+        let mut stack = vec![0.; 32];
+        let state = SimulatorState::new_with_values(&vec![0.; 32]);
+
+        let input1 = "lerp(0.0, 1.0, 2.0)";
+        let output1 = 1.0;
+
+        let input2 = "lerp(0.5, 1.0, 2.0)";
+        let output2 = 1.5;
+
+        let input3 = "logistic(0.0, 2.0, 1.0, 0.0)";
+        let output3 = 1.0;
+
+        assert_eq!(
+            Expr::parse(input1)
+                .unwrap()
+                .compile(&synth_spec)
+                .unwrap()
+                .run(&state, &mut stack),
+            Ok(output1)
+        );
+        assert_eq!(
+            Expr::parse(input2)
+                .unwrap()
+                .compile(&synth_spec)
+                .unwrap()
+                .run(&state, &mut stack),
+            Ok(output2)
+        );
+        assert_eq!(
+            Expr::parse(input3)
+                .unwrap()
+                .compile(&synth_spec)
+                .unwrap()
+                .run(&state, &mut stack),
+            Ok(output3)
         );
     }
 }

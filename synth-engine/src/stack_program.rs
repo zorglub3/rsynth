@@ -21,9 +21,14 @@ pub enum Function {
     Tan,
     Tanh,
 
+    Ln,
+    Exp,
+    Logistic,
+
     Abs,
     Min,
     Max,
+    Lerp,
 }
 
 #[derive(Error, Debug, PartialEq)]
@@ -186,6 +191,29 @@ impl StackProgram {
                             let a = pop_stack(stack, &mut stack_ptr)?;
                             let b = pop_stack(stack, &mut stack_ptr)?;
                             push_stack(stack, &mut stack_ptr, a.max(b))?;
+                        }
+                        Ln => {
+                            let a = pop_stack(stack, &mut stack_ptr)?;
+                            push_stack(stack, &mut stack_ptr, a.ln())?;
+                        }
+                        Exp => {
+                            let a = pop_stack(stack, &mut stack_ptr)?;
+                            push_stack(stack, &mut stack_ptr, a.exp())?;
+                        }
+                        Logistic => {
+                            let x0 = pop_stack(stack, &mut stack_ptr)?;
+                            let k = pop_stack(stack, &mut stack_ptr)?;
+                            let l = pop_stack(stack, &mut stack_ptr)?;
+                            let x = pop_stack(stack, &mut stack_ptr)?;
+                            let v = l / (1. + (-k * (x - x0)).exp());
+                            push_stack(stack, &mut stack_ptr, v)?;
+                        }
+                        Lerp => {
+                            let hi = pop_stack(stack, &mut stack_ptr)?;
+                            let lo = pop_stack(stack, &mut stack_ptr)?;
+                            let x = pop_stack(stack, &mut stack_ptr)?.min(1.).max(0.);
+                            let v = lo * (1. - x) + hi * x;
+                            push_stack(stack, &mut stack_ptr, v)?;
                         }
                     }
                 }

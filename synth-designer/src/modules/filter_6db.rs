@@ -14,7 +14,7 @@ const LINEAR_CONTROL: &str = "linear_control";
 const LOWPASS_OUTPUT: &str = "lowpass_output";
 const HIGHPASS_OUTPUT: &str = "highpass_output";
 const INPUT_SIZE: usize = 3;
-const STATE_SIZE: usize = 2;
+const STATE_SIZE: usize = 3;
 
 pub struct Filter6dbModuleSpec {
     name: String,
@@ -44,7 +44,7 @@ impl Filter6dbModuleSpec {
 
         Ok(Self {
             name,
-            inputs: [signal_in, fc, lc],
+            inputs: [fc, lc, signal_in],
             state: [0; STATE_SIZE],
             f0,
         })
@@ -59,6 +59,7 @@ impl ModuleSpec for Filter6dbModuleSpec {
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
         let filter = Filter6db::new(
             self.f0,
+            self.state[2],
             self.state[0],
             self.state[1],
             self.inputs[0].compile(&synth_spec)?,

@@ -127,6 +127,9 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
                 Box::new(MonoOutput::new(0, StackProgram::from_index(2))),
             );
         }
+        6 => {
+            todo!("filter sweep");
+        }
         _ => panic!("No test for {}", test),
     }
 

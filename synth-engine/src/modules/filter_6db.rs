@@ -7,6 +7,7 @@ use std::f32::consts::PI;
 
 pub struct Filter6db {
     f0: f32,
+    internal_state: usize,
     lowpass_output: usize,
     highpass_output: usize,
     freq_control_input: StackProgram,
@@ -17,6 +18,7 @@ pub struct Filter6db {
 impl Filter6db {
     pub fn new(
         f0: f32,
+        internal_state: usize,
         lowpass_output: usize,
         highpass_output: usize,
         freq_control_input: StackProgram,
@@ -25,6 +27,7 @@ impl Filter6db {
     ) -> Self {
         Self {
             f0,
+            internal_state,
             lowpass_output,
             highpass_output,
             freq_control_input,
@@ -43,19 +46,23 @@ impl Module for Filter6db {
             self.linear_control.run(state, stack).unwrap_or(0.),
         );
 
-        // TODO fix this (it doesn't work)
-        let a = (-2. * PI * f).exp();
-        let b = 1. - a.abs();
+        let a = 2. * PI * f;
 
         update.set(
             self.lowpass_output,
-            b * input - a * state.get(self.lowpass_output),
+            a * (input - state.get(self.lowpass_output)),
             UpdateType::Differentiable,
         );
 
         update.set(
             self.highpass_output,
-            b * input + a * state.get(self.highpass_output),
+            input - a * state.get(self.internal_state),
+            UpdateType::Absolute,
+        );
+
+        update.set(
+            self.internal_state,
+            state.get(self.highpass_output),
             UpdateType::Differentiable,
         );
     }
