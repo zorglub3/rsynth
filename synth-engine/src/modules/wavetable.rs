@@ -5,7 +5,8 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::sinc_filter::downsample_half;
 use crate::stack_program::*;
-use std::f32::consts::PI;
+use alloc::vec::Vec;
+use core::f32::consts::PI;
 
 const FREQUENCY_LIMIT: f32 = 18_000.0;
 

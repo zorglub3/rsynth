@@ -33,7 +33,6 @@ pub use zero::ZeroModuleSpec;
 use crate::input_expr::ExprError;
 use crate::StateAllocator;
 use std::collections::BTreeMap;
-use std::collections::HashMap;
 use std::num::ParseFloatError;
 use std::num::ParseIntError;
 use synth_engine::simulator::module::Module;
@@ -124,12 +123,9 @@ impl SynthSpec {
         size
     }
 
-    pub fn make_modules(
-        &self,
-        modules: &mut HashMap<String, Box<dyn Module>>,
-    ) -> Result<(), ModuleError> {
-        for (k, v) in self.0.iter() {
-            modules.insert(k.clone(), v.create_module(self)?);
+    pub fn make_modules(&self, modules: &mut Vec<Box<dyn Module>>) -> Result<(), ModuleError> {
+        for (_k, v) in self.0.iter() {
+            modules.push(v.create_module(self)?);
         }
 
         Ok(())

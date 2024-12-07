@@ -1,4 +1,6 @@
 use crate::simulator::state::State;
+use alloc::vec;
+use alloc::vec::Vec;
 use thiserror::Error;
 
 #[derive(PartialEq, Debug)]

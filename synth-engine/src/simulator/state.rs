@@ -1,3 +1,6 @@
+use alloc::vec;
+use alloc::vec::Vec;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum UpdateType {
     Differentiable,

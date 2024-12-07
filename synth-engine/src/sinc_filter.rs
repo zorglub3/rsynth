@@ -1,3 +1,5 @@
+use alloc::vec;
+use alloc::vec::Vec;
 use core::f32::consts::PI;
 
 fn sinc(fc: f32, x: isize) -> f32 {
