@@ -89,6 +89,7 @@ impl<T: Deref<Target = [f32]>> Interpolation for T {
 mod test {
     use super::*;
     use alloc::vec::Vec;
+    use alloc::vec;
 
     #[test]
     fn cubic_interpolation_on_line() {

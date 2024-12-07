@@ -250,7 +250,7 @@ mod test {
 
     #[test]
     fn test_functions() {
-        let mut synth_spec = SynthSpec::new();
+        let synth_spec = SynthSpec::new();
         let mut stack = vec![0.; 32];
         let state = SimulatorState::new_with_values(&vec![0.; 32]);
 
