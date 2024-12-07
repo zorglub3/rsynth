@@ -6,6 +6,10 @@
 //! be provided in the program using the synth simulator. See the `cli-synth` example
 //! program for suggestions.
 
+#![no_std]
+
+extern crate alloc;
+
 pub mod event;
 pub mod interpolation;
 pub mod modules;

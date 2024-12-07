@@ -1,10 +1,10 @@
 use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
+use alloc::collections::BTreeSet;
+use core::cmp::Ord;
+use core::cmp::Ordering;
 use core::f32::consts::PI;
-use std::cmp::Ord;
-use std::cmp::Ordering;
-use std::collections::BTreeSet;
 
 const PRESSURE_FILTER_CONSTANT: f32 = 2. * PI * 20.;
 const PITCHWHEEL_FILTER_CONSTANT: f32 = 2. * PI * 20.;

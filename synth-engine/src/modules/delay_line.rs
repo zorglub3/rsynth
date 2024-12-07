@@ -4,6 +4,8 @@ use crate::interpolation::Interpolation;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
+use alloc::vec;
+use alloc::vec::Vec;
 
 pub struct DelayLine {
     data: Vec<f32>,

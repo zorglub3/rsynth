@@ -3,7 +3,7 @@ use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
-use std::f32::consts::PI;
+use core::f32::consts::PI;
 
 pub struct Filter12db {
     f0: f32,

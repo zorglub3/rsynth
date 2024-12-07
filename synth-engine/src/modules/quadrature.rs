@@ -2,7 +2,7 @@ use super::control_to_frequency;
 use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
-use std::f32::consts::PI;
+use core::f32::consts::PI;
 
 pub struct QuadratureOscillator {
     f0: f32,

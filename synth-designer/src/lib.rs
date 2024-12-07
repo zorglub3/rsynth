@@ -4,7 +4,6 @@ pub mod modules;
 use crate::modules::*;
 use core::ops::Range;
 use ini::Ini;
-use std::collections::HashMap;
 use synth_engine::simulator::module::Module;
 
 /// This matches the frequency of note zero for the default MIDI spec.
@@ -62,10 +61,8 @@ impl StateAllocator {
     }
 }
 
-pub fn from_ini_file(
-    filename: &str,
-) -> Result<(HashMap<String, Box<dyn Module>>, usize), SynthError> {
-    let mut modules = HashMap::new();
+pub fn from_ini_file(filename: &str) -> Result<(Vec<Box<dyn Module>>, usize), SynthError> {
+    let mut modules = Vec::new();
     let spec_file = Ini::load_from_file(filename).map_err(|e| SynthError::FileError(e))?;
     let mut synth_spec = SynthSpec::new();
 

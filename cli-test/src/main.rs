@@ -1,5 +1,4 @@
 use clap::Parser;
-use std::collections::HashMap;
 use std::f32::consts::PI;
 use synth_engine::stack_program::*;
 use synth_engine::{modules::*, simulator::module::Module, simulator::rungekutta::RungeKutta};
@@ -26,69 +25,46 @@ fn test_simulator(simulator_name: &str, state_size: usize) -> RungeKutta {
     }
 }
 
-fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
-    let mut result: HashMap<String, Box<dyn Module>> = HashMap::new();
+fn test_modules(test: usize) -> Vec<Box<dyn Module>> {
+    let mut result: Vec<Box<dyn Module>> = Vec::new();
 
     match test {
         0 => {
-            result.insert(
-                "quad_osc".to_string(),
-                Box::new(QuadratureOscillator::new(110., 4, 5, 6)),
-            );
-            result.insert(
-                "folder".to_string(),
-                Box::new(Folder::new(StackProgram::zero(), StackProgram::zero(), 1)),
-            );
-            result.insert(
-                "mono_out".to_string(),
-                Box::new(MonoOutput::new(0, StackProgram::from_index(1))),
-            );
+            result.push(Box::new(QuadratureOscillator::new(110., 4, 5, 6)));
+            result.push(Box::new(Folder::new(
+                StackProgram::zero(),
+                StackProgram::zero(),
+                1,
+            )));
+            result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(1))));
         }
         1 => {
-            result.insert(
-                "quad_osc".to_string(),
-                Box::new(QuadratureOscillator::new(110., 1, 2, 3)),
-            );
-            result.insert(
-                "mono_out".to_string(),
-                Box::new(MonoOutput::new(0, StackProgram::from_index(1))),
-            );
+            result.push(Box::new(QuadratureOscillator::new(110., 1, 2, 3)));
+            result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(1))));
         }
         2 => {
-            result.insert(
-                "bowed_osc".to_string(),
-                Box::new(BowedOscillator::new(
-                    10.,
-                    5.0,
-                    5.0,
-                    2,
-                    1,
-                    StackProgram::constant(5.),
-                    StackProgram::constant(0.),
-                    StackProgram::constant(0.),
-                    StackProgram::constant(0.),
-                )),
-            );
-            result.insert(
-                "mono_out".to_string(),
-                Box::new(MonoOutput::new(0, StackProgram::from_index(2))),
-            );
+            result.push(Box::new(BowedOscillator::new(
+                10.,
+                5.0,
+                5.0,
+                2,
+                1,
+                StackProgram::constant(5.),
+                StackProgram::constant(0.),
+                StackProgram::constant(0.),
+                StackProgram::constant(0.),
+            )));
+            result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(2))));
         }
         3 => {
-            result.insert(
-                "saw_osc".to_string(),
-                Box::new(SawOscillator::new(
-                    0.,
-                    1,
-                    2,
-                    StackProgram::constant(0.),
-                    StackProgram::constant(200.),
-                )),
-            );
-            result.insert(
-                "mono_out".to_string(),
-                Box::new(MonoOutput::new(0, StackProgram::from_index(2))),
-            );
+            result.push(Box::new(SawOscillator::new(
+                0.,
+                1,
+                2,
+                StackProgram::constant(0.),
+                StackProgram::constant(200.),
+            )));
+            result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(2))));
         }
         4 => {
             let mut wavetable1: Vec<f32> = Vec::new();
@@ -100,32 +76,20 @@ fn test_modules(test: usize) -> HashMap<String, Box<dyn Module>> {
                 let v2 = ((i as f32) * 2. * PI / 256.).sin();
                 wavetable2.push(v2);
             }
-            result.insert(
-                "wavetable".to_string(),
-                Box::new(Wavetable::new(
-                    0.,
-                    1,
-                    2,
-                    StackProgram::constant(0.),
-                    StackProgram::constant(5000.),
-                    StackProgram::constant(0.5),
-                    vec![wavetable2, wavetable1],
-                )),
-            );
-            result.insert(
-                "mono_out".to_string(),
-                Box::new(MonoOutput::new(0, StackProgram::from_index(2))),
-            );
+            result.push(Box::new(Wavetable::new(
+                0.,
+                1,
+                2,
+                StackProgram::constant(0.),
+                StackProgram::constant(5000.),
+                StackProgram::constant(0.5),
+                vec![wavetable2, wavetable1],
+            )));
+            result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(2))));
         }
         5 => {
-            result.insert(
-                "noise".to_string(),
-                Box::new(NoiseGenerator::new_with_default(1, 2)),
-            );
-            result.insert(
-                "mono_out".to_string(),
-                Box::new(MonoOutput::new(0, StackProgram::from_index(2))),
-            );
+            result.push(Box::new(NoiseGenerator::new_with_default(1, 2)));
+            result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(2))));
         }
         6 => {
             todo!("filter sweep");

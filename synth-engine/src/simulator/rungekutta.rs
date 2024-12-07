@@ -1,18 +1,19 @@
 use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::State;
-use std::collections::HashMap;
+use alloc::boxed::Box;
+use alloc::vec;
+use alloc::vec::Vec;
 
 const DEFAULT_STACK_SIZE: usize = 256;
 
-// TODO clean up
 pub struct RungeKutta {
     state: State,
     a: Vec<Vec<f32>>,
     b: Vec<f32>,
     c: Vec<f32>,
     stages: usize,
-    modules: HashMap<String, Box<dyn Module>>,
+    modules: Vec<Box<dyn Module>>,
     stack: Vec<f32>,
 }
 
@@ -30,7 +31,7 @@ impl RungeKutta {
             b,
             c,
             stages: 4,
-            modules: HashMap::new(),
+            modules: Vec::new(),
             stack: vec![0.0_f32; DEFAULT_STACK_SIZE],
         }
     }
@@ -53,7 +54,7 @@ impl RungeKutta {
             b,
             c,
             stages: 4,
-            modules: HashMap::new(),
+            modules: Vec::new(),
             stack: vec![0.0_f32; DEFAULT_STACK_SIZE],
         }
     }
@@ -69,7 +70,7 @@ impl RungeKutta {
             b,
             c,
             stages: 1,
-            modules: HashMap::new(),
+            modules: Vec::new(),
             stack: vec![0.0_f32; DEFAULT_STACK_SIZE],
         }
     }
@@ -78,7 +79,7 @@ impl RungeKutta {
         todo!("Second order Runge Kutta method")
     }
 
-    pub fn with_modules(&mut self, modules: HashMap<String, Box<dyn Module>>) -> Self {
+    pub fn with_modules(&mut self, modules: Vec<Box<dyn Module>>) -> Self {
         let state_size = self.state.len();
 
         Self {
@@ -101,7 +102,7 @@ impl RungeKutta {
 
             temp_state.apply_updates(&updates, &self.a[stage], dt);
 
-            for (_id, module) in &self.modules {
+            for module in &self.modules {
                 module.simulate(&temp_state, &mut update, &mut self.stack);
             }
 
@@ -110,7 +111,7 @@ impl RungeKutta {
 
         self.state.apply_updates(&updates, &self.b, dt);
 
-        for (_ix, module) in &mut self.modules {
+        for module in &mut self.modules {
             module.finalize(&mut self.state, dt, &mut self.stack);
         }
     }
@@ -120,7 +121,7 @@ impl RungeKutta {
     }
 
     pub fn process_event(&mut self, event: ControllerEvent) {
-        for (_id, module) in self.modules.iter_mut() {
+        for module in &mut self.modules {
             module.process_event(&event);
         }
     }
