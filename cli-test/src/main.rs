@@ -44,15 +44,14 @@ fn test_modules(test: usize) -> Vec<Box<dyn Module>> {
         }
         2 => {
             result.push(Box::new(BowedOscillator::new(
-                10.,
-                5.0,
-                5.0,
-                2,
+                1.,
+                500.0,
                 1,
-                StackProgram::constant(5.),
+                2,
                 StackProgram::constant(0.),
-                StackProgram::constant(0.),
-                StackProgram::constant(0.),
+                StackProgram::constant(100.),
+                StackProgram::constant(500.),
+                StackProgram::constant(0.3),
             )));
             result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(2))));
         }

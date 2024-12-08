@@ -5,10 +5,24 @@ use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use core::f32::consts::PI;
 
+// NOTE the amplitude of this oscillator needs to be scaled up. It usually goes
+// in the range of 0.008 to 0.016 peak-to-peak.
+
+// The second output (state_v_index) has the sawtooth sound-a-like.
+
+// This oscillator is different to the quadrature in that it _requires_ pressure
+// and velocity to work.
+
+// abs(velocity) should be about 0.1 to 0.2 (either positive or negative), but 0.0
+// will produce no output.
+
+// Force should be about 500 - 5000
+
+// parameter `a` should be 100 to 1000 or thereabouts
+
 pub struct BowedOscillator {
     f0: f32,
     a: f32,
-    b: f32,
     state_u_index: usize,
     state_v_index: usize,
     control_input: StackProgram,
@@ -21,7 +35,6 @@ impl BowedOscillator {
     pub fn new(
         f0: f32,
         a: f32,
-        b: f32,
         state_u_index: usize,
         state_v_index: usize,
         control_input: StackProgram,
@@ -32,7 +45,6 @@ impl BowedOscillator {
         Self {
             f0,
             a,
-            b,
             state_u_index,
             state_v_index,
             control_input,
@@ -43,8 +55,13 @@ impl BowedOscillator {
     }
 }
 
-fn friction(a: f32, b: f32, x: f32) -> f32 {
-    a * x * (-b * x * x + 0.5).exp()
+fn friction(a: f32, x: f32) -> f32 {
+    (2. * a).sqrt() * x * (-2. * a * x * x + 0.5).exp()
+}
+
+#[allow(dead_code)]
+fn discontinuous_friction(a: f32, x: f32) -> f32 {
+    x.signum() * (-a * x.abs()).exp()
 }
 
 impl Module for BowedOscillator {
@@ -67,37 +84,23 @@ impl Module for BowedOscillator {
             .unwrap_or(0.)
             .max(-1.)
             .min(1.);
-        let force = self
-            .pressure_input
-            .run(state, stack)
-            .unwrap_or(0.)
-            .min(omega / 2.);
+        let force = self.pressure_input.run(state, stack).unwrap_or(0.);
 
-        let f = force * friction(self.a, self.b, v - vb);
+        let f = force * friction(self.a, u - vb);
 
-        update.set(self.state_u_index, -omega * v, UpdateType::Differentiable);
         update.set(
-            self.state_v_index,
-            omega * u - f,
+            self.state_u_index,
+            -(omega * omega) * v - f,
             UpdateType::Differentiable,
         );
+        update.set(self.state_v_index, u, UpdateType::Differentiable);
     }
 
     fn process_event(&mut self, _event: &ControllerEvent) {
         /* do nothing */
     }
 
-    fn finalize(&mut self, state: &mut State, _time_step: f32, _stack: &mut [f32]) {
-        let u = state.get(self.state_u_index);
-        let v = state.get(self.state_v_index);
-        let s = (u * u + v * v).sqrt();
-
-        if s < f32::EPSILON {
-            state.set(self.state_u_index, 1.);
-            state.set(self.state_v_index, 0.);
-        } else {
-            state.set(self.state_u_index, u / s);
-            state.set(self.state_v_index, v / s);
-        }
+    fn finalize(&mut self, _state: &mut State, _time_step: f32, _stack: &mut [f32]) {
+        /* do nothing */
     }
 }

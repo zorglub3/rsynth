@@ -67,3 +67,9 @@ the running instance of the synth. Play music and enjoy!
 - For a quick introduction to waveguide synthesis, look [here](https://www.osar.fr/notes/waveguides/)
 - A thorough exposition on physical modelling, is [here](https://ccrma.stanford.edu/~jos/) on 
   Julius Orion Smith III homepage.
+- Dynamical Systems for Audio Synthesis: Embracing Nonlinearities and Delay-Free Loops,
+  David Medine, 2015
+- A REVIEW OF METHODS FOR RESOLVING DELAY-FREE LOOPS, Jatin Chowdhury, (don't know when it
+  was publicized)
+- A COMPARISON OF VIRTUAL ANALOG MODELLING TECHNIQUES FOR DESKTOP AND EMBEDDED IMPLEMENTATIONS,
+  Jatin Chowdhury, 2020

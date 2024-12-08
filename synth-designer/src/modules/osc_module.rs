@@ -16,7 +16,6 @@ const SIGNAL_1_OUTPUT: &str = "signal1";
 const SIGNAL_2_OUTPUT: &str = "signal2";
 const FREQ0: &str = "frequency_zero";
 const PARAM_A: &str = "param_a";
-const PARAM_B: &str = "param_b";
 const INPUT_SIZE: usize = 4;
 const STATE_SIZE: usize = 2;
 
@@ -26,7 +25,6 @@ pub struct OscillatorModuleSpec {
     state: [usize; STATE_SIZE],
     f0: f32,
     a: f32,
-    b: f32,
 }
 
 impl OscillatorModuleSpec {
@@ -38,7 +36,6 @@ impl OscillatorModuleSpec {
         let mut vc: Expr = Expr::zero();
         let mut f0: f32 = DEFAULT_FREQUENCY_ZERO;
         let mut a: f32 = 0.;
-        let mut b: f32 = 0.;
 
         for (k, v) in props {
             match k.as_str() {
@@ -49,7 +46,6 @@ impl OscillatorModuleSpec {
                 VELOCITY_CONTROL => vc = Expr::parse(&v)?,
                 FREQ0 => f0 = v.parse::<f32>()?,
                 PARAM_A => a = v.parse::<f32>()?,
-                PARAM_B => b = v.parse::<f32>()?,
                 _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
             }
         }
@@ -60,7 +56,6 @@ impl OscillatorModuleSpec {
             state: [0; STATE_SIZE],
             f0,
             a,
-            b,
         })
     }
 }
@@ -74,7 +69,6 @@ impl ModuleSpec for OscillatorModuleSpec {
         let osc = BowedOscillator::new(
             self.f0,
             self.a,
-            self.b,
             self.state[0],
             self.state[1],
             self.inputs[0].compile(&synth_spec)?,
