@@ -1,5 +1,7 @@
+use super::gen_stack_program;
 use crate::modules::*;
 use crate::*;
+use proc_macro2::TokenStream;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
 
@@ -21,6 +23,10 @@ impl ModuleSpec for ZeroModuleSpec {
 
     fn create_module(&self, _synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
         Ok(Box::new(ZeroModule::new(self.state[0])))
+    }
+
+    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+        todo!()
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

@@ -1,7 +1,10 @@
+use super::gen_stack_program;
 use crate::input_expr::*;
 use crate::modules::*;
 use crate::*;
 use ini::Properties;
+use proc_macro2::TokenStream;
+use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
 
@@ -59,6 +62,15 @@ impl ModuleSpec for AmpModuleSpec {
         );
 
         Ok(Box::new(amplifier))
+    }
+
+    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+        let s0 = self.state[0];
+        let i0 = gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap());
+        let i1 = gen_stack_program(&self.inputs[1].compile(&synth_spec).unwrap());
+        let i2 = gen_stack_program(&self.inputs[2].compile(&synth_spec).unwrap());
+
+        quote! { Amplifier::new(#i0, #s0, #i1, #i2) }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

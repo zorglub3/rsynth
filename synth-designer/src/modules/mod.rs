@@ -32,10 +32,15 @@ pub use zero::ZeroModuleSpec;
 
 use crate::input_expr::ExprError;
 use crate::StateAllocator;
+use proc_macro2::TokenStream;
+use quote::quote;
 use std::collections::BTreeMap;
 use std::num::ParseFloatError;
 use std::num::ParseIntError;
 use synth_engine::simulator::module::Module;
+use synth_engine::stack_program::Function;
+use synth_engine::stack_program::Instr;
+use synth_engine::stack_program::StackProgram;
 use thiserror::Error;
 
 pub const ZERO_MODULE: &str = "zero";
@@ -130,11 +135,64 @@ impl SynthSpec {
 
         Ok(())
     }
+
+    pub fn codegen(&self) -> Result<TokenStream, ModuleError> {
+        let mut module_code: Vec<TokenStream> = Vec::new();
+
+        for (_k, v) in self.0.iter() {
+            module_code.push(v.codegen(self));
+        }
+
+        Ok(module_code.into_iter().collect())
+    }
+}
+
+pub fn gen_stack_program(stack_program: &StackProgram) -> TokenStream {
+    let mut prg: Vec<TokenStream> = Vec::new();
+
+    for instr in &stack_program.code {
+        use Instr::*;
+
+        match instr {
+            Add => prg.push(quote! { Add }),
+            Subtract => prg.push(quote! { Subtract }),
+            Multiply => prg.push(quote! { Multiply }),
+            Divide => prg.push(quote! { Divide }),
+            Negate => prg.push(quote! { Negate }),
+            Const(v) => prg.push(quote! { Const(#v) }),
+            State(s) => prg.push(quote! { State(#s) }),
+            Call(f) => {
+                use Function::*;
+
+                match f {
+                    Sin => prg.push(quote! { Call(Sin) }),
+                    Cos => prg.push(quote! { Call(Cos) }),
+                    Tan => prg.push(quote! { Call(Tan) }),
+                    Tanh => prg.push(quote! { Call(Tanh) }),
+                    Ln => prg.push(quote! { Call(Ln) }),
+                    Exp => prg.push(quote! { Call(Exp) }),
+                    Logistic => prg.push(quote! { Call(Logistic) }),
+                    Abs => prg.push(quote! { Call(Abs) }),
+                    Min => prg.push(quote! { Call(Min) }),
+                    Max => prg.push(quote! { Call(Max) }),
+                    Lerp => prg.push(quote! { Call(Lerp) }),
+                }
+            }
+        }
+    }
+
+    quote! {
+        StackProgram {
+            code: #(prg.into_iter().collect()),
+            stack_size: #(stack_program.stack_size),
+        }
+    }
 }
 
 pub trait ModuleSpec {
     fn allocate_state(&mut self, alloc: &mut StateAllocator);
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError>;
+    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream;
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError>;
     fn get_name(&self) -> &str;
     fn state_size(&self) -> usize;

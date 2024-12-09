@@ -1,6 +1,9 @@
+use super::gen_stack_program;
 use crate::modules::*;
 use crate::*;
 use ini::Properties;
+use proc_macro2::TokenStream;
+use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
 
@@ -56,6 +59,16 @@ impl ModuleSpec for MidiCCModuleSpec {
         let midi_cc = MidiCC::new(self.state[0], self.control, self.min_value, self.max_value);
 
         Ok(Box::new(midi_cc))
+    }
+
+    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+        quote! { MidiCC::new(
+                #(self.state[0]),
+                #(self.control),
+                #(self.min_value),
+                #(self.max_value),
+            )
+        }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

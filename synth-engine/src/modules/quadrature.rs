@@ -4,6 +4,9 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use core::f32::consts::PI;
 
+// TODO add to synth designer
+// TODO update to use StackPrograms for control
+// TODO add better pitch control (exp and linear control + f0)
 pub struct QuadratureOscillator {
     f0: f32,
     state_x_index: usize,

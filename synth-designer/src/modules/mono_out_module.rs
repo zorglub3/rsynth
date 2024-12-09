@@ -1,7 +1,10 @@
+use super::gen_stack_program;
 use crate::input_expr::*;
 use crate::modules::*;
 use crate::*;
 use ini::Properties;
+use proc_macro2::TokenStream;
+use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
 
@@ -49,6 +52,14 @@ impl ModuleSpec for MonoOutputModuleSpec {
         let mono_output = MonoOutput::new(self.output_index, self.inputs[0].compile(&synth_spec)?);
 
         Ok(Box::new(mono_output))
+    }
+
+    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+        quote! { MonoOutput::new(
+                #(self.output_index),
+                #(gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap())),
+            )
+        }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

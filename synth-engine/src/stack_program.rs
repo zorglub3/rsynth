@@ -45,8 +45,8 @@ pub enum ExecError {
 
 #[derive(PartialEq, Debug)]
 pub struct StackProgram {
-    code: Vec<Instr>,
-    stack_size: usize,
+    pub code: Vec<Instr>,
+    pub stack_size: usize,
 }
 
 pub fn compute_stack_size(code: &Vec<Instr>) -> usize {

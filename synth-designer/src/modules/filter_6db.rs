@@ -1,7 +1,10 @@
+use super::gen_stack_program;
 use crate::input_expr::*;
 use crate::modules::*;
 use crate::*;
 use ini::Properties;
+use proc_macro2::TokenStream;
+use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
 
@@ -68,6 +71,19 @@ impl ModuleSpec for Filter6dbModuleSpec {
         );
 
         Ok(Box::new(filter))
+    }
+
+    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+        quote! { Filter6db::new(
+                #(self.f0),
+                #(self.state[2]),
+                #(self.state[0]),
+                #(self.state[1]),
+                #(gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap())),
+                #(gen_stack_program(&self.inputs[1].compile(&synth_spec).unwrap())),
+                #(gen_stack_program(&self.inputs[2].compile(&synth_spec).unwrap())),
+            )
+        }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

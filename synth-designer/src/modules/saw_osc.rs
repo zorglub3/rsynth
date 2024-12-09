@@ -1,8 +1,11 @@
+use super::gen_stack_program;
 use crate::input_expr::*;
 use crate::modules::*;
 use crate::DEFAULT_FREQUENCY_ZERO;
 use crate::*;
 use ini::Properties;
+use proc_macro2::TokenStream;
+use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
 
@@ -63,6 +66,10 @@ impl ModuleSpec for SawOscillatorModuleSpec {
         );
 
         Ok(Box::new(osc))
+    }
+
+    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+        todo!()
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

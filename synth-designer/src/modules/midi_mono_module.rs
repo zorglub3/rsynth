@@ -1,6 +1,9 @@
+use super::gen_stack_program;
 use crate::modules::*;
 use crate::*;
 use ini::Properties;
+use proc_macro2::TokenStream;
+use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
 
@@ -51,6 +54,17 @@ impl ModuleSpec for MidiMonoModuleSpec {
         );
 
         Ok(Box::new(midi_mono))
+    }
+
+    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+        quote! { MidiMono::new(
+                #(self.state[0]),
+                #(self.state[1]),
+                #(self.state[2]),
+                #(self.state[3]),
+                #(self.state[4]),
+            )
+        }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

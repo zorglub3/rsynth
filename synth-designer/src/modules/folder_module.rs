@@ -1,7 +1,10 @@
+use super::gen_stack_program;
 use crate::input_expr::*;
 use crate::modules::*;
 use crate::*;
 use ini::Properties;
+use proc_macro2::TokenStream;
+use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
 
@@ -56,6 +59,15 @@ impl ModuleSpec for FolderModuleSpec {
         );
 
         Ok(Box::new(folder))
+    }
+
+    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+        quote! { Folder::new(
+                #(gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap())),
+                #(gen_stack_program(&self.inputs[1].compile(&synth_spec).unwrap())),
+                #(self.state[0]),
+            )
+        }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
