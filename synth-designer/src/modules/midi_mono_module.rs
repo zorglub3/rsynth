@@ -1,6 +1,5 @@
-use super::gen_stack_program;
 use crate::modules::*;
-use crate::*;
+use crate::synth_spec::SynthSpec;
 use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -56,15 +55,14 @@ impl ModuleSpec for MidiMonoModuleSpec {
         Ok(Box::new(midi_mono))
     }
 
-    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
-        quote! { MidiMono::new(
-                #(self.state[0]),
-                #(self.state[1]),
-                #(self.state[2]),
-                #(self.state[3]),
-                #(self.state[4]),
-            )
-        }
+    fn codegen(&self, _synth_spec: &SynthSpec) -> TokenStream {
+        let s0 = self.state[0];
+        let s1 = self.state[1];
+        let s2 = self.state[2];
+        let s3 = self.state[3];
+        let s4 = self.state[4];
+
+        quote! { SynthModule::MonoKeys(MidiMono::new(#s0, #s1, #s2, #s3, #s4)) }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

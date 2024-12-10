@@ -7,7 +7,7 @@ use scale::Scale;
 use std::io;
 use std::io::prelude::*;
 use std::sync::mpsc::channel;
-use synth_designer::from_ini_file;
+use synth_designer::synth_spec::SynthSpec;
 use synth_engine::simulator::rungekutta::RungeKutta;
 use thiserror::Error;
 
@@ -92,12 +92,21 @@ fn main() -> Result<(), RuntimeError> {
     let args = CliArgs::parse();
 
     println!("Reading model definition from {}", args.model.as_str());
-    let (model, state_size) = match from_ini_file(args.model.as_str()) {
-        Ok((m, s)) => (m, s),
+    let mut spec = match SynthSpec::from_ini_file(args.model.as_str()) {
+        Ok(s) => s,
         Err(err) => {
-            panic!("Error initializing the synth model: {:?}", err);
+            panic!("Error reading synth model: {:?}", err);
         }
     };
+
+    let mut model = Vec::new();
+
+    let state_size = spec.allocate_state();
+
+    match spec.make_modules(&mut model) {
+        Ok(()) => {}
+        Err(err) => panic!("Error creating synth modules: {:?}", err),
+    }
     println!("done");
 
     println!("Getting scale...");

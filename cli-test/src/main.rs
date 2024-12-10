@@ -30,7 +30,13 @@ fn test_modules(test: usize) -> Vec<Box<dyn Module>> {
 
     match test {
         0 => {
-            result.push(Box::new(QuadratureOscillator::new(110., 4, 5, 6)));
+            result.push(Box::new(QuadratureOscillator::new(
+                1.,
+                4,
+                5,
+                StackProgram::constant(0.),
+                StackProgram::constant(110.),
+            )));
             result.push(Box::new(Folder::new(
                 StackProgram::zero(),
                 StackProgram::zero(),
@@ -39,7 +45,13 @@ fn test_modules(test: usize) -> Vec<Box<dyn Module>> {
             result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(1))));
         }
         1 => {
-            result.push(Box::new(QuadratureOscillator::new(110., 1, 2, 3)));
+            result.push(Box::new(QuadratureOscillator::new(
+                1.,
+                1,
+                2,
+                StackProgram::constant(0.),
+                StackProgram::constant(110.),
+            )));
             result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(1))));
         }
         2 => {

@@ -1,7 +1,7 @@
-use super::gen_stack_program;
 use crate::input_expr::*;
 use crate::modules::*;
-use crate::*;
+use crate::synth_spec::gen_stack_program;
+use crate::synth_spec::SynthSpec;
 use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -86,7 +86,7 @@ impl ModuleSpec for DelayLineModuleSpec {
         let i2 = gen_stack_program(&self.inputs[2].compile(&synth_spec).unwrap());
         let ds = self.data_size;
 
-        quote! { DelayLine::new(#f0, #s0, #i0, #i1, #i2, #ds) }
+        quote! { SynthModule::Delay(DelayLine::new(#f0, #s0, #i0, #i1, #i2, #ds)) }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

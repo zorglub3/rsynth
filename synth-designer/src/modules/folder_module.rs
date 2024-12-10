@@ -1,7 +1,7 @@
-use super::gen_stack_program;
 use crate::input_expr::*;
 use crate::modules::*;
-use crate::*;
+use crate::synth_spec::gen_stack_program;
+use crate::synth_spec::SynthSpec;
 use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -62,12 +62,11 @@ impl ModuleSpec for FolderModuleSpec {
     }
 
     fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
-        quote! { Folder::new(
-                #(gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap())),
-                #(gen_stack_program(&self.inputs[1].compile(&synth_spec).unwrap())),
-                #(self.state[0]),
-            )
-        }
+        let s0 = self.state[0];
+        let i0 = gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap());
+        let i1 = gen_stack_program(&self.inputs[1].compile(&synth_spec).unwrap());
+
+        quote! { SynthModule::Wavefolder(Folder::new(#i0, #i1, #s0)) }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

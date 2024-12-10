@@ -58,6 +58,17 @@ Use `aconnect -i` and `aconnect -o` to see a list of input and output MIDI devic
 your system. Then use `aconnect <Midi controller> rsynth` to connect your controller to 
 the running instance of the synth. Play music and enjoy!
 
+## Example synth with code generation
+
+Commands I used after adding the workspace to the `Cargo.toml` file:
+
+```bash
+cargo new --bin example
+cargo add synth-engine --path synth-engine --package example
+cargo add --build synth-designer --path synth-designer --package example
+touch example/build.rs
+```
+
 ## References
 
 - Unsampled Digital Synthesis: Computing the Output of Implicit and Non-Linear

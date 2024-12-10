@@ -1,7 +1,7 @@
-use super::gen_stack_program;
 use crate::input_expr::*;
 use crate::modules::*;
-use crate::*;
+use crate::synth_spec::gen_stack_program;
+use crate::synth_spec::SynthSpec;
 use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -70,7 +70,7 @@ impl ModuleSpec for AmpModuleSpec {
         let i1 = gen_stack_program(&self.inputs[1].compile(&synth_spec).unwrap());
         let i2 = gen_stack_program(&self.inputs[2].compile(&synth_spec).unwrap());
 
-        quote! { Amplifier::new(#i0, #s0, #i1, #i2) }
+        quote! { SynthModule::Amp(Amplifier::new(#i0, #s0, #i1, #i2)) }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

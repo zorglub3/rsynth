@@ -2,32 +2,46 @@ use super::control_to_frequency;
 use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
+use crate::stack_program::*;
 use core::f32::consts::PI;
 
 // TODO add to synth designer
-// TODO update to use StackPrograms for control
-// TODO add better pitch control (exp and linear control + f0)
 pub struct QuadratureOscillator {
     f0: f32,
     state_x_index: usize,
     state_y_index: usize,
-    control_index: usize,
+    control_input: StackProgram,
+    linear_control: StackProgram,
 }
 
 impl QuadratureOscillator {
-    pub fn new(f0: f32, state_x_index: usize, state_y_index: usize, control_index: usize) -> Self {
+    pub fn new(
+        f0: f32,
+        state_x_index: usize,
+        state_y_index: usize,
+        control_input: StackProgram,
+        linear_control: StackProgram,
+    ) -> Self {
         Self {
             f0,
             state_x_index,
             state_y_index,
-            control_index,
+            control_input,
+            linear_control,
         }
     }
 }
 
 impl Module for QuadratureOscillator {
-    fn simulate(&self, state: &State, update: &mut StateUpdate, _stack: &mut [f32]) {
-        let omega = control_to_frequency(self.f0, state.get(self.control_index), 0.0) * (2. * PI);
+    fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
+        let omega = 2.
+            * PI
+            * control_to_frequency(
+                self.f0,
+                self.control_input.run(state, stack).unwrap_or(0.),
+                self.linear_control.run(state, stack).unwrap_or(0.),
+            );
+
         let x = state.get(self.state_x_index);
         let y = state.get(self.state_y_index);
 

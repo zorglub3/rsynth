@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 hound = "3.5.1"
 peg = "0.8.4"
+prettyplease = "0.2.25"
 proc-macro2 = "1.0.92"
 quote = "1.0.37"
 rust-ini = "0.21.1"

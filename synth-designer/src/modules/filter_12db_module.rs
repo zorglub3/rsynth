@@ -1,7 +1,7 @@
-use super::gen_stack_program;
 use crate::input_expr::*;
 use crate::modules::*;
-use crate::*;
+use crate::synth_spec::gen_stack_program;
+use crate::synth_spec::SynthSpec;
 use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -94,7 +94,7 @@ impl ModuleSpec for Filter12dbModuleSpec {
         let i2 = gen_stack_program(&self.inputs[2].compile(&synth_spec).unwrap());
         let i3 = gen_stack_program(&self.inputs[3].compile(&synth_spec).unwrap());
 
-        quote! { Filter12db::new(#f0, #s0, #s1, #s2, #i1, #i2, #i3, #i0) }
+        quote! { SynthModule::Filter2Pole(Filter12db::new(#f0, #s0, #s1, #s2, #i1, #i2, #i3, #i0)) }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

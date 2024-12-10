@@ -1,6 +1,5 @@
-use super::gen_stack_program;
 use crate::modules::*;
-use crate::*;
+use crate::synth_spec::SynthSpec;
 use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -74,8 +73,13 @@ impl ModuleSpec for NoiseGeneratorModuleSpec {
         Ok(Box::new(noise))
     }
 
-    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
-        quote! { NoiseGenerator::new(#(self.a), #(self.b), #(self.seed), #(self.state[0])) }
+    fn codegen(&self, _synth_spec: &SynthSpec) -> TokenStream {
+        let a = self.a;
+        let b = self.b;
+        let s = self.seed;
+        let s0 = self.state[0];
+
+        quote! { SynthModule::Noise(NoiseGenerator::new(#a, #b, #s, #s0)) }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

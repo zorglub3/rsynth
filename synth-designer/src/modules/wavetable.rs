@@ -1,6 +1,7 @@
-use super::gen_stack_program;
 use crate::input_expr::*;
 use crate::modules::*;
+use crate::synth_spec::gen_stack_program;
+use crate::synth_spec::SynthSpec;
 use crate::DEFAULT_FREQUENCY_ZERO;
 use crate::*;
 use hound;

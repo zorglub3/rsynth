@@ -15,7 +15,6 @@ pub mod noise;
 pub mod quadrature;
 pub mod saw_osc;
 pub mod wavetable;
-pub mod zero;
 
 pub use ad_envelope::ADEnvelope;
 pub use allpass::AllpassFilter;
@@ -34,7 +33,6 @@ pub use noise::NoiseGenerator;
 pub use quadrature::QuadratureOscillator;
 pub use saw_osc::SawOscillator;
 pub use wavetable::Wavetable;
-pub use zero::ZeroModule;
 
 pub fn control_to_frequency(f0: f32, exp_fc: f32, lin_fc: f32) -> f32 {
     f0 * 2.0_f32.powf(exp_fc) + lin_fc
@@ -44,6 +42,7 @@ pub fn control_to_frequency(f0: f32, exp_fc: f32, lin_fc: f32) -> f32 {
 
 #[allow(dead_code)]
 pub enum SynthModule {
+    Amp(Amplifier),
     Contour(ADEnvelope),
     Filter1Pole(Filter6db),
     Filter2Pole(Filter12db),
@@ -54,6 +53,9 @@ pub enum SynthModule {
     Noise(NoiseGenerator),
     QuadOscillator(QuadratureOscillator),
     WavetableOscillator(Wavetable),
+    Delay(DelayLine),
+    Wavefolder(Folder),
+    Bowed(BowedOscillator),
 }
 
 use crate::event::ControllerEvent;

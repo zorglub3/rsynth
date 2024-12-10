@@ -1,5 +1,5 @@
 extern crate peg;
-use crate::modules::SynthSpec;
+use crate::synth_spec::SynthSpec;
 use peg::parser;
 use peg::str::LineCol;
 use synth_engine::stack_program::*;

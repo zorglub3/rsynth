@@ -1,7 +1,7 @@
-use super::gen_stack_program;
 use crate::input_expr::*;
 use crate::modules::*;
-use crate::*;
+use crate::synth_spec::gen_stack_program;
+use crate::synth_spec::SynthSpec;
 use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -70,7 +70,7 @@ impl ModuleSpec for ContourModuleSpec {
         let i2 = gen_stack_program(&self.inputs[2].compile(&synth_spec).unwrap());
         let s0 = self.state[0];
 
-        quote! { ADEnvelope::new(#i0, #s0, #i1, #i2) }
+        quote! { SynthModule::Contour(ADEnvelope::new(#i0, #s0, #i1, #i2)) }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
