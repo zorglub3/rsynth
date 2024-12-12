@@ -9,7 +9,7 @@ fn main() {
         Err(err) => panic!("Error reading synth spec: {:?}", err),
     };
 
-    let state_size = synth_spec.allocate_state();
+    synth_spec.allocate_state();
 
     let code = synth_spec.codegen().to_string();
 

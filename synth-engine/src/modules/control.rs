@@ -3,7 +3,7 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use core::f32::consts::PI;
 
-pub struct MidiCC {
+pub struct ContinuousControl {
     output_index: usize,
     control: usize,
     value: f32,
@@ -12,7 +12,7 @@ pub struct MidiCC {
     filter_freq: Option<f32>,
 }
 
-impl MidiCC {
+impl ContinuousControl {
     pub fn new(output_index: usize, control: usize, min_value: f32, max_value: f32) -> Self {
         Self {
             output_index,
@@ -29,7 +29,7 @@ impl MidiCC {
     }
 }
 
-impl Module for MidiCC {
+impl Module for ContinuousControl {
     fn simulate(&self, state: &State, update: &mut StateUpdate, _stack: &mut [f32]) {
         if let Some(freq) = self.filter_freq {
             let k = 2. * PI * freq;

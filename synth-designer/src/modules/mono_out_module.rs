@@ -1,7 +1,6 @@
 use crate::input_expr::*;
 use crate::modules::*;
 use crate::synth_spec::gen_stack_program;
-use crate::*;
 use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;

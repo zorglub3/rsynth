@@ -69,6 +69,8 @@ cargo add --build synth-designer --path synth-designer --package example
 touch example/build.rs
 ```
 
+Use `rustfmt` to clean up the output.
+
 ## References
 
 - Unsampled Digital Synthesis: Computing the Output of Implicit and Non-Linear

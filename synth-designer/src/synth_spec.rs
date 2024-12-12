@@ -116,12 +116,12 @@ impl SynthSpec {
                         let module_spec = Filter6dbModuleSpec::from_ini_properties(props)?;
                         synth_spec.add_module(Box::new(module_spec))?;
                     }
-                    "midi_cc" => {
-                        let module_spec = MidiCCModuleSpec::from_ini_properties(props)?;
+                    "control" => {
+                        let module_spec = ControlModuleSpec::from_ini_properties(props)?;
                         synth_spec.add_module(Box::new(module_spec))?;
                     }
-                    "midi_mono" => {
-                        let module_spec = MidiMonoModuleSpec::from_ini_properties(props)?;
+                    "mono_keys" => {
+                        let module_spec = MonoKeysModuleSpec::from_ini_properties(props)?;
                         synth_spec.add_module(Box::new(module_spec))?;
                     }
                     "mono_out" => {
@@ -130,10 +130,6 @@ impl SynthSpec {
                     }
                     "bowed_oscillator" => {
                         let module_spec = BowedOscillatorModuleSpec::from_ini_properties(props)?;
-                        synth_spec.add_module(Box::new(module_spec))?;
-                    }
-                    "saw_oscillator" => {
-                        let module_spec = SawOscillatorModuleSpec::from_ini_properties(props)?;
                         synth_spec.add_module(Box::new(module_spec))?;
                     }
                     "wavetable" => {

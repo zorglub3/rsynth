@@ -38,7 +38,7 @@ impl Ord for ActiveNote {
     }
 }
 
-pub struct MidiMono {
+pub struct MonoKeys {
     pitch_output_index: usize,
     gate_output_index: usize,
     pressure_output_index: usize,
@@ -52,7 +52,7 @@ pub struct MidiMono {
     pitch_wheel: f32,
 }
 
-impl MidiMono {
+impl MonoKeys {
     pub fn new(
         pitch_output_index: usize,
         gate_output_index: usize,
@@ -76,7 +76,7 @@ impl MidiMono {
     }
 }
 
-impl Module for MidiMono {
+impl Module for MonoKeys {
     fn simulate(&self, state: &State, update: &mut StateUpdate, _stack: &mut [f32]) {
         update.set(
             self.gate_output_index,

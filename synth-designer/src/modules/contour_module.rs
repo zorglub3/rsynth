@@ -54,7 +54,7 @@ impl ModuleSpec for ContourModuleSpec {
     }
 
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
-        let env = ADEnvelope::new(
+        let env = Envelope::new(
             self.inputs[0].compile(&synth_spec)?,
             self.state[0],
             self.inputs[1].compile(&synth_spec)?,
@@ -70,7 +70,7 @@ impl ModuleSpec for ContourModuleSpec {
         let i2 = gen_stack_program(&self.inputs[2].compile(&synth_spec).unwrap());
         let s0 = self.state[0];
 
-        quote! { SynthModule::Contour(ADEnvelope::new(#i0, #s0, #i1, #i2)) }
+        quote! { SynthModule::Contour(Envelope::new(#i0, #s0, #i1, #i2)) }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

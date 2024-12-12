@@ -3,7 +3,6 @@ use crate::modules::*;
 use crate::synth_spec::gen_stack_program;
 use crate::synth_spec::SynthSpec;
 use crate::DEFAULT_FREQUENCY_ZERO;
-use crate::*;
 use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -71,7 +70,13 @@ impl ModuleSpec for QuadOscillatorModuleSpec {
     }
 
     fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
-        todo!()
+        let f0 = self.f0;
+        let s0 = self.state[0];
+        let s1 = self.state[1];
+        let i0 = gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap());
+        let i1 = gen_stack_program(&self.inputs[1].compile(&synth_spec).unwrap());
+
+        quote! { SynthModule::QuadOscillator(QuadratureOscillator::new(#f0, #s0, #s1, #i0, #i1)) }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

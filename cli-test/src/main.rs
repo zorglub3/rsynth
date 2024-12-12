@@ -68,16 +68,6 @@ fn test_modules(test: usize) -> Vec<Box<dyn Module>> {
             result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(2))));
         }
         3 => {
-            result.push(Box::new(SawOscillator::new(
-                0.,
-                1,
-                2,
-                StackProgram::constant(0.),
-                StackProgram::constant(200.),
-            )));
-            result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(2))));
-        }
-        4 => {
             let mut wavetable1: Vec<f32> = Vec::new();
             let mut wavetable2: Vec<f32> = Vec::new();
             for i in 0..256 {
@@ -98,11 +88,11 @@ fn test_modules(test: usize) -> Vec<Box<dyn Module>> {
             )));
             result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(2))));
         }
-        5 => {
+        4 => {
             result.push(Box::new(NoiseGenerator::new_with_default(1, 2)));
             result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(2))));
         }
-        6 => {
+        5 => {
             todo!("filter sweep");
         }
         _ => panic!("No test for {}", test),

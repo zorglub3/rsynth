@@ -1,47 +1,40 @@
 mod amp_module;
 mod bowed_osc;
 mod contour_module;
+mod control_module;
 mod delay_line;
 mod filter_12db_module;
 mod filter_24db;
 mod filter_6db;
 mod folder_module;
-mod midi_cc_module;
-mod midi_mono_module;
+mod mono_keys_module;
 mod mono_out_module;
 mod noise;
 mod quad;
-mod saw_osc;
 mod wavetable;
 
 pub use amp_module::AmpModuleSpec;
 pub use bowed_osc::BowedOscillatorModuleSpec;
 pub use contour_module::ContourModuleSpec;
+pub use control_module::ControlModuleSpec;
 pub use delay_line::DelayLineModuleSpec;
 pub use filter_12db_module::Filter12dbModuleSpec;
 pub use filter_24db::Filter24dbModuleSpec;
 pub use filter_6db::Filter6dbModuleSpec;
 pub use folder_module::FolderModuleSpec;
-pub use midi_cc_module::MidiCCModuleSpec;
-pub use midi_mono_module::MidiMonoModuleSpec;
+pub use mono_keys_module::MonoKeysModuleSpec;
 pub use mono_out_module::MonoOutputModuleSpec;
 pub use noise::NoiseGeneratorModuleSpec;
 pub use quad::QuadOscillatorModuleSpec;
-pub use saw_osc::SawOscillatorModuleSpec;
 pub use wavetable::WavetableOscillatorModuleSpec;
 
 use crate::input_expr::ExprError;
 use crate::state_allocator::StateAllocator;
 use crate::synth_spec::SynthSpec;
 use proc_macro2::TokenStream;
-use quote::quote;
-use std::collections::BTreeMap;
 use std::num::ParseFloatError;
 use std::num::ParseIntError;
 use synth_engine::simulator::module::Module;
-use synth_engine::stack_program::Function;
-use synth_engine::stack_program::Instr;
-use synth_engine::stack_program::StackProgram;
 use thiserror::Error;
 
 #[derive(Error, Debug)]

@@ -10,9 +10,9 @@ use core::f32::consts::PI;
 
 const FREQUENCY_LIMIT: f32 = 18_000.0;
 
-struct WavetableData {
-    samples: Vec<f32>,
-    len_f32: f32,
+pub struct WavetableData {
+    pub samples: Vec<f32>,
+    pub len_f32: f32,
 }
 
 impl WavetableData {
@@ -44,9 +44,9 @@ impl WavetableData {
     }
 }
 
-struct WavetableEntry {
-    data: Vec<WavetableData>,
-    base_data_len: usize,
+pub struct WavetableEntry {
+    pub data: Vec<WavetableData>,
+    pub base_data_len: usize,
 }
 
 impl WavetableEntry {
@@ -121,6 +121,34 @@ impl Wavetable {
                 .into_iter()
                 .map(|samples| WavetableEntry::from_slice(&samples))
                 .collect(),
+            amp: 2. * PI * FREQUENCY_LIMIT,
+        }
+    }
+
+    pub fn precompute_wavetables(table_data: &Vec<Vec<f32>>) -> Vec<WavetableEntry> {
+        table_data
+            .into_iter()
+            .map(|samples| WavetableEntry::from_slice(&samples))
+            .collect()
+    }
+
+    pub fn new_with_precompute(
+        f0: f32,
+        position_state: usize,
+        signal_output: usize,
+        pitch_control: StackProgram,
+        linear_modulation: StackProgram,
+        wavetable_select: StackProgram,
+        wavetables: Vec<WavetableEntry>,
+    ) -> Self {
+        Self {
+            f0,
+            position_state,
+            signal_output,
+            pitch_control,
+            linear_modulation,
+            wavetable_select,
+            wavetables,
             amp: 2. * PI * FREQUENCY_LIMIT,
         }
     }

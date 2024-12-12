@@ -2,6 +2,14 @@ use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
+use core::f32::consts::PI;
+
+#[allow(dead_code)]
+fn hamming(x: f32) -> f32 {
+    let x = x.min(1.).max(-1.);
+
+    0.54 - 0.46 * (2. * PI * x).cos()
+}
 
 // TODO env type selectable
 const MIN_TIME: f32 = 0.0001_f32;
@@ -20,7 +28,7 @@ enum EnvType {
     Cyclic,
 }
 
-pub struct ADEnvelope {
+pub struct Envelope {
     signal_input: StackProgram,
     output_index: usize,
     attack_input: StackProgram,
@@ -29,7 +37,7 @@ pub struct ADEnvelope {
     env_type: EnvType,
 }
 
-impl ADEnvelope {
+impl Envelope {
     pub fn new(
         signal_input: StackProgram,
         output_index: usize,
@@ -53,7 +61,7 @@ fn rise_decay(t: f32) -> f32 {
     1. / t
 }
 
-impl Module for ADEnvelope {
+impl Module for Envelope {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let attack = self.attack_input.run(state, stack).unwrap_or(0.);
         let decay = self.decay_input.run(state, stack).unwrap_or(0.);
