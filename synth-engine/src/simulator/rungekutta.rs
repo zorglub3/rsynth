@@ -100,7 +100,7 @@ impl RungeKutta {
             let mut update = self.state.update_data(dt * self.c[stage], dt);
             let mut temp_state = self.state.clone();
 
-            temp_state.apply_updates(&updates, &self.a[stage], dt);
+            temp_state.apply_updates(&updates, &self.a[stage], dt, self.c[stage]);
 
             for module in &self.modules {
                 module.simulate(&temp_state, &mut update, &mut self.stack);
@@ -109,7 +109,7 @@ impl RungeKutta {
             updates.push(update);
         }
 
-        self.state.apply_updates(&updates, &self.b, dt);
+        self.state.apply_updates(&updates, &self.b, dt, 1.);
 
         for module in &mut self.modules {
             module.finalize(&mut self.state, dt, &mut self.stack);

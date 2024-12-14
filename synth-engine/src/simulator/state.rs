@@ -5,7 +5,6 @@ use alloc::vec::Vec;
 pub enum UpdateType {
     Differentiable,
     Absolute,
-    ClampedDifferentiable(f32, f32),
 }
 
 #[derive(Debug, Clone)]
@@ -61,6 +60,7 @@ impl State {
         self.values[index] = v;
     }
 
+    /*
     pub fn temp_update(&self, update: &StateUpdate, weight: f32) -> State {
         let mut temp_copy = Self {
             values: self.values.clone(),
@@ -80,8 +80,9 @@ impl State {
 
         temp_copy
     }
+    */
 
-    pub fn apply_updates(&mut self, updates: &[StateUpdate], weights: &[f32], dt: f32) {
+    pub fn apply_updates(&mut self, updates: &[StateUpdate], weights: &[f32], dt: f32, c: f32) {
         debug_assert!(updates.len() == weights.len());
 
         let weights_sum: f32 = weights.iter().sum();
@@ -89,9 +90,6 @@ impl State {
         for i in 0..self.len() {
             let mut is_absolute = false;
             let mut update = 0.0_f32;
-
-            let mut lo_bound = -f32::MAX;
-            let mut hi_bound = f32::MAX;
 
             for j in 0..updates.len() {
                 match updates[j].update_types[i] {
@@ -102,22 +100,17 @@ impl State {
                     UpdateType::Differentiable => {
                         update += updates[j].updates[i] * weights[j] * dt;
                     }
-                    UpdateType::ClampedDifferentiable(lo, hi) => {
-                        update += updates[j].updates[i] * weights[j] * dt;
-                        lo_bound = lo_bound.max(lo);
-                        hi_bound = hi_bound.min(hi);
-                    }
                 }
             }
 
             if is_absolute {
-                if weights_sum <= f32::EPSILON {
-                    self.values[i] = update;
-                } else {
-                    self.values[i] = update / weights_sum;
+                if weights_sum > f32::EPSILON {
+                    let new_value = update / weights_sum;
+                    let old_value = self.values[i];
+                    self.values[i] = old_value * (1. - c) + new_value * c;
                 }
             } else {
-                self.values[i] = (self.values[i] + update).max(lo_bound).min(hi_bound);
+                self.values[i] = self.values[i] + update;
             }
         }
     }

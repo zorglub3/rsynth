@@ -13,6 +13,6 @@ use synth_engine::stack_program::StackProgram;
 fn main() {
     let (modules, state_size) = include!(concat!(env!("OUT_DIR"), "/synth_modules.rs"));
 
-    debug_assert_eq!(modules.len(), 42);
-    debug_assert_eq!(state_size, 42);
+    debug_assert_eq!(modules.len(), 19);
+    debug_assert_eq!(state_size, 27);
 }

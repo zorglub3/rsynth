@@ -1,11 +1,10 @@
 use super::control_to_frequency;
+use crate::distortion::*;
 use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use core::f32::consts::PI;
-
-// TODO non-linearity an option in the `new` function
 
 pub struct Filter24db {
     f0: f32,
@@ -17,7 +16,7 @@ pub struct Filter24db {
     linear_control_input: StackProgram,
     res_control_input: StackProgram,
     signal_input: StackProgram,
-    nonlinearity: bool,
+    distortion: Option<DistortionType>,
 }
 
 impl Filter24db {
@@ -42,7 +41,7 @@ impl Filter24db {
             linear_control_input,
             res_control_input,
             signal_input,
-            nonlinearity: false,
+            distortion: Some(DistortionType::Smoothstep),
         }
     }
 }
@@ -63,50 +62,30 @@ impl Module for Filter24db {
 
         let input = self.signal_input.run(state, stack).unwrap_or(0.);
 
-        if self.nonlinearity {
-            update.set(
-                self.state0_index,
-                g * ((input - r * state.get(self.state3_index)).tanh()
-                    - state.get(self.state0_index).tanh()),
-                UpdateType::Differentiable,
-            );
-            update.set(
-                self.state1_index,
-                g * (state.get(self.state0_index).tanh() - state.get(self.state1_index).tanh()),
-                UpdateType::Differentiable,
-            );
-            update.set(
-                self.state2_index,
-                g * (state.get(self.state1_index).tanh() - state.get(self.state2_index).tanh()),
-                UpdateType::Differentiable,
-            );
-            update.set(
-                self.state3_index,
-                g * (state.get(self.state2_index).tanh() - state.get(self.state3_index).tanh()),
-                UpdateType::Differentiable,
-            );
-        } else {
-            update.set(
-                self.state0_index,
-                g * (input - r * state.get(self.state3_index) - state.get(self.state0_index)),
-                UpdateType::Differentiable,
-            );
-            update.set(
-                self.state1_index,
-                g * (state.get(self.state0_index) - state.get(self.state1_index)),
-                UpdateType::Differentiable,
-            );
-            update.set(
-                self.state2_index,
-                g * (state.get(self.state1_index) - state.get(self.state2_index)),
-                UpdateType::Differentiable,
-            );
-            update.set(
-                self.state3_index,
-                g * (state.get(self.state2_index) - state.get(self.state3_index)),
-                UpdateType::Differentiable,
-            );
-        }
+        update.set(
+            self.state0_index,
+            g * ((input - r * state.get(self.state3_index)).distort(&self.distortion)
+                - state.get(self.state0_index).distort(&self.distortion)),
+            UpdateType::Differentiable,
+        );
+        update.set(
+            self.state1_index,
+            g * (state.get(self.state0_index).distort(&self.distortion)
+                - state.get(self.state1_index).distort(&self.distortion)),
+            UpdateType::Differentiable,
+        );
+        update.set(
+            self.state2_index,
+            g * (state.get(self.state1_index).distort(&self.distortion)
+                - state.get(self.state2_index).distort(&self.distortion)),
+            UpdateType::Differentiable,
+        );
+        update.set(
+            self.state3_index,
+            g * (state.get(self.state2_index).distort(&self.distortion)
+                - state.get(self.state3_index).distort(&self.distortion)),
+            UpdateType::Differentiable,
+        );
     }
 
     fn process_event(&mut self, _event: &ControllerEvent) {

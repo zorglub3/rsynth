@@ -10,6 +10,7 @@
 
 extern crate alloc;
 
+pub mod distortion;
 pub mod event;
 pub mod interpolation;
 pub mod modules;

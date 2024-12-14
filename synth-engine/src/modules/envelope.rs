@@ -6,9 +6,15 @@ use core::f32::consts::PI;
 
 #[allow(dead_code)]
 fn hamming(x: f32) -> f32 {
-    let x = x.min(1.).max(-1.);
+    let x = x.min(1.).max(0.);
 
     0.54 - 0.46 * (2. * PI * x).cos()
+}
+
+#[allow(dead_code)]
+fn blackman(x: f32) -> f32 {
+    let x = x.min(1.).max(0.);
+    0.42 - 0.5 * (2. * PI * x).cos() + 0.08 * (4. * PI * x).cos()
 }
 
 // TODO env type selectable
@@ -71,14 +77,14 @@ impl Module for Envelope {
                 update.set(
                     self.output_index,
                     rise_decay(attack),
-                    UpdateType::ClampedDifferentiable(0., 1.),
+                    UpdateType::Differentiable,
                 );
             }
             EnvState::Decay => {
                 update.set(
                     self.output_index,
                     -rise_decay(decay),
-                    UpdateType::ClampedDifferentiable(0., 1.),
+                    UpdateType::Differentiable,
                 );
             }
             _ => { /* do nothing */ }

@@ -1,4 +1,5 @@
 use super::control_to_frequency;
+use crate::distortion::*;
 use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
@@ -14,6 +15,7 @@ pub struct Filter12db {
     linear_control_input: StackProgram,
     res_control_input: StackProgram,
     signal_input: StackProgram,
+    distortion: Option<DistortionType>,
 }
 
 impl Filter12db {
@@ -36,33 +38,47 @@ impl Filter12db {
             linear_control_input,
             res_control_input,
             signal_input,
+            distortion: Some(DistortionType::Smoothstep), //Some(make_diodelike(1000., 2.)),
         }
     }
 }
 
-fn amp(f0: f32, f: f32, l: f32) -> f32 {
-    let freq = control_to_frequency(f0, f, l);
-    2. * PI * freq
-}
-
-fn feedback(q: f32) -> f32 {
-    1. / q.clamp(0.0001, 1.)
-}
-
 impl Module for Filter12db {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
-        let a = amp(
+        let a = control_to_frequency(
             self.f0,
             self.freq_control_input.run(state, stack).unwrap_or(0.),
             self.linear_control_input.run(state, stack).unwrap_or(0.),
-        );
-        let b = feedback(self.res_control_input.run(state, stack).unwrap_or(0.));
+        ) * 2.
+            * PI;
+        let b = 1.
+            / self
+                .res_control_input
+                .run(state, stack)
+                .unwrap_or(0.)
+                .max(0.4);
+
+        let input = self.signal_input.run(state, stack).unwrap_or(0.);
+
+        let input = input.distort(&self.distortion);
+        let bp_value = state.get(self.state_bp);
+        let lp_value = state.get(self.state_lp).distort(&self.distortion);
+
+        let hp_value = input - (bp_value * b).distort(&self.distortion) - lp_value;
+
+        let bp_value = bp_value.distort(&self.distortion);
+
+        update.set(self.state_hp, hp_value, UpdateType::Absolute);
+        update.set(self.state_bp, a * hp_value, UpdateType::Differentiable);
+        update.set(self.state_lp, a * bp_value, UpdateType::Differentiable);
+
+        /*
+         // TODO make distortion kind selectable somehow
+        let hp_value = input - state.get(self.state_bp) * b - state.get(self.state_lp);
 
         update.set(
             self.state_hp,
-            self.signal_input.run(state, stack).unwrap_or(0.)
-                - state.get(self.state_lp)
-                - state.get(self.state_bp) * b,
+            hp_value,
             UpdateType::Absolute,
         );
         update.set(
@@ -75,6 +91,7 @@ impl Module for Filter12db {
             a * state.get(self.state_bp),
             UpdateType::Differentiable,
         );
+        */
     }
 
     fn process_event(&mut self, _event: &ControllerEvent) {
