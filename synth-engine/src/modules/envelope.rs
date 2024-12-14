@@ -6,19 +6,25 @@ use core::f32::consts::PI;
 
 #[allow(dead_code)]
 fn hamming(x: f32) -> f32 {
-    let x = x.min(1.).max(0.);
+    let x = x.clamp(0., 1.);
 
     0.54 - 0.46 * (2. * PI * x).cos()
 }
 
 #[allow(dead_code)]
 fn blackman(x: f32) -> f32 {
-    let x = x.min(1.).max(0.);
+    let x = x.clamp(0., 1.);
     0.42 - 0.5 * (2. * PI * x).cos() + 0.08 * (4. * PI * x).cos()
 }
 
-// TODO env type selectable
-const MIN_TIME: f32 = 0.0001_f32;
+#[allow(dead_code)]
+fn triangle(x: f32) -> f32 {
+    let x = x.clamp(0., 1.);
+
+    1. - (2. * x - 1.).abs()
+}
+
+const MIN_TIME: f32 = 0.01_f32; // 10 ms
 
 enum EnvState {
     Finished,
@@ -27,6 +33,7 @@ enum EnvState {
     Decay,
 }
 
+#[allow(dead_code)]
 #[derive(Eq, PartialEq)]
 enum EnvType {
     AttackDecay,
@@ -36,9 +43,11 @@ enum EnvType {
 
 pub struct Envelope {
     signal_input: StackProgram,
-    output_index: usize,
     attack_input: StackProgram,
     decay_input: StackProgram,
+    shape_select: StackProgram,
+    output_index: usize,
+    cycle_state: usize,
     env_state: EnvState,
     env_type: EnvType,
 }
@@ -46,15 +55,19 @@ pub struct Envelope {
 impl Envelope {
     pub fn new(
         signal_input: StackProgram,
-        output_index: usize,
         attack_input: StackProgram,
         decay_input: StackProgram,
+        shape_select: StackProgram,
+        output_index: usize,
+        cycle_state: usize,
     ) -> Self {
         Self {
             signal_input,
-            output_index,
             attack_input,
             decay_input,
+            shape_select,
+            output_index,
+            cycle_state,
             env_state: EnvState::Finished,
             env_type: EnvType::AttackRelease,
         }
@@ -67,6 +80,12 @@ fn rise_decay(t: f32) -> f32 {
     1. / t
 }
 
+fn output_value(cycle_index: f32, shape: f32) -> f32 {
+    let cycle_index = (cycle_index * 0.5).clamp(0., 0.5);
+    let shape = shape.clamp(0., 1.);
+    blackman(cycle_index) * shape + triangle(cycle_index) * (1. - shape)
+}
+
 impl Module for Envelope {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let attack = self.attack_input.run(state, stack).unwrap_or(0.);
@@ -74,17 +93,27 @@ impl Module for Envelope {
 
         match self.env_state {
             EnvState::Attack => {
+                let delta = rise_decay(attack);
+                update.set(self.cycle_state, delta, UpdateType::Differentiable);
                 update.set(
                     self.output_index,
-                    rise_decay(attack),
-                    UpdateType::Differentiable,
+                    output_value(
+                        state.get(self.cycle_state),
+                        self.shape_select.run(state, stack).unwrap_or(0.),
+                    ),
+                    UpdateType::Absolute,
                 );
             }
             EnvState::Decay => {
+                let delta = -rise_decay(decay);
+                update.set(self.cycle_state, delta, UpdateType::Differentiable);
                 update.set(
                     self.output_index,
-                    -rise_decay(decay),
-                    UpdateType::Differentiable,
+                    output_value(
+                        state.get(self.cycle_state),
+                        self.shape_select.run(state, stack).unwrap_or(0.),
+                    ),
+                    UpdateType::Absolute,
                 );
             }
             _ => { /* do nothing */ }
@@ -98,42 +127,25 @@ impl Module for Envelope {
     fn finalize(&mut self, state: &mut State, _time_step: f32, stack: &mut [f32]) {
         let input_state = self.signal_input.run(state, stack).unwrap_or(0.0);
         let output_state = state.get(self.output_index);
+        let cycle = state.get(self.cycle_state);
 
-        match self.env_state {
-            EnvState::Attack => {
-                if output_state >= 1. {
-                    if self.env_type == EnvType::AttackRelease {
-                        self.env_state = EnvState::Hold;
-                    } else {
-                        self.env_state = EnvState::Decay;
-                    }
-                }
-            }
-            EnvState::Hold => {
-                if input_state < 0.5 || self.env_type == EnvType::AttackDecay {
-                    self.env_state = EnvState::Decay;
-                }
-            }
-            EnvState::Decay => {
-                if output_state <= 0. {
-                    if self.env_type == EnvType::Cyclic {
-                        self.env_state = EnvState::Attack;
-                    } else {
-                        self.env_state = EnvState::Finished;
-                    }
-                }
+        use EnvState::*;
+        use EnvType::*;
 
-                if input_state > 0.5 {
-                    self.env_state = EnvState::Attack;
-                }
-            }
-            EnvState::Finished => {
-                if input_state > 0.5 || self.env_type == EnvType::Cyclic {
-                    self.env_state = EnvState::Attack;
-                }
-            }
+        match (&self.env_state, &self.env_type) {
+            (Attack, AttackRelease) if cycle >= 1. => self.env_state = Hold,
+            (Attack, AttackDecay | Cyclic) if cycle >= 1. => self.env_state = Decay,
+            (Hold, AttackRelease) if input_state < 0.5 => self.env_state = Decay,
+            (Hold, AttackDecay | Cyclic) => self.env_state = Decay,
+            (Decay, Cyclic) if cycle <= 0. => self.env_state = Attack,
+            (Decay, AttackRelease | AttackDecay) if input_state >= 0.5 => self.env_state = Attack,
+            (Decay, AttackRelease | AttackDecay) if cycle <= 0. => self.env_state = Finished,
+            (Finished, Cyclic) => self.env_state = Attack,
+            (Finished, AttackRelease | AttackDecay) if input_state > 0.5 => self.env_state = Attack,
+            _ => { /* do nothing */ }
         }
 
-        state.set(self.output_index, output_state.max(0.).min(1.));
+        state.set(self.output_index, output_state.clamp(0., 1.));
+        state.set(self.cycle_state, cycle.clamp(0., 1.));
     }
 }

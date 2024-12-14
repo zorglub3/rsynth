@@ -61,6 +61,7 @@ impl State {
     }
 
     /*
+    // TODO not needed - make sure and delete
     pub fn temp_update(&self, update: &StateUpdate, weight: f32) -> State {
         let mut temp_copy = Self {
             values: self.values.clone(),
@@ -72,7 +73,7 @@ impl State {
                 UpdateType::Differentiable => temp_copy.values[i] += update.updates[i] * weight,
                 UpdateType::Absolute => temp_copy.values[i] = update.updates[i],
                 UpdateType::ClampedDifferentiable(lo, hi) => {
-                    let v = temp_copy.values[i] + (update.updates[i] * weight).min(hi).max(lo);
+                    let v = temp_copy.values[i] + (update.updates[i] * weight).clamp(lo, hi);
                     temp_copy.values[i] = v;
                 }
             }

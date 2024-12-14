@@ -213,7 +213,7 @@ impl StackProgram {
                         Lerp => {
                             let hi = pop_stack(stack, &mut stack_ptr)?;
                             let lo = pop_stack(stack, &mut stack_ptr)?;
-                            let x = pop_stack(stack, &mut stack_ptr)?.min(1.).max(0.);
+                            let x = pop_stack(stack, &mut stack_ptr)?.clamp(0., 1.);
                             let v = lo * (1. - x) + hi * x;
                             push_stack(stack, &mut stack_ptr, v)?;
                         }

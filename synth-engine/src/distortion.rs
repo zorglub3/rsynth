@@ -1,5 +1,5 @@
 fn smoothstep(x: f32) -> f32 {
-    let x = x.min(1.).max(0.);
+    let x = x.clamp(0., 1.);
     let x2 = x * x;
     let x3 = x * x2;
 

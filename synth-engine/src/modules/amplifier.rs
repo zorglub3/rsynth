@@ -32,7 +32,7 @@ fn amplifier_amount(lin_control: f32, exp_control: f32) -> f32 {
     let min: f32 = 2.0_f32.powf(-5.0);
     let scale: f32 = 1. / (1. - min);
 
-    let exp_control = exp_control.max(0.).min(1.);
+    let exp_control = exp_control.clamp(0., 1.);
     let e = (2.0_f32.powf(5.0 * (exp_control - 1.)) - min) * scale;
     (e + lin_control).max(0.)
 }
