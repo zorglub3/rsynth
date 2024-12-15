@@ -5,6 +5,11 @@ use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
 
+// TODO detect when we are dealing with _stiff equations_ as described
+// [here](https://en.wikipedia.org/wiki/Stiff_equation). This is eg when
+// the cutoff frequency of a filter goes high. At some point the solver
+// won't be able to give a good approximation.
+
 const DEFAULT_STACK_SIZE: usize = 256;
 
 pub struct RungeKutta {
@@ -100,7 +105,7 @@ impl RungeKutta {
             let mut update = self.state.update_data(dt * self.c[stage], dt);
             let mut temp_state = self.state.clone();
 
-            temp_state.apply_updates(&updates, &self.a[stage], dt, self.c[stage]);
+            temp_state.apply_updates(&updates, &self.a[stage], &self.c, dt);
 
             for module in &self.modules {
                 module.simulate(&temp_state, &mut update, &mut self.stack);
@@ -109,7 +114,7 @@ impl RungeKutta {
             updates.push(update);
         }
 
-        self.state.apply_updates(&updates, &self.b, dt, 1.);
+        self.state.apply_updates(&updates, &self.b, &self.c, dt);
 
         for module in &mut self.modules {
             module.finalize(&mut self.state, dt, &mut self.stack);

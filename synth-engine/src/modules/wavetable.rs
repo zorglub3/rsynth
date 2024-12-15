@@ -161,11 +161,11 @@ impl Module for Wavetable {
             self.pitch_control.run(state, stack).unwrap_or(0.),
             self.linear_modulation.run(state, stack).unwrap_or(0.),
         );
+        let position = state.get(self.position_state);
         let distance = update.get_time_step() * velocity;
-        let start = state.get(self.position_state);
 
         let wavetable_sample = if self.wavetables.len() == 1 {
-            self.wavetables[0].eval(distance, start)
+            self.wavetables[0].eval(distance, position)
         } else if self.wavetables.len() > 1 {
             let scan = self
                 .wavetable_select
@@ -179,8 +179,8 @@ impl Module for Wavetable {
             let index0 = index.min(self.wavetables.len() - 1);
             let index1 = (index + 1).min(self.wavetables.len() - 1);
 
-            let v1 = self.wavetables[index0].eval(distance, start);
-            let v2 = self.wavetables[index1].eval(distance, start);
+            let v1 = self.wavetables[index0].eval(distance, position);
+            let v2 = self.wavetables[index1].eval(distance, position);
 
             v1 + (v2 - v1) * x
         } else {

@@ -60,43 +60,22 @@ impl State {
         self.values[index] = v;
     }
 
-    /*
-    // TODO not needed - make sure and delete
-    pub fn temp_update(&self, update: &StateUpdate, weight: f32) -> State {
-        let mut temp_copy = Self {
-            values: self.values.clone(),
-            outputs: self.outputs.clone(),
-        };
-
-        for i in 0..self.len() {
-            match update.update_types[i] {
-                UpdateType::Differentiable => temp_copy.values[i] += update.updates[i] * weight,
-                UpdateType::Absolute => temp_copy.values[i] = update.updates[i],
-                UpdateType::ClampedDifferentiable(lo, hi) => {
-                    let v = temp_copy.values[i] + (update.updates[i] * weight).clamp(lo, hi);
-                    temp_copy.values[i] = v;
-                }
-            }
-        }
-
-        temp_copy
-    }
-    */
-
-    pub fn apply_updates(&mut self, updates: &[StateUpdate], weights: &[f32], dt: f32, c: f32) {
+    pub fn apply_updates(&mut self, updates: &[StateUpdate], weights: &[f32], c: &[f32], dt: f32) {
         debug_assert!(updates.len() == weights.len());
-
-        let weights_sum: f32 = weights.iter().sum();
+        debug_assert!(updates.len() <= c.len());
 
         for i in 0..self.len() {
-            let mut is_absolute = false;
             let mut update = 0.0_f32;
+            let mut previous_value = self.values[i];
 
             for j in 0..updates.len() {
                 match updates[j].update_types[i] {
                     UpdateType::Absolute => {
-                        is_absolute = true;
-                        update += updates[j].updates[i] * weights[j];
+                        if j == 0 {
+                            previous_value = updates[j].updates[i];
+                        } else {
+                            update += (updates[j].updates[i] - previous_value) * weights[j] / c[j];
+                        }
                     }
                     UpdateType::Differentiable => {
                         update += updates[j].updates[i] * weights[j] * dt;
@@ -104,15 +83,7 @@ impl State {
                 }
             }
 
-            if is_absolute {
-                if weights_sum > f32::EPSILON {
-                    let new_value = update / weights_sum;
-                    let old_value = self.values[i];
-                    self.values[i] = old_value * (1. - c) + new_value * c;
-                }
-            } else {
-                self.values[i] = self.values[i] + update;
-            }
+            self.values[i] = previous_value + update;
         }
     }
 

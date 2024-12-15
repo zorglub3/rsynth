@@ -38,7 +38,7 @@ impl Filter12db {
             linear_control_input,
             res_control_input,
             signal_input,
-            distortion: Some(DistortionType::Smoothstep), //Some(make_diodelike(1000., 2.)),
+            distortion: None, // Some(DistortionType::Smoothstep), //Some(make_diodelike(1000., 2.)),
         }
     }
 }
