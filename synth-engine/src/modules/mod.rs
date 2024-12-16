@@ -12,6 +12,7 @@ pub mod mono_keys;
 pub mod mono_output;
 pub mod noise;
 pub mod quadrature;
+pub mod vosim;
 pub mod wavetable;
 
 pub use allpass::AllpassFilter;
@@ -28,6 +29,7 @@ pub use mono_keys::MonoKeys;
 pub use mono_output::MonoOutput;
 pub use noise::NoiseGenerator;
 pub use quadrature::QuadratureOscillator;
+pub use vosim::Vosim;
 pub use wavetable::Wavetable;
 
 use crate::simulator::module::Module;
@@ -51,6 +53,7 @@ pub enum SynthModule {
     Noise(NoiseGenerator),
     QuadOscillator(QuadratureOscillator),
     WavetableOscillator(Wavetable),
+    VosimOscillator(Vosim),
     Delay(DelayLine),
     Wavefolder(Folder),
     Bowed(BowedOscillator),
@@ -74,6 +77,7 @@ impl SynthModule {
             Noise(n) => n.simulate(state, update, stack),
             QuadOscillator(q) => q.simulate(state, update, stack),
             WavetableOscillator(w) => w.simulate(state, update, stack),
+            VosimOscillator(v) => v.simulate(state, update, stack),
             Delay(d) => d.simulate(state, update, stack),
             Wavefolder(f) => f.simulate(state, update, stack),
             Bowed(b) => b.simulate(state, update, stack),

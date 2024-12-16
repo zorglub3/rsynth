@@ -8,7 +8,7 @@ use crate::stack_program::*;
 use alloc::vec::Vec;
 use core::f32::consts::PI;
 
-const FREQUENCY_LIMIT: f32 = 18_000.0;
+pub const FREQUENCY_LIMIT: f32 = 18_000.0;
 
 pub struct WavetableData {
     pub samples: Vec<f32>,
@@ -38,7 +38,7 @@ impl WavetableData {
         }
     }
 
-    fn eval(&self, x: f32) -> f32 {
+    pub fn eval(&self, x: f32) -> f32 {
         let x = x * self.len_f32;
         self.samples.cubic_interpolate(x)
     }
@@ -50,7 +50,7 @@ pub struct WavetableEntry {
 }
 
 impl WavetableEntry {
-    fn from_slice(samples: &[f32]) -> Self {
+    pub fn from_slice(samples: &[f32]) -> Self {
         let mut data = Vec::new();
 
         let mut current_wavetable_data = WavetableData::from_slice(samples);
@@ -80,7 +80,7 @@ impl WavetableEntry {
         None
     }
 
-    fn eval(&self, cycles_per_step: f32, x: f32) -> f32 {
+    pub fn eval(&self, cycles_per_step: f32, x: f32) -> f32 {
         if let Some(data) = self.get_data_by_frequency(cycles_per_step) {
             data.eval(x)
         } else {
@@ -171,8 +171,7 @@ impl Module for Wavetable {
                 .wavetable_select
                 .run(state, stack)
                 .unwrap_or(0.)
-                .min(1.)
-                .max(0.);
+                .clamp(0., 1.);
             let scan_select = scan * ((self.wavetables.len() - 1) as f32);
             let index = scan_select.floor() as usize;
             let x = scan_select.fract();

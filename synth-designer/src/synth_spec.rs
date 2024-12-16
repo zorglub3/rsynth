@@ -137,6 +137,10 @@ impl SynthSpec {
                             WavetableOscillatorModuleSpec::from_ini_properties(props)?;
                         synth_spec.add_module(Box::new(module_spec))?;
                     }
+                    "vosim" => {
+                        let module_spec = VosimOscillatorModuleSpec::from_ini_properties(props)?;
+                        synth_spec.add_module(Box::new(module_spec))?;
+                    }
                     "quadrature_oscillator" => {
                         let module_spec = QuadOscillatorModuleSpec::from_ini_properties(props)?;
                         synth_spec.add_module(Box::new(module_spec))?;

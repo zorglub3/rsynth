@@ -11,6 +11,7 @@ mod mono_keys_module;
 mod mono_out_module;
 mod noise;
 mod quad;
+mod vosim;
 mod wavetable;
 
 pub use amp_module::AmpModuleSpec;
@@ -26,6 +27,7 @@ pub use mono_keys_module::MonoKeysModuleSpec;
 pub use mono_out_module::MonoOutputModuleSpec;
 pub use noise::NoiseGeneratorModuleSpec;
 pub use quad::QuadOscillatorModuleSpec;
+pub use vosim::VosimOscillatorModuleSpec;
 pub use wavetable::WavetableOscillatorModuleSpec;
 
 use crate::input_expr::ExprError;
