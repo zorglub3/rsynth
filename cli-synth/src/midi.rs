@@ -5,8 +5,6 @@ use std::fmt;
 use std::sync::mpsc::Sender;
 use synth_engine::event::decode_midi_bytes;
 use synth_engine::event::ControllerEvent;
-// use synth_engine::event::Event;
-// use synth_engine::midi::message::MidiMessage;
 
 // TODO cleanup
 #[derive(Debug)]
@@ -43,17 +41,8 @@ impl Midi {
                 name,
                 move |_, message, _| {
                     if let Some(event) = decode_midi_bytes(message, channel) {
-                        // if let Some((message, channel)) = MidiMessage::decode(message) {
                         let _ = sender.send(event);
-                        /*
-                        let _ = sender.send(Event::MidiEvent {
-                            event: message,
-                            channel,
-                        });
-                        */
-                    } /*else {
-                          println!("Undecodable midi message: {:?}", message);
-                      }*/
+                    }
                 },
                 (),
             )

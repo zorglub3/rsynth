@@ -32,7 +32,7 @@ impl WavetableData {
         if self.samples.len() < 4 {
             None
         } else {
-            let m = self.samples.len().min(128);
+            let m = (self.samples.len() / 2).min(32);
             let samples_downsampled = downsample_half(m, &self.samples);
             Some(WavetableData::from_slice(&samples_downsampled))
         }

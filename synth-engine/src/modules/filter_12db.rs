@@ -6,6 +6,8 @@ use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use core::f32::consts::PI;
 
+const CLAMP_VALUE: f32 = 2.5;
+
 pub struct Filter12db {
     f0: f32,
     state_hp: usize,
@@ -98,7 +100,11 @@ impl Module for Filter12db {
         /* do nothing */
     }
 
-    fn finalize(&mut self, _state: &mut State, _time_step: f32, _stack: &mut [f32]) {
-        /* do nothing */
+    fn finalize(&mut self, state: &mut State, _time_step: f32, _stack: &mut [f32]) {
+        let bp = state.get(self.state_bp);
+        let lp = state.get(self.state_lp);
+
+        state.set(bp.clamp(-CLAMP_VALUE, CLAMP_VALUE));
+        state.set(lp.clamp(-CLAMP_VALUE, CLAMP_VALUE));
     }
 }
