@@ -73,27 +73,6 @@ impl Module for Filter12db {
         update.set(self.state_hp, hp_value, UpdateType::Absolute);
         update.set(self.state_bp, a * hp_value, UpdateType::Differentiable);
         update.set(self.state_lp, a * bp_value, UpdateType::Differentiable);
-
-        /*
-         // TODO make distortion kind selectable somehow
-        let hp_value = input - state.get(self.state_bp) * b - state.get(self.state_lp);
-
-        update.set(
-            self.state_hp,
-            hp_value,
-            UpdateType::Absolute,
-        );
-        update.set(
-            self.state_bp,
-            a * state.get(self.state_hp),
-            UpdateType::Differentiable,
-        );
-        update.set(
-            self.state_lp,
-            a * state.get(self.state_bp),
-            UpdateType::Differentiable,
-        );
-        */
     }
 
     fn process_event(&mut self, _event: &ControllerEvent) {
