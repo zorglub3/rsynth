@@ -8,28 +8,28 @@ use core::f32::consts::PI;
 
 const CLAMP_VALUE: f32 = 2.5;
 
-pub struct Filter12db {
+pub struct Filter12db<'a> {
     f0: f32,
     state_hp: usize,
     state_bp: usize,
     state_lp: usize,
-    freq_control_input: StackProgram,
-    linear_control_input: StackProgram,
-    res_control_input: StackProgram,
-    signal_input: StackProgram,
+    freq_control_input: StackProgram<'a>,
+    linear_control_input: StackProgram<'a>,
+    res_control_input: StackProgram<'a>,
+    signal_input: StackProgram<'a>,
     distortion: Option<DistortionType>,
 }
 
-impl Filter12db {
+impl<'a> Filter12db<'a> {
     pub fn new(
         f0: f32,
         state_hp: usize,
         state_bp: usize,
         state_lp: usize,
-        freq_control_input: StackProgram,
-        linear_control_input: StackProgram,
-        res_control_input: StackProgram,
-        signal_input: StackProgram,
+        freq_control_input: StackProgram<'a>,
+        linear_control_input: StackProgram<'a>,
+        res_control_input: StackProgram<'a>,
+        signal_input: StackProgram<'a>,
     ) -> Self {
         Self {
             f0,
@@ -45,7 +45,7 @@ impl Filter12db {
     }
 }
 
-impl Module for Filter12db {
+impl<'a> Module for Filter12db<'a> {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let a = control_to_frequency(
             self.f0,

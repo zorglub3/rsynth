@@ -4,32 +4,36 @@ use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
-use alloc::vec::Vec;
 use core::f32::consts::PI;
+use libm::{floorf, fabsf};
 
-pub struct Vosim {
+#[cfg(any(feature = "allocator", test))]
+use alloc::vec::Vec;
+
+pub struct Vosim<'a, 'b, 'c> {
     f0: f32,
     position_state: usize,
     signal_output: usize,
-    pitch_control: StackProgram,
-    linear_modulation: StackProgram,
-    grain_pitch_control: StackProgram,
-    grain_linear_modulation: StackProgram,
-    wavetable_select: StackProgram,
-    wavetables: Vec<WavetableEntry>,
+    pitch_control: StackProgram<'c>,
+    linear_modulation: StackProgram<'c>,
+    grain_pitch_control: StackProgram<'c>,
+    grain_linear_modulation: StackProgram<'c>,
+    wavetable_select: StackProgram<'c>,
+    wavetables: &'a [WavetableEntry<'b>],
     amp: f32,
 }
 
-impl Vosim {
+impl<'a, 'b, 'c> Vosim<'a, 'b, 'c> {
+    #[cfg(any(feature = "allocator", test))]
     pub fn new(
         f0: f32,
         position_state: usize,
         signal_output: usize,
-        pitch_control: StackProgram,
-        linear_modulation: StackProgram,
-        grain_pitch_control: StackProgram,
-        grain_linear_modulation: StackProgram,
-        wavetable_select: StackProgram,
+        pitch_control: StackProgram<'c>,
+        linear_modulation: StackProgram<'c>,
+        grain_pitch_control: StackProgram<'c>,
+        grain_linear_modulation: StackProgram<'c>,
+        wavetable_select: StackProgram<'c>,
         wavetables: Vec<Vec<f32>>,
     ) -> Self {
         Self {
@@ -58,7 +62,7 @@ impl Vosim {
         grain_pitch_control: StackProgram,
         grain_linear_modulation: StackProgram,
         wavetable_select: StackProgram,
-        wavetables: Vec<WavetableEntry>,
+        wavetables: &'a [WavetableEntry<'b>],
     ) -> Self {
         Self {
             f0,
@@ -75,7 +79,7 @@ impl Vosim {
     }
 }
 
-impl Module for Vosim {
+impl<'a, 'b, 'c> Module for Vosim<'a, 'b, 'c> {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let velocity = control_to_frequency(
             self.f0,
@@ -94,7 +98,7 @@ impl Module for Vosim {
 
         let position = ((position % 1.) + 1.) % 1.;
         let grain_ratio = if grain_velocity > f32::EPSILON {
-            velocity.abs() / grain_velocity.abs()
+            fabsf(velocity) / fabsf(grain_velocity)
         } else {
             0.
         };
@@ -113,8 +117,9 @@ impl Module for Vosim {
                     .unwrap_or(0.)
                     .clamp(0., 1.);
                 let scan_select = scan * ((self.wavetables.len() - 1) as f32);
-                let index = scan_select.floor() as usize;
-                let x = scan_select.fract();
+                let scan_select_floor = floorf(scan_select);
+                let index = scan_select_floor as usize;
+                let x = scan_select - scan_select_floor;
                 let index0 = index.min(self.wavetables.len() - 1);
                 let index1 = (index + 1).min(self.wavetables.len() - 1);
 

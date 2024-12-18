@@ -1,4 +1,5 @@
 use core::ops::Deref;
+use libm::floorf;
 
 // see https://www.paulinternet.nl/?page=bicubic
 fn cubic(p0: f32, p1: f32, p2: f32, p3: f32, x: f32) -> f32 {
@@ -43,40 +44,40 @@ pub trait Interpolation {
 impl<T: Deref<Target = [f32]>> Interpolation for T {
     fn cubic_interpolate(&self, x: f32) -> f32 {
         let len = self.len() as i32;
-        let index: i32 = x.floor() as i32;
+        let index: i32 = floorf(x) as i32;
 
         let i0 = ((((index - 1) % len) + len) % len) as usize;
         let i1 = (((index % len) + len) % len) as usize;
         let i2 = ((((index + 1) % len) + len) % len) as usize;
         let i3 = ((((index + 2) % len) + len) % len) as usize;
 
-        let x = x - x.floor();
+        let x = x - floorf(x);
 
         cubic(self[i0], self[i1], self[i2], self[i3], x)
     }
 
     fn lagrange_interpolate(&self, x: f32) -> f32 {
         let len = self.len() as i32;
-        let index: i32 = x.floor() as i32;
+        let index: i32 = floorf(x) as i32;
 
         let i0 = ((((index - 1) % len) + len) % len) as usize;
         let i1 = (((index % len) + len) % len) as usize;
         let i2 = ((((index + 1) % len) + len) % len) as usize;
         let i3 = ((((index + 2) % len) + len) % len) as usize;
 
-        let x = x - x.floor();
+        let x = x - floorf(x);
 
         lagrange(self[i0], self[i1], self[i2], self[i3], x)
     }
 
     fn linear_interpolate(&self, x: f32) -> f32 {
         let len = self.len();
-        let index: usize = x.floor() as usize;
+        let index: usize = floorf(x) as usize;
 
         let i0 = ((index % len) + len) % len;
         let i1 = (((index + 1) % len) + len) % len;
 
-        let x = x - x.floor();
+        let x = x - floorf(x);
 
         let p0 = self[i0];
         let p1 = self[i1];

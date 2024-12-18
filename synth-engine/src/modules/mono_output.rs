@@ -3,13 +3,13 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate};
 use crate::stack_program::*;
 
-pub struct MonoOutput {
+pub struct MonoOutput<'a> {
     output_index: usize,
-    signal_input: StackProgram,
+    signal_input: StackProgram<'a>,
 }
 
-impl MonoOutput {
-    pub fn new(output_index: usize, signal_input: StackProgram) -> Self {
+impl<'a> MonoOutput<'a> {
+    pub fn new(output_index: usize, signal_input: StackProgram<'a>) -> Self {
         Self {
             output_index,
             signal_input,
@@ -17,7 +17,7 @@ impl MonoOutput {
     }
 }
 
-impl Module for MonoOutput {
+impl<'a> Module for MonoOutput<'a> {
     fn simulate(&self, _state: &State, _update: &mut StateUpdate, _stack: &mut [f32]) {
         /* do nothing */
     }

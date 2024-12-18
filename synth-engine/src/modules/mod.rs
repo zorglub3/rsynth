@@ -7,7 +7,6 @@ pub mod envelope;
 pub mod filter_12db;
 pub mod filter_24db;
 pub mod filter_6db;
-pub mod folder;
 pub mod mono_keys;
 pub mod mono_output;
 pub mod noise;
@@ -24,7 +23,6 @@ pub use envelope::Envelope;
 pub use filter_12db::Filter12db;
 pub use filter_24db::Filter24db;
 pub use filter_6db::Filter6db;
-pub use folder::Folder;
 pub use mono_keys::MonoKeys;
 pub use mono_output::MonoOutput;
 pub use noise::NoiseGenerator;
@@ -33,38 +31,39 @@ pub use vosim::Vosim;
 pub use wavetable::Wavetable;
 
 use crate::simulator::module::Module;
+use libm::exp2f;
 
 pub fn control_to_frequency(f0: f32, exp_fc: f32, lin_fc: f32) -> f32 {
-    f0 * 2.0_f32.powf(exp_fc) + lin_fc
+    f0 * exp2f(exp_fc) + lin_fc
 }
 
-////// ALL BELOW IS FOR GETTING RID OF A BOX :-p //////
-
-#[allow(dead_code)]
-pub enum SynthModule {
-    Amp(Amplifier),
-    Contour(Envelope),
-    Filter1Pole(Filter6db),
-    Filter2Pole(Filter12db),
-    Filter4Pole(Filter24db),
+pub enum SynthModule<'a> {
+    Amp(Amplifier<'a>),
+    Contour(Envelope<'a>),
+    Filter1Pole(Filter6db<'a>),
+    Filter2Pole(Filter12db<'a>),
+    Filter4Pole(Filter24db<'a>),
     ContinuousControl(ContinuousControl),
     MonoKeys(MonoKeys),
-    Output(MonoOutput),
+    Output(MonoOutput<'a>),
     Noise(NoiseGenerator),
-    QuadOscillator(QuadratureOscillator),
+    QuadOscillator(QuadratureOscillator<'a>),
     WavetableOscillator(Wavetable),
     VosimOscillator(Vosim),
-    Delay(DelayLine),
-    Wavefolder(Folder),
-    Bowed(BowedOscillator),
+    Delay(DelayLine<'a, 'a>),
+    Bowed(BowedOscillator<'a>),
 }
 
 use crate::event::ControllerEvent;
 use crate::simulator::state::{State, StateUpdate};
 
-impl SynthModule {
-    #[allow(dead_code)]
-    fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
+impl<'a> SynthModule<'a> {
+    pub fn simulate(
+        &self, 
+        state: &State, 
+        update: &mut StateUpdate, 
+        stack: &mut [f32],
+    ) {
         use SynthModule::*;
         match self {
             Amp(a) => a.simulate(state, update, stack),
@@ -79,14 +78,12 @@ impl SynthModule {
             WavetableOscillator(w) => w.simulate(state, update, stack),
             VosimOscillator(v) => v.simulate(state, update, stack),
             Delay(d) => d.simulate(state, update, stack),
-            Wavefolder(f) => f.simulate(state, update, stack),
             Bowed(b) => b.simulate(state, update, stack),
             _ => { /* do nothing */ }
         }
     }
 
-    #[allow(dead_code)]
-    fn process_event(&mut self, event: &ControllerEvent) {
+    pub fn process_event(&mut self, event: &ControllerEvent) {
         use SynthModule::*;
         match self {
             ContinuousControl(c) => c.process_event(event),
@@ -95,8 +92,7 @@ impl SynthModule {
         }
     }
 
-    #[allow(dead_code)]
-    fn finalize(&mut self, state: &mut State, time_step: f32, stack: &mut [f32]) {
+    pub fn finalize(&mut self, state: &mut State, time_step: f32, stack: &mut [f32]) {
         use SynthModule::*;
 
         match self {

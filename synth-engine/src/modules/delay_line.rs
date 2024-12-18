@@ -4,27 +4,25 @@ use crate::interpolation::Interpolation;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
-use alloc::vec;
-use alloc::vec::Vec;
 
-pub struct DelayLine {
-    data: Vec<f32>,
+pub struct DelayLine<'a, 'b> {
+    data: &'a [f32],
     current_index: usize,
     signal_output: usize,
     f0: f32,
-    signal_input: StackProgram,
-    pitch_control: StackProgram,
-    linear_modulation: StackProgram,
+    signal_input: StackProgram<'b>,
+    pitch_control: StackProgram<'b>,
+    linear_modulation: StackProgram<'b>,
 }
 
-impl DelayLine {
+impl<'a, 'b> DelayLine<'a, 'b> {
     pub fn new(
         f0: f32,
         signal_output: usize,
-        signal_input: StackProgram,
-        pitch_control: StackProgram,
-        linear_modulation: StackProgram,
-        data_size: usize,
+        signal_input: StackProgram<'b>,
+        pitch_control: StackProgram<'b>,
+        linear_modulation: StackProgram<'b>,
+        data: &'a [f32],
     ) -> Self {
         Self {
             f0,
@@ -33,7 +31,7 @@ impl DelayLine {
             pitch_control,
             linear_modulation,
             current_index: 0,
-            data: vec![0.; data_size],
+            data,
         }
     }
 
@@ -52,7 +50,7 @@ impl DelayLine {
     }
 }
 
-impl Module for DelayLine {
+impl<'a, 'b> Module for DelayLine<'a, 'b> {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let wi = self.write_index() as f32;
         let l = self.data.len() as f32;

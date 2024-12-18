@@ -8,6 +8,7 @@
 
 #![no_std]
 
+#[cfg(any(feature = "allocator", test))]
 extern crate alloc;
 
 pub mod distortion;

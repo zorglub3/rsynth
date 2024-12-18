@@ -6,30 +6,30 @@ use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use core::f32::consts::PI;
 
-pub struct Filter24db {
+pub struct Filter24db<'a> {
     f0: f32,
     state0_index: usize,
     state1_index: usize,
     state2_index: usize,
     state3_index: usize,
-    freq_control_input: StackProgram,
-    linear_control_input: StackProgram,
-    res_control_input: StackProgram,
-    signal_input: StackProgram,
+    freq_control_input: StackProgram<'a>,
+    linear_control_input: StackProgram<'a>,
+    res_control_input: StackProgram<'a>,
+    signal_input: StackProgram<'a>,
     distortion: Option<DistortionType>,
 }
 
-impl Filter24db {
+impl<'a> Filter24db<'a> {
     pub fn new(
         f0: f32,
         state0_index: usize,
         state1_index: usize,
         state2_index: usize,
         state3_index: usize,
-        freq_control_input: StackProgram,
-        linear_control_input: StackProgram,
-        res_control_input: StackProgram,
-        signal_input: StackProgram,
+        freq_control_input: StackProgram<'a>,
+        linear_control_input: StackProgram<'a>,
+        res_control_input: StackProgram<'a>,
+        signal_input: StackProgram<'a>,
     ) -> Self {
         Self {
             f0,
@@ -46,7 +46,7 @@ impl Filter24db {
     }
 }
 
-impl Module for Filter24db {
+impl<'a> Module for Filter24db<'a> {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let f: f32 = control_to_frequency(
             self.f0,

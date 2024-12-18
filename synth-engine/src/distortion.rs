@@ -1,3 +1,5 @@
+use libm::{tanhf, logf, expf};
+
 fn smoothstep(x: f32) -> f32 {
     let x = x.clamp(0., 1.);
     let x2 = x * x;
@@ -25,10 +27,10 @@ pub fn make_diodelike(R: f32, n: f32) -> DistortionType {
     let V_T = 0.026;
     let I_S = 10e-12;
 
-    let a = (I_S * R / (n * V_T)).ln();
+    let a = logf(I_S * R / (n * V_T));
     let b = 1. / (n * V_T);
     let c = n * V_T / R;
-    let ln_R = R.ln();
+    let ln_R = logf(R);
 
     DistortionType::Diodelike { a, b, c, ln_R, R }
 }
@@ -43,7 +45,7 @@ impl Distort for f32 {
 
         match tpe {
             None => *self,
-            Some(Tanh) => self.tanh(),
+            Some(Tanh) => tanhf(*self),
             Some(Smoothstep) => smoothstep(0.5 + self / 2.) * 2. - 1.,
             Some(Diodelike { a, b, c, ln_R, R }) => {
                 let x = ln_R + a + b * self;
@@ -51,11 +53,11 @@ impl Distort for f32 {
                     *self
                 } else {
                     #[allow(non_snake_case)]
-                    let I = c * (x - x.ln());
+                    let I = c * (x - logf(x));
                     *self - I * R
                 }
             }
-            Some(Logistic(amount)) => 2. / (1. + (-amount * self).exp()) - 1.,
+            Some(Logistic(amount)) => 2. / (1. + expf(-amount * self)) - 1.,
         }
     }
 }

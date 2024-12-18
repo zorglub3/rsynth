@@ -1,9 +1,18 @@
 use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
-use crate::simulator::state::State;
+use crate::simulator::state::{State, StateUpdate};
+use crate::modules::SynthModule;
+
+/*
+#[cfg(any(features = allocator, test))]
 use alloc::boxed::Box;
+
+#[cfg(any(features = allocator, test))]
 use alloc::vec;
+
+#[cfg(any(features = allocator, test))]
 use alloc::vec::Vec;
+*/
 
 // TODO detect when we are dealing with _stiff equations_ as described
 // [here](https://en.wikipedia.org/wiki/Stiff_equation). This is eg when
@@ -12,17 +21,49 @@ use alloc::vec::Vec;
 
 const DEFAULT_STACK_SIZE: usize = 256;
 
-pub struct RungeKutta {
-    state: State,
-    a: Vec<Vec<f32>>,
-    b: Vec<f32>,
-    c: Vec<f32>,
-    stages: usize,
-    modules: Vec<Box<dyn Module>>,
-    stack: Vec<f32>,
+pub struct RungeKutta<'a, 'b, const STAGES: usize> {
+    state: &'a State<'b>,
+    a: [[f32; STAGES]; STAGES],
+    b: [f32; STAGES],
+    c: [f32; STAGES],
+    modules: &'a [SynthModule<'a>],
+    stack: &'a [f32],
 }
 
-impl RungeKutta {
+impl<'a, 'b> RungeKutta<'a, 'b, 4_usize> {
+    pub fn rk4(
+        state: &'a mut State<'b>, 
+        stack: &'a mut [f32]
+    ) -> Self {
+        Self {
+            state,
+            a: [
+                [0.0, 0.0, 0.0, 0.0],
+                [0.5, 0.0, 0.0, 0.0],
+                [0.0, 0.5, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+            ],
+            b: [1. / 6., 1. / 3., 1. / 3., 1. / 6.],
+            c: [0., 0.5, 0.5, 1.],
+            modules: &[],
+            stack,
+        }
+    }
+}
+
+impl<'a, 'b, const STAGES: usize> RungeKutta<'a, 'b, STAGES> {
+    pub fn with_modules(self, modules: &'a [SynthModule]) -> Self {
+        Self {
+            state: self.state,
+            a: self.a,
+            b: self.b,
+            c: self.c,
+            modules,
+            stack: self.stack,
+        }
+    }
+
+    /*
     pub fn rk4(state_size: usize) -> Self {
         let a = vec![vec![], vec![0.5], vec![0.0, 0.5], vec![0.0, 0.0, 1.0]];
 
@@ -40,7 +81,9 @@ impl RungeKutta {
             stack: vec![0.0_f32; DEFAULT_STACK_SIZE],
         }
     }
+    */
 
+    /*
     pub fn rk38(state_size: usize) -> Self {
         let a = vec![
             vec![],
@@ -63,7 +106,9 @@ impl RungeKutta {
             stack: vec![0.0_f32; DEFAULT_STACK_SIZE],
         }
     }
+    */
 
+    /*
     pub fn euler(state_size: usize) -> Self {
         let a = vec![vec![]];
         let b = vec![1.0];
@@ -79,11 +124,15 @@ impl RungeKutta {
             stack: vec![0.0_f32; DEFAULT_STACK_SIZE],
         }
     }
+    */
 
+    /*
     pub fn second_order(_alpha: f32, _state_size: usize) -> Self {
         todo!("Second order Runge Kutta method")
     }
+    */
 
+    /*
     pub fn with_modules(&mut self, modules: Vec<Box<dyn Module>>) -> Self {
         let state_size = self.state.len();
 
@@ -97,26 +146,36 @@ impl RungeKutta {
             stack: self.stack.clone(),
         }
     }
+    */
 
-    pub fn step(&mut self, dt: f32) {
-        let mut updates = vec![];
+    pub fn step(
+        &mut self, 
+        dt: f32, 
+        updates: &mut [StateUpdate],
+        temp_states: &mut [State<'b>],
+    ) {
+        let mut updates_len = 0;
+        // let mut updates = vec![];
 
-        for stage in 0..self.stages {
-            let mut update = self.state.update_data(dt * self.c[stage], dt);
-            let mut temp_state = self.state.clone();
+        for stage in 0 .. STAGES {
+            self.state.clear_update_data(&mut updates[stage], dt * self.c[stage], dt);
+            // let mut update = self.state.update_data(dt * self.c[stage], dt);
+            self.state.copy_values_to(&mut temp_states[stage]);
+            // let mut temp_state = self.state.clone();
 
-            temp_state.apply_updates(&updates, &self.a[stage], &self.c, dt);
+            temp_states[stage].apply_updates(updates, &self.a[stage], &self.c, dt, stage);
+            // temp_state.apply_updates(&updates, &self.a[stage], &self.c, dt);
 
-            for module in &self.modules {
-                module.simulate(&temp_state, &mut update, &mut self.stack);
+            for module in self.modules.iter() {
+                module.simulate(&temp_states[stage], &mut updates[stage], &mut self.stack);
             }
 
-            updates.push(update);
+            // updates.push(update);
         }
 
-        self.state.apply_updates(&updates, &self.b, &self.c, dt);
+        self.state.apply_updates(updates, &self.b, &self.c, dt, STAGES);
 
-        for module in &mut self.modules {
+        for module in self.modules.iter_mut() {
             module.finalize(&mut self.state, dt, &mut self.stack);
         }
     }
@@ -126,7 +185,7 @@ impl RungeKutta {
     }
 
     pub fn process_event(&mut self, event: ControllerEvent) {
-        for module in &mut self.modules {
+        for module in self.modules.iter_mut() {
             module.process_event(&event);
         }
     }

@@ -5,23 +5,23 @@ use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use core::f32::consts::PI;
 
-pub struct AllpassFilter {
+pub struct AllpassFilter<'a> {
     f0: f32,
     cap_state: usize,
     signal_output: usize,
-    freq_control_input: StackProgram,
-    linear_control: StackProgram,
-    signal_input: StackProgram,
+    freq_control_input: StackProgram<'a>,
+    linear_control: StackProgram<'a>,
+    signal_input: StackProgram<'a>,
 }
 
-impl AllpassFilter {
+impl<'a> AllpassFilter<'a> {
     pub fn new(
         f0: f32,
         cap_state: usize,
         signal_output: usize,
-        freq_control_input: StackProgram,
-        linear_control: StackProgram,
-        signal_input: StackProgram,
+        freq_control_input: StackProgram<'a>,
+        linear_control: StackProgram<'a>,
+        signal_input: StackProgram<'a>,
     ) -> Self {
         Self {
             f0,
@@ -34,7 +34,7 @@ impl AllpassFilter {
     }
 }
 
-impl Module for AllpassFilter {
+impl<'a> Module for AllpassFilter<'a> {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let input = self.signal_input.run(state, stack).unwrap_or(0.);
         let f = control_to_frequency(

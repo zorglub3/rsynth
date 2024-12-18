@@ -3,25 +3,26 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use core::f32::consts::PI;
+use libm::{fabsf, cosf};
 
 #[allow(dead_code)]
 fn hamming(x: f32) -> f32 {
     let x = x.clamp(0., 1.);
 
-    0.54 - 0.46 * (2. * PI * x).cos()
+    0.54 - 0.46 * cosf(2. * PI * x)
 }
 
 #[allow(dead_code)]
 fn blackman(x: f32) -> f32 {
     let x = x.clamp(0., 1.);
-    0.42 - 0.5 * (2. * PI * x).cos() + 0.08 * (4. * PI * x).cos()
+    0.42 - 0.5 * cosf(2. * PI * x) + 0.08 * cosf(4. * PI * x)
 }
 
 #[allow(dead_code)]
 fn triangle(x: f32) -> f32 {
     let x = x.clamp(0., 1.);
 
-    1. - (2. * x - 1.).abs()
+    1. - fabsf(2. * x - 1.)
 }
 
 const MIN_TIME: f32 = 0.01_f32; // 10 ms
@@ -41,23 +42,23 @@ enum EnvType {
     Cyclic,
 }
 
-pub struct Envelope {
-    signal_input: StackProgram,
-    attack_input: StackProgram,
-    decay_input: StackProgram,
-    shape_select: StackProgram,
+pub struct Envelope<'a> {
+    signal_input: StackProgram<'a>,
+    attack_input: StackProgram<'a>,
+    decay_input: StackProgram<'a>,
+    shape_select: StackProgram<'a>,
     output_index: usize,
     cycle_state: usize,
     env_state: EnvState,
     env_type: EnvType,
 }
 
-impl Envelope {
+impl<'a> Envelope<'a> {
     pub fn new(
-        signal_input: StackProgram,
-        attack_input: StackProgram,
-        decay_input: StackProgram,
-        shape_select: StackProgram,
+        signal_input: StackProgram<'a>,
+        attack_input: StackProgram<'a>,
+        decay_input: StackProgram<'a>,
+        shape_select: StackProgram<'a>,
         output_index: usize,
         cycle_state: usize,
     ) -> Self {
@@ -86,7 +87,7 @@ fn output_value(cycle_index: f32, shape: f32) -> f32 {
     blackman(cycle_index) * shape + triangle(cycle_index) * (1. - shape)
 }
 
-impl Module for Envelope {
+impl<'a> Module for Envelope<'a> {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let attack = self.attack_input.run(state, stack).unwrap_or(0.);
         let decay = self.decay_input.run(state, stack).unwrap_or(0.);

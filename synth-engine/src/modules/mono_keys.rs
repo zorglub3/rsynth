@@ -1,7 +1,6 @@
 use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
-use alloc::collections::BTreeSet;
 use core::cmp::Ord;
 use core::cmp::Ordering;
 use core::f32::consts::PI;
@@ -44,7 +43,7 @@ pub struct MonoKeys {
     pressure_output_index: usize,
     velocity_output_index: usize,
     pitchwheel_output_index: usize,
-    active_notes: BTreeSet<ActiveNote>,
+    active_note: Option<ActiveNote>,
     current_pressure: f32,
     current_velocity: f32,
     current_pitch_value: f32,
@@ -66,7 +65,7 @@ impl MonoKeys {
             pressure_output_index,
             velocity_output_index,
             pitchwheel_output_index,
-            active_notes: BTreeSet::new(),
+            active_note: None,
             current_pressure: 0.,
             current_velocity: 0.,
             current_pitch_value: 0.,
@@ -117,23 +116,24 @@ impl Module for MonoKeys {
                 pitch_value,
             } => {
                 self.current_velocity = *velocity;
-                self.active_notes.insert(ActiveNote {
+                self.active_note = Some(ActiveNote {
                     pitch_code: *pitch,
                     pitch_value: *pitch_value,
                 });
             }
             NoteOff { pitch, .. } => {
-                self.active_notes.remove(&ActiveNote {
-                    pitch_code: *pitch,
-                    pitch_value: 0.,
-                });
+                if let Some(ActiveNote { pitch_code, .. }) = self.active_note {
+                    if pitch_code == pitch {
+                        self.active_note = None;
+                    }
+                }
             }
             Aftertouch { amount } => self.current_pressure = *amount,
             PitchWheel { amount } => self.pitch_wheel = *amount,
             _ => {} // do nothing
         }
 
-        match self.active_notes.first() {
+        match self.active_note {
             Some(ActiveNote { pitch_value, .. }) => {
                 self.current_gate = 1.;
                 self.current_pitch_value = *pitch_value;

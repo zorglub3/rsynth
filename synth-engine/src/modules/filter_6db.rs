@@ -5,25 +5,25 @@ use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use core::f32::consts::PI;
 
-pub struct Filter6db {
+pub struct Filter6db<'a> {
     f0: f32,
     internal_state: usize,
     lowpass_output: usize,
     highpass_output: usize,
-    freq_control_input: StackProgram,
-    linear_control: StackProgram,
-    signal_input: StackProgram,
+    freq_control_input: StackProgram<'a>,
+    linear_control: StackProgram<'a>,
+    signal_input: StackProgram<'a>,
 }
 
-impl Filter6db {
+impl<'a> Filter6db<'a> {
     pub fn new(
         f0: f32,
         internal_state: usize,
         lowpass_output: usize,
         highpass_output: usize,
-        freq_control_input: StackProgram,
-        linear_control: StackProgram,
-        signal_input: StackProgram,
+        freq_control_input: StackProgram<'a>,
+        linear_control: StackProgram<'a>,
+        signal_input: StackProgram<'a>,
     ) -> Self {
         Self {
             f0,
@@ -37,7 +37,7 @@ impl Filter6db {
     }
 }
 
-impl Module for Filter6db {
+impl<'a> Module for Filter6db<'a> {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let input = self.signal_input.run(state, stack).unwrap_or(0.);
         let f = control_to_frequency(

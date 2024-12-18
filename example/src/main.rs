@@ -2,6 +2,8 @@
 
 extern crate alloc;
 
+use panic_halt as _;
+
 use alloc::vec;
 
 use synth_engine::modules::SynthModule;

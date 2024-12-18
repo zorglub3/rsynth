@@ -1,7 +1,11 @@
 use crate::simulator::state::State;
+use libm::{sinf, cosf, tanf, tanhf, logf, expf, fabsf};
+
+#[cfg(any(feature = "allocator", test))]
 use alloc::vec;
+
+#[cfg(any(feature = "allocator", test))]
 use alloc::vec::Vec;
-use thiserror::Error;
 
 #[derive(PartialEq, Debug)]
 pub enum Instr {
@@ -33,23 +37,20 @@ pub enum Function {
     Lerp,
 }
 
-#[derive(Error, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum ExecError {
-    #[error("Stack overflow")]
     StackOverflow,
-    #[error("Stack underflow")]
     StackUnderflow,
-    #[error("State index out of bounds: {0}")]
     StateOutOfBounds(usize),
 }
 
 #[derive(PartialEq, Debug)]
-pub struct StackProgram {
-    pub code: Vec<Instr>,
+pub struct StackProgram<'a> {
+    pub code: &'a [Instr],
     pub stack_size: usize,
 }
 
-pub fn compute_stack_size(code: &Vec<Instr>) -> usize {
+pub fn compute_stack_size(code: &[Instr]) -> usize {
     let mut stack_size: usize = 0;
     let mut stack_max_size: usize = 0;
 
@@ -76,11 +77,12 @@ pub fn compute_stack_size(code: &Vec<Instr>) -> usize {
     stack_max_size
 }
 
-impl StackProgram {
-    pub fn new(code: Vec<Instr>, stack_size: usize) -> Self {
+impl<'a> StackProgram<'a> {
+    pub fn new(code: &'a [Instr], stack_size: usize) -> Self {
         Self { code, stack_size }
     }
 
+    #[cfg(any(feature = "allocator", test))]
     pub fn zero() -> Self {
         Self {
             code: vec![Instr::Const(0.)],
@@ -88,6 +90,7 @@ impl StackProgram {
         }
     }
 
+    #[cfg(any(feature = "allocator", test))]
     pub fn constant(v: f32) -> Self {
         Self {
             code: vec![Instr::Const(v)],
@@ -95,6 +98,7 @@ impl StackProgram {
         }
     }
 
+    #[cfg(any(feature = "allocator", test))]
     pub fn from_index(index: usize) -> Self {
         Self {
             code: vec![Instr::State(index)],
@@ -131,7 +135,7 @@ impl StackProgram {
 
         let mut stack_ptr: usize = 0;
 
-        for instr in &self.code {
+        for instr in self.code {
             use Instr::*;
 
             match instr {
@@ -153,8 +157,12 @@ impl StackProgram {
                 Divide => {
                     let a = pop_stack(stack, &mut stack_ptr)?;
                     let b = pop_stack(stack, &mut stack_ptr)?;
-                    // TODO check for divide-by-zero (we shouldn't crash)
-                    push_stack(stack, &mut stack_ptr, a / b)?;
+
+                    if fabsf(b) < f32::EPSILON {
+                        push_stack(stack, &mut stack_ptr, 0.)?;
+                    } else {
+                        push_stack(stack, &mut stack_ptr, a / b)?;
+                    }
                 }
                 Negate => {
                     let a = pop_stack(stack, &mut stack_ptr)?;
@@ -166,23 +174,23 @@ impl StackProgram {
                     match f {
                         Sin => {
                             let a = pop_stack(stack, &mut stack_ptr)?;
-                            push_stack(stack, &mut stack_ptr, a.sin())?;
+                            push_stack(stack, &mut stack_ptr, sinf(a))?;
                         }
                         Cos => {
                             let a = pop_stack(stack, &mut stack_ptr)?;
-                            push_stack(stack, &mut stack_ptr, a.cos())?;
+                            push_stack(stack, &mut stack_ptr, cosf(a))?;
                         }
                         Tan => {
                             let a = pop_stack(stack, &mut stack_ptr)?;
-                            push_stack(stack, &mut stack_ptr, a.tan())?;
+                            push_stack(stack, &mut stack_ptr, tanf(a))?;
                         }
                         Tanh => {
                             let a = pop_stack(stack, &mut stack_ptr)?;
-                            push_stack(stack, &mut stack_ptr, a.tanh())?;
+                            push_stack(stack, &mut stack_ptr, tanhf(a))?;
                         }
                         Abs => {
                             let a = pop_stack(stack, &mut stack_ptr)?;
-                            push_stack(stack, &mut stack_ptr, a.abs())?;
+                            push_stack(stack, &mut stack_ptr, fabsf(a))?;
                         }
                         Min => {
                             let a = pop_stack(stack, &mut stack_ptr)?;
@@ -196,18 +204,18 @@ impl StackProgram {
                         }
                         Ln => {
                             let a = pop_stack(stack, &mut stack_ptr)?;
-                            push_stack(stack, &mut stack_ptr, a.ln())?;
+                            push_stack(stack, &mut stack_ptr, logf(a))?;
                         }
                         Exp => {
                             let a = pop_stack(stack, &mut stack_ptr)?;
-                            push_stack(stack, &mut stack_ptr, a.exp())?;
+                            push_stack(stack, &mut stack_ptr, expf(a))?;
                         }
                         Logistic => {
                             let x0 = pop_stack(stack, &mut stack_ptr)?;
                             let k = pop_stack(stack, &mut stack_ptr)?;
                             let l = pop_stack(stack, &mut stack_ptr)?;
                             let x = pop_stack(stack, &mut stack_ptr)?;
-                            let v = l / (1. + (-k * (x - x0)).exp());
+                            let v = l / expf(1. + (-k * (x - x0)));
                             push_stack(stack, &mut stack_ptr, v)?;
                         }
                         Lerp => {

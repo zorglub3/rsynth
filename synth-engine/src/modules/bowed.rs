@@ -4,6 +4,18 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use core::f32::consts::PI;
+use libm::{fabsf, expf, sqrtf};
+
+// TODO this belongs in the mathlib (soon to be module somewhere in this crate)
+fn signumf(x: f32) -> f32 {
+    if x < 0. {
+        -1.
+    } else if x > 0. {
+        1.
+    } else {
+        0.
+    }
+}
 
 // NOTE the amplitude of this oscillator needs to be scaled up. It usually goes
 // in the range of 0.008 to 0.016 peak-to-peak.
@@ -20,27 +32,27 @@ use core::f32::consts::PI;
 
 // parameter `a` should be 100 to 1000 or thereabouts
 
-pub struct BowedOscillator {
+pub struct BowedOscillator<'a> {
     f0: f32,
     a: f32,
     state_u_index: usize,
     state_v_index: usize,
-    control_input: StackProgram,
-    linear_control: StackProgram,
-    pressure_input: StackProgram,
-    velocity_input: StackProgram,
+    control_input: StackProgram<'a>,
+    linear_control: StackProgram<'a>,
+    pressure_input: StackProgram<'a>,
+    velocity_input: StackProgram<'a>,
 }
 
-impl BowedOscillator {
+impl<'a> BowedOscillator<'a> {
     pub fn new(
         f0: f32,
         a: f32,
         state_u_index: usize,
         state_v_index: usize,
-        control_input: StackProgram,
-        linear_control: StackProgram,
-        pressure_input: StackProgram,
-        velocity_input: StackProgram,
+        control_input: StackProgram<'a>,
+        linear_control: StackProgram<'a>,
+        pressure_input: StackProgram<'a>,
+        velocity_input: StackProgram<'a>,
     ) -> Self {
         Self {
             f0,
@@ -56,15 +68,15 @@ impl BowedOscillator {
 }
 
 fn friction(a: f32, x: f32) -> f32 {
-    (2. * a).sqrt() * x * (-2. * a * x * x + 0.5).exp()
+    sqrtf(2. * a) * x * expf(-2. * a * x * x + 0.5)
 }
 
 #[allow(dead_code)]
 fn discontinuous_friction(a: f32, x: f32) -> f32 {
-    x.signum() * (-a * x.abs()).exp()
+    signumf(x) * expf(-a * fabsf(x))
 }
 
-impl Module for BowedOscillator {
+impl<'a> Module for BowedOscillator<'a> {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let linear_control = self.linear_control.run(state, stack).unwrap_or(0.);
 

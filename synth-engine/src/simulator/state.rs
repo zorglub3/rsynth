@@ -1,5 +1,10 @@
+#[cfg(any(feature = "allocator", test))]
 use alloc::vec;
+
+#[cfg(any(feature = "allocator", test))]
 use alloc::vec::Vec;
+
+const OUTPUTS: usize = 2;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum UpdateType {
@@ -8,26 +13,24 @@ pub enum UpdateType {
 }
 
 #[derive(Debug, Clone)]
-pub struct State {
-    values: Vec<f32>,
-    outputs: Vec<f32>,
+pub struct State<'a> {
+    values: &'a [f32],
+    outputs: [f32; OUTPUTS],
 }
 
-pub struct StateUpdate {
-    updates: Vec<f32>,
-    update_types: Vec<UpdateType>,
+pub struct StateUpdate<'a> {
+    updates: &'a [f32],
+    update_types: &'a [UpdateType],
     delta_time: f32,
     time_step: f32,
 }
 
-impl State {
-    pub fn new(size: usize) -> Self {
-        Self {
-            values: vec![0.0_f32; size],
-            outputs: vec![0.0_f32; 2],
-        }
+impl<'a> State<'a> {
+    pub fn new(values: &'a [f32], outputs: [f32; OUTPUTS]) -> Self {
+        Self { values, outputs }
     }
 
+    #[cfg(test)]
     pub fn new_with_values(values: &[f32]) -> Self {
         Self {
             values: values.to_vec(),
@@ -39,6 +42,7 @@ impl State {
         self.values.len()
     }
 
+    /*
     pub fn update_data(&self, delta_time: f32, time_step: f32) -> StateUpdate {
         StateUpdate {
             updates: vec![0.0_f32; self.len()],
@@ -47,20 +51,46 @@ impl State {
             time_step,
         }
     }
+    */
+
+    // TODO check if we really need delta_time _and time_step
+    pub fn clear_update_data(
+        &self, 
+        update_data: &mut StateUpdate, 
+        delta_time: f32, 
+        time_step: f32
+    ) {
+        for i in 0 .. update_data.updates.len() { 
+            update_data.updates[i] = 0.;
+            update_data.update_types[i] = UpdateType::Differentiable;
+        }
+
+        update_data.delta_time = delta_time;
+        update_data.time_step = time_step;
+    }
+
+    pub fn copy_values_to(&self, target: &mut Self) {
+        for i in 0 .. self.values.len() {
+            target.values[i] = self.values[i];
+        }
+    }
 
     pub fn get(&self, index: usize) -> f32 {
-        debug_assert!(index < self.values.len());
-
         self.values[index]
     }
 
     pub fn set(&mut self, index: usize, v: f32) {
-        debug_assert!(index < self.values.len());
-
         self.values[index] = v;
     }
 
-    pub fn apply_updates(&mut self, updates: &[StateUpdate], weights: &[f32], c: &[f32], dt: f32) {
+    pub fn apply_updates(
+        &mut self, 
+        updates: &[StateUpdate], 
+        weights: &[f32], 
+        c: &[f32], 
+        dt: f32,
+        max_index: usize,
+    ) {
         debug_assert!(updates.len() == weights.len());
         debug_assert!(updates.len() <= c.len());
 
@@ -68,7 +98,7 @@ impl State {
             let mut update = 0.0_f32;
             let mut previous_value = self.values[i];
 
-            for j in 0..updates.len() {
+            for j in 0 .. max_index {
                 match updates[j].update_types[i] {
                     UpdateType::Absolute => {
                         if j == 0 {
@@ -96,10 +126,8 @@ impl State {
     }
 }
 
-impl StateUpdate {
+impl<'a> StateUpdate<'a> {
     pub fn set(&mut self, index: usize, update: f32, update_type: UpdateType) {
-        debug_assert!(index < self.updates.len());
-
         self.updates[index] = update;
         self.update_types[index] = update_type;
     }

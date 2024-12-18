@@ -4,23 +4,24 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use core::f32::consts::PI;
+use libm::sqrtf;
 
 // TODO add to synth designer
-pub struct QuadratureOscillator {
+pub struct QuadratureOscillator<'a> {
     f0: f32,
     state_x_index: usize,
     state_y_index: usize,
-    control_input: StackProgram,
-    linear_control: StackProgram,
+    control_input: StackProgram<'a>,
+    linear_control: StackProgram<'a>,
 }
 
-impl QuadratureOscillator {
+impl<'a> QuadratureOscillator<'a> {
     pub fn new(
         f0: f32,
         state_x_index: usize,
         state_y_index: usize,
-        control_input: StackProgram,
-        linear_control: StackProgram,
+        control_input: StackProgram<'a>,
+        linear_control: StackProgram<'a>,
     ) -> Self {
         Self {
             f0,
@@ -32,7 +33,7 @@ impl QuadratureOscillator {
     }
 }
 
-impl Module for QuadratureOscillator {
+impl<'a> Module for QuadratureOscillator<'a> {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let omega = 2.
             * PI
@@ -56,7 +57,7 @@ impl Module for QuadratureOscillator {
     fn finalize(&mut self, state: &mut State, _time_step: f32, _stack: &mut [f32]) {
         let x = state.get(self.state_x_index);
         let y = state.get(self.state_y_index);
-        let s = (x * x + y * y).sqrt();
+        let s = sqrtf(x * x + y * y);
 
         if s < f32::EPSILON {
             state.set(self.state_x_index, 0.);
