@@ -48,8 +48,8 @@ pub enum SynthModule<'a> {
     Output(MonoOutput<'a>),
     Noise(NoiseGenerator),
     QuadOscillator(QuadratureOscillator<'a>),
-    WavetableOscillator(Wavetable),
-    VosimOscillator(Vosim),
+    WavetableOscillator(Wavetable<'a, 'a>),
+    VosimOscillator(Vosim<'a, 'a>),
     Delay(DelayLine<'a, 'a>),
     Bowed(BowedOscillator<'a>),
 }

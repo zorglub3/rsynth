@@ -11,5 +11,5 @@ proc-macro2 = "1.0.92"
 quote = "1.0.37"
 rust-ini = "0.21.1"
 syn = "2.0.90"
-synth-engine = { path = "../synth-engine" }
+synth-engine = { path = "../synth-engine", features = ["allocator"] }
 thiserror = "2.0.3"

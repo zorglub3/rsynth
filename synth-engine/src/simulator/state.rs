@@ -1,8 +1,5 @@
-#[cfg(any(feature = "allocator", test))]
-use alloc::vec;
-
-#[cfg(any(feature = "allocator", test))]
-use alloc::vec::Vec;
+// #[cfg(any(feature = "allocator", test))]
+// use alloc::vec;
 
 const OUTPUTS: usize = 2;
 
@@ -12,29 +9,28 @@ pub enum UpdateType {
     Absolute,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct State<'a> {
-    values: &'a [f32],
+    values: &'a mut [f32],
     outputs: [f32; OUTPUTS],
 }
 
 pub struct StateUpdate<'a> {
-    updates: &'a [f32],
-    update_types: &'a [UpdateType],
+    updates: &'a mut [f32],
+    update_types: &'a mut [UpdateType],
     delta_time: f32,
     time_step: f32,
 }
 
 impl<'a> State<'a> {
-    pub fn new(values: &'a [f32], outputs: [f32; OUTPUTS]) -> Self {
+    pub fn new(values: &'a mut [f32], outputs: [f32; OUTPUTS]) -> Self {
         Self { values, outputs }
     }
 
-    #[cfg(test)]
-    pub fn new_with_values(values: &[f32]) -> Self {
+    pub fn new_with_values(values: &'a mut [f32]) -> Self {
         Self {
-            values: values.to_vec(),
-            outputs: vec![0.; 2],
+            values,
+            outputs: [0.; OUTPUTS],
         }
     }
 

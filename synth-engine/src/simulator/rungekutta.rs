@@ -1,9 +1,9 @@
 use crate::event::ControllerEvent;
-use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate};
 use crate::modules::SynthModule;
 
 /*
+ // TODO delete
 #[cfg(any(features = allocator, test))]
 use alloc::boxed::Box;
 
@@ -22,12 +22,12 @@ use alloc::vec::Vec;
 const DEFAULT_STACK_SIZE: usize = 256;
 
 pub struct RungeKutta<'a, 'b, const STAGES: usize> {
-    state: &'a State<'b>,
+    state: &'a mut State<'b>,
     a: [[f32; STAGES]; STAGES],
     b: [f32; STAGES],
     c: [f32; STAGES],
-    modules: &'a [SynthModule<'a>],
-    stack: &'a [f32],
+    modules: &'a mut [SynthModule<'a>],
+    stack: &'a mut [f32],
 }
 
 impl<'a, 'b> RungeKutta<'a, 'b, 4_usize> {
@@ -45,14 +45,14 @@ impl<'a, 'b> RungeKutta<'a, 'b, 4_usize> {
             ],
             b: [1. / 6., 1. / 3., 1. / 3., 1. / 6.],
             c: [0., 0.5, 0.5, 1.],
-            modules: &[],
+            modules: &mut [],
             stack,
         }
     }
 }
 
 impl<'a, 'b, const STAGES: usize> RungeKutta<'a, 'b, STAGES> {
-    pub fn with_modules(self, modules: &'a [SynthModule]) -> Self {
+    pub fn with_modules(self, modules: &'a mut [SynthModule<'a>]) -> Self {
         Self {
             state: self.state,
             a: self.a,
@@ -148,13 +148,13 @@ impl<'a, 'b, const STAGES: usize> RungeKutta<'a, 'b, STAGES> {
     }
     */
 
+    // TODO cleanup
     pub fn step(
         &mut self, 
         dt: f32, 
         updates: &mut [StateUpdate],
         temp_states: &mut [State<'b>],
     ) {
-        let mut updates_len = 0;
         // let mut updates = vec![];
 
         for stage in 0 .. STAGES {
@@ -190,7 +190,10 @@ impl<'a, 'b, const STAGES: usize> RungeKutta<'a, 'b, STAGES> {
         }
     }
 
+    /*
+     // TODO delete
     pub fn get_state(&mut self) -> &mut State {
         &mut self.state
     }
+    */
 }

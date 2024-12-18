@@ -7,35 +7,43 @@ use crate::stack_program::*;
 use core::f32::consts::PI;
 use libm::{floorf, fabsf};
 
-#[cfg(any(feature = "allocator", test))]
-use alloc::vec::Vec;
+// TODO cleanup
+// #[cfg(any(feature = "allocator", test))]
+// use alloc::vec::Vec;
 
-pub struct Vosim<'a, 'b, 'c> {
+pub struct Vosim<'a, 'b> {
     f0: f32,
     position_state: usize,
     signal_output: usize,
-    pitch_control: StackProgram<'c>,
-    linear_modulation: StackProgram<'c>,
-    grain_pitch_control: StackProgram<'c>,
-    grain_linear_modulation: StackProgram<'c>,
-    wavetable_select: StackProgram<'c>,
-    wavetables: &'a [WavetableEntry<'b>],
+    pitch_control: StackProgram<'b>,
+    linear_modulation: StackProgram<'b>,
+    grain_pitch_control: StackProgram<'b>,
+    grain_linear_modulation: StackProgram<'b>,
+    wavetable_select: StackProgram<'b>,
+    wavetables: &'a [WavetableEntry<'a>],
     amp: f32,
 }
 
-impl<'a, 'b, 'c> Vosim<'a, 'b, 'c> {
+impl<'a, 'b> Vosim<'a, 'b> {
+    /*
     #[cfg(any(feature = "allocator", test))]
     pub fn new(
         f0: f32,
         position_state: usize,
         signal_output: usize,
-        pitch_control: StackProgram<'c>,
-        linear_modulation: StackProgram<'c>,
-        grain_pitch_control: StackProgram<'c>,
-        grain_linear_modulation: StackProgram<'c>,
-        wavetable_select: StackProgram<'c>,
+        pitch_control: StackProgram<'b>,
+        linear_modulation: StackProgram<'b>,
+        grain_pitch_control: StackProgram<'b>,
+        grain_linear_modulation: StackProgram<'b>,
+        wavetable_select: StackProgram<'b>,
         wavetables: Vec<Vec<f32>>,
     ) -> Self {
+        let wavetable_entries: Vec<WavetableEntry<'a>> =
+            wavetables
+                .into_iter()
+                .map(|samples| WavetableEntry::from_slice(&samples))
+                .collect();
+
         Self {
             f0,
             position_state,
@@ -45,24 +53,22 @@ impl<'a, 'b, 'c> Vosim<'a, 'b, 'c> {
             grain_pitch_control,
             grain_linear_modulation,
             wavetable_select,
-            wavetables: wavetables
-                .into_iter()
-                .map(|samples| WavetableEntry::from_slice(&samples))
-                .collect(),
+            wavetables: &wavetable_entries,
             amp: 2. * PI * FREQUENCY_LIMIT,
         }
     }
+    */
 
     pub fn new_with_precompute(
         f0: f32,
         position_state: usize,
         signal_output: usize,
-        pitch_control: StackProgram,
-        linear_modulation: StackProgram,
-        grain_pitch_control: StackProgram,
-        grain_linear_modulation: StackProgram,
-        wavetable_select: StackProgram,
-        wavetables: &'a [WavetableEntry<'b>],
+        pitch_control: StackProgram<'b>,
+        linear_modulation: StackProgram<'b>,
+        grain_pitch_control: StackProgram<'b>,
+        grain_linear_modulation: StackProgram<'b>,
+        wavetable_select: StackProgram<'b>,
+        wavetables: &'a [WavetableEntry<'a>],
     ) -> Self {
         Self {
             f0,
@@ -79,7 +85,7 @@ impl<'a, 'b, 'c> Vosim<'a, 'b, 'c> {
     }
 }
 
-impl<'a, 'b, 'c> Module for Vosim<'a, 'b, 'c> {
+impl<'a, 'b> Module for Vosim<'a, 'b> {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let velocity = control_to_frequency(
             self.f0,

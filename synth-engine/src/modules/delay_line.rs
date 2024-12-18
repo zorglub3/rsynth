@@ -6,7 +6,7 @@ use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 
 pub struct DelayLine<'a, 'b> {
-    data: &'a [f32],
+    data: &'a mut [f32],
     current_index: usize,
     signal_output: usize,
     f0: f32,
@@ -22,7 +22,7 @@ impl<'a, 'b> DelayLine<'a, 'b> {
         signal_input: StackProgram<'b>,
         pitch_control: StackProgram<'b>,
         linear_modulation: StackProgram<'b>,
-        data: &'a [f32],
+        data: &'a mut [f32],
     ) -> Self {
         Self {
             f0,

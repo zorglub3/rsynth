@@ -169,7 +169,7 @@ impl SynthSpec {
 pub fn gen_stack_program(stack_program: &StackProgram) -> TokenStream {
     let mut prg: Vec<TokenStream> = Vec::new();
 
-    for instr in &stack_program.code {
+    for instr in stack_program.code {
         use Instr::*;
 
         match instr {

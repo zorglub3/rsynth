@@ -28,28 +28,15 @@ impl<'a> WavetableData<'a> {
             samples,
             len_f32,
         }
-
-        /*
-        let mut samples_vec: Vec<f32> = Vec::new();
-        let len_f32 = samples.len() as f32;
-
-        samples_vec.extend_from_slice(samples);
-
-        Self {
-            samples: samples_vec,
-            len_f32,
-        }
-        */
     }
 
     #[cfg(any(feature = "allocator", test))]
-    fn downsample(&self) -> Option<Self> {
+    fn downsample(&self) -> Option<Vec<f32>> {
         if self.samples.len() < 4 {
             None
         } else {
             let m = (self.samples.len() / 2).min(32);
-            let samples_downsampled = downsample_half(m, &self.samples);
-            Some(WavetableData::from_slice(&samples_downsampled))
+            Some(downsample_half(m, &self.samples))
         }
     }
 
@@ -59,14 +46,15 @@ impl<'a> WavetableData<'a> {
     }
 }
 
-pub struct WavetableEntry<'a, 'b> {
-    pub data: &'a [WavetableData<'b>],
+pub struct WavetableEntry<'a> {
+    pub data: &'a [WavetableData<'a>],
     pub base_data_len: usize,
 }
 
-impl<'a, 'b> WavetableEntry<'a, 'b> {
+impl<'a> WavetableEntry<'a> {
+    /*
     #[cfg(any(feature = "allocator", test))]
-    pub fn from_slice(samples: &[f32]) -> Self {
+    pub fn from_slice(samples: &'a [f32]) -> Self {
         let mut data = Vec::new();
 
         let mut current_wavetable_data = WavetableData::from_slice(samples);
@@ -77,9 +65,54 @@ impl<'a, 'b> WavetableEntry<'a, 'b> {
         }
 
         Self {
-            data,
+            data: &data,
             base_data_len: samples.len(),
         }
+    }
+    */
+
+    #[cfg(any(feature = "allocator", test))]
+    pub fn downsample(data: &[f32]) -> Option<Vec<f32>> {
+        if data.len() < 8 {
+            None
+        } else {
+            let m = (data.len() / 2).min(32);
+            Some(downsample_half(m, data))
+        }
+    }
+ 
+    #[cfg(any(feature = "allocator", test))]
+    pub fn make_data(data: &[f32]) -> Vec<Vec<f32>> {
+        let mut result = Vec::new();
+        
+        let mut current_entry = data.to_vec();
+
+        result.push(current_entry.clone());
+
+        while let Some(next_wavetable_data) = Self::downsample(&current_entry) {
+            result.push(next_wavetable_data.clone());
+            current_entry = next_wavetable_data;
+        }
+
+        result
+    }
+
+    #[cfg(any(features = "allocator", test))]
+    pub fn make_wavetable_data(vecs: &'a Vec<Vec<f32>>) -> Vec<WavetableData<'a>> {
+        let mut data = Vec::new();
+
+        for v in vecs {
+            data.push(WavetableData::from_slice(&v));
+        }
+
+        data
+    }
+
+    #[cfg(any(feature = "allocator", test))]
+    pub fn from_data(data: &'a Vec<WavetableData<'a>>) -> Self {
+        let base_data_len = data[0].samples.len();
+
+        Self { data, base_data_len }
     }
 
     fn get_data_by_frequency(&self, cycles_per_step: f32) -> Option<&WavetableData> {
@@ -105,28 +138,35 @@ impl<'a, 'b> WavetableEntry<'a, 'b> {
     }
 }
 
-pub struct Wavetable<'a> {
+pub struct Wavetable<'a, 'b> {
     f0: f32,
     position_state: usize,
     signal_output: usize,
-    pitch_control: StackProgram,
-    linear_modulation: StackProgram,
-    wavetable_select: StackProgram,
-    wavetables: Vec<WavetableEntry>,
+    pitch_control: StackProgram<'b>,
+    linear_modulation: StackProgram<'b>,
+    wavetable_select: StackProgram<'b>,
+    wavetables: &'a [WavetableEntry<'a>],
     amp: f32,
 }
 
-impl<'a> Wavetable<'a> {
+impl<'a, 'b> Wavetable<'a, 'b> {
+    /*
     #[cfg(any(feature = "allocator", test))]
     pub fn new(
         f0: f32,
         position_state: usize,
         signal_output: usize,
-        pitch_control: StackProgram,
-        linear_modulation: StackProgram,
-        wavetable_select: StackProgram,
+        pitch_control: StackProgram<'b>,
+        linear_modulation: StackProgram<'b>,
+        wavetable_select: StackProgram<'b>,
         wavetables: Vec<Vec<f32>>,
     ) -> Self {
+        let wavetable_entries: Vec<WavetableEntry<'a>> = 
+            wavetables
+                .into_iter()
+                .map(|samples| WavetableEntry::from_slice(&samples))
+                .collect();
+
         Self {
             f0,
             position_state,
@@ -134,14 +174,13 @@ impl<'a> Wavetable<'a> {
             pitch_control,
             linear_modulation,
             wavetable_select,
-            wavetables: wavetables
-                .into_iter()
-                .map(|samples| WavetableEntry::from_slice(&samples))
-                .collect(),
+            wavetables: &wavetable_entries,
             amp: 2. * PI * FREQUENCY_LIMIT,
         }
     }
+    */
 
+    /*
     #[cfg(any(feature = "allocator", test))]
     pub fn precompute_wavetables(table_data: &Vec<Vec<f32>>) -> Vec<WavetableEntry> {
         table_data
@@ -149,15 +188,16 @@ impl<'a> Wavetable<'a> {
             .map(|samples| WavetableEntry::from_slice(&samples))
             .collect()
     }
+    */
 
     pub fn new_with_precompute(
         f0: f32,
         position_state: usize,
         signal_output: usize,
-        pitch_control: StackProgram,
-        linear_modulation: StackProgram,
-        wavetable_select: StackProgram,
-        wavetables: Vec<WavetableEntry>,
+        pitch_control: StackProgram<'b>,
+        linear_modulation: StackProgram<'b>,
+        wavetable_select: StackProgram<'b>,
+        wavetables: &'a [WavetableEntry<'a>],
     ) -> Self {
         Self {
             f0,
@@ -166,13 +206,13 @@ impl<'a> Wavetable<'a> {
             pitch_control,
             linear_modulation,
             wavetable_select,
-            wavetables,
+            wavetables: &wavetables,
             amp: 2. * PI * FREQUENCY_LIMIT,
         }
     }
 }
 
-impl<'a> Module for Wavetable<'a> {
+impl<'a, 'b> Module for Wavetable<'a, 'b> {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let velocity = control_to_frequency(
             self.f0,

@@ -5,7 +5,6 @@ members = [
   "synth-engine",
   "synth-designer",
   "cli-synth",
-  "cli-test",
   "scale",
   "example",
 ]

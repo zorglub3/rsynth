@@ -30,7 +30,7 @@ fn blackman_window(i: isize, m: usize) -> f32 {
 #[cfg(any(feature = "allocator", test))]
 pub fn sinc_kernel(fc: f32, m: usize) -> alloc::vec::Vec<f32> {
     let m2 = (m as isize) / 2;
-    let mut result = Vec::with_capacity((m2 * 2 + 1) as usize);
+    let mut result = alloc::vec::Vec::with_capacity((m2 * 2 + 1) as usize);
     let mut k: f32 = 0.;
 
     for i in -m2..=m2 {

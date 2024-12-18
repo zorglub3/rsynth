@@ -123,7 +123,7 @@ impl Module for MonoKeys {
             }
             NoteOff { pitch, .. } => {
                 if let Some(ActiveNote { pitch_code, .. }) = self.active_note {
-                    if pitch_code == pitch {
+                    if pitch_code == *pitch {
                         self.active_note = None;
                     }
                 }
@@ -136,7 +136,7 @@ impl Module for MonoKeys {
         match self.active_note {
             Some(ActiveNote { pitch_value, .. }) => {
                 self.current_gate = 1.;
-                self.current_pitch_value = *pitch_value;
+                self.current_pitch_value = pitch_value;
             }
             None => {
                 self.current_gate = 0.;

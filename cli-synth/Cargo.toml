@@ -7,7 +7,7 @@ edition = "2021"
 clap = { version = "4.5.1", features = ["derive"] }
 cpal = "0.15.2"
 midir = "0.9.1"
-synth-engine = { path = "../synth-engine" }
+synth-engine = { path = "../synth-engine", features = ["allocator"] }
 synth-designer = { path = "../synth-designer" }
 thiserror = "1.0.57"
 scale = { path = "../scale" }

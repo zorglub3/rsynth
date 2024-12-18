@@ -1,12 +1,6 @@
 use crate::simulator::state::State;
 use libm::{sinf, cosf, tanf, tanhf, logf, expf, fabsf};
 
-#[cfg(any(feature = "allocator", test))]
-use alloc::vec;
-
-#[cfg(any(feature = "allocator", test))]
-use alloc::vec::Vec;
-
 #[derive(PartialEq, Debug)]
 pub enum Instr {
     Add,
@@ -80,30 +74,6 @@ pub fn compute_stack_size(code: &[Instr]) -> usize {
 impl<'a> StackProgram<'a> {
     pub fn new(code: &'a [Instr], stack_size: usize) -> Self {
         Self { code, stack_size }
-    }
-
-    #[cfg(any(feature = "allocator", test))]
-    pub fn zero() -> Self {
-        Self {
-            code: vec![Instr::Const(0.)],
-            stack_size: 1,
-        }
-    }
-
-    #[cfg(any(feature = "allocator", test))]
-    pub fn constant(v: f32) -> Self {
-        Self {
-            code: vec![Instr::Const(v)],
-            stack_size: 1,
-        }
-    }
-
-    #[cfg(any(feature = "allocator", test))]
-    pub fn from_index(index: usize) -> Self {
-        Self {
-            code: vec![Instr::State(index)],
-            stack_size: 1,
-        }
     }
 
     pub fn run(&self, state: &State, stack: &mut [f32]) -> Result<f32, ExecError> {
@@ -249,6 +219,7 @@ impl<'a> StackProgram<'a> {
 mod test {
     use super::*;
     use crate::simulator::state::State as SimulatorState;
+    use alloc::vec;
 
     #[test]
     fn simple_run() {
