@@ -83,7 +83,7 @@ impl Module for Filter12db {
         let bp = state.get(self.state_bp);
         let lp = state.get(self.state_lp);
 
-        state.set(bp.clamp(-CLAMP_VALUE, CLAMP_VALUE));
-        state.set(lp.clamp(-CLAMP_VALUE, CLAMP_VALUE));
+        state.set(self.state_bp, bp.clamp(-CLAMP_VALUE, CLAMP_VALUE));
+        state.set(self.state_lp, lp.clamp(-CLAMP_VALUE, CLAMP_VALUE));
     }
 }
