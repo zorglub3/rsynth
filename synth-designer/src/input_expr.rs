@@ -91,7 +91,15 @@ impl Expr {
 
         let stack_size = compute_stack_size(&program);
 
-        Ok(StackProgram::new(program, stack_size))
+        Ok(StackProgram::new(&program, stack_size))
+    }
+
+    pub fn compile_to_instructions(&self, synth_spec: &SynthSpec) -> Result<Vec<Instr>, ExprError> {
+        let mut instructions: Vec<Instr> = Vec::new();
+
+        self.compile_helper(synth_spec, &mut instructions)?;
+
+        Ok(instructions)
     }
 
     fn compile_helper(

@@ -3,6 +3,7 @@ use crate::modules::ModuleSpec;
 use crate::modules::*;
 use crate::state_allocator::StateAllocator;
 use crate::SynthError;
+use crate::codegen::Codegen;
 use ini::Ini;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -14,6 +15,7 @@ use synth_engine::stack_program::StackProgram;
 
 pub struct SynthSpec(BTreeMap<String, Box<dyn ModuleSpec>>);
 
+// TODO cleanup
 impl SynthSpec {
     pub fn new() -> Self {
         Self(BTreeMap::new())
@@ -78,6 +80,14 @@ impl SynthSpec {
     }
 
     pub fn codegen(&self) -> TokenStream {
+        let mut cg = Codegen::new();
+
+        for (_k, module) in self.0.iter() {
+            cg.add_synthmodule(&(**module), self);
+        }
+
+        cg.generate_all_code()
+            /*
         let mut module_code: Vec<TokenStream> = Vec::new();
 
         for (_k, v) in self.0.iter() {
@@ -87,6 +97,7 @@ impl SynthSpec {
         let synth_state_size = self.state_size();
 
         quote! { ([#(#module_code),*], #synth_state_size) }
+        */
     }
 
     pub fn from_ini_file(filename: &str) -> Result<Self, SynthError> {
@@ -163,6 +174,32 @@ impl SynthSpec {
         }
 
         Ok(synth_spec)
+    }
+}
+
+pub fn quote_instruction(instr: &Instr) -> TokenStream {
+    use Function::*;
+    use Instr::*;
+
+    match instr {
+        Add => quote! { Add },
+        Subtract => quote! { Subtract },
+        Multiply => quote! { Multiply },
+        Divide => quote! { Divide },
+        Negate => quote! { Negate },
+        Const(v) => quote! { Const(#v) },
+        State(s) => quote! { State(#s) },
+        Call(Sin) => quote! { Call(Sin) },
+        Call(Cos) => quote! { Call(Cos) },
+        Call(Tan) => quote! { Call(Tan) },
+        Call(Tanh) => quote! { Call(Tanh) },
+        Call(Ln) => quote! { Call(Ln) },
+        Call(Exp) => quote! { Call(Exp) },
+        Call(Logistic) => quote! { Call(Logistic) },
+        Call(Abs) => quote! { Call(Abs) },
+        Call(Min) => quote! { Call(Min) },
+        Call(Max) => quote! { Call(Max) },
+        Call(Lerp) => quote! { Call(Lerp) },
     }
 }
 

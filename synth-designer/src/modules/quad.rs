@@ -8,6 +8,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
+use crate::codegen::Codegen;
 
 const MODULE_TYPE: &str = "bowed_oscillator";
 const MODULE_NAME: &str = "name";
@@ -69,12 +70,12 @@ impl ModuleSpec for QuadOscillatorModuleSpec {
         Ok(Box::new(osc))
     }
 
-    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+    fn codegen(&self, synth_spec: &SynthSpec, codegen: &mut Codegen) -> TokenStream {
         let f0 = self.f0;
         let s0 = self.state[0];
         let s1 = self.state[1];
-        let i0 = gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap());
-        let i1 = gen_stack_program(&self.inputs[1].compile(&synth_spec).unwrap());
+        let i0 = codegen.add_stack_program(&self.inputs[0], &synth_spec);
+        let i1 = codegen.add_stack_program(&self.inputs[1], &synth_spec);
 
         quote! { SynthModule::QuadOscillator(QuadratureOscillator::new(#f0, #s0, #s1, #i0, #i1)) }
     }

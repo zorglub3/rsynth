@@ -9,6 +9,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::wavetable::*;
 use synth_engine::simulator::module::Module;
+use crate::codegen::Codegen;
 
 const MODULE_TYPE: &str = "wavetable_oscillator";
 const MODULE_NAME: &str = "name";
@@ -130,13 +131,13 @@ impl ModuleSpec for WavetableOscillatorModuleSpec {
         Ok(Box::new(module))
     }
 
-    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+    fn codegen(&self, synth_spec: &SynthSpec, codegen: &mut Codegen) -> TokenStream {
         let f0 = self.f0;
         let s0 = self.state[0];
         let s1 = self.state[1];
-        let i0 = gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap());
-        let i1 = gen_stack_program(&self.inputs[1].compile(&synth_spec).unwrap());
-        let i2 = gen_stack_program(&self.inputs[2].compile(&synth_spec).unwrap());
+        let i0 = codegen.add_stack_program(&self.inputs[0], &synth_spec);
+        let i1 = codegen.add_stack_program(&self.inputs[1], &synth_spec);
+        let i2 = codegen.add_stack_program(&self.inputs[2], &synth_spec);
         let wavetables = codegen_table_entries(&Wavetable::precompute_wavetables(&self.wavetables));
 
         quote! { SynthModule::WavetableOscillator(Wavetable::new_with_precompute(

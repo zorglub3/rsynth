@@ -8,6 +8,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
+use crate::codegen::Codegen;
 
 const MODULE_TYPE: &str = "bowed_oscillator";
 const MODULE_NAME: &str = "name";
@@ -83,15 +84,15 @@ impl ModuleSpec for BowedOscillatorModuleSpec {
         Ok(Box::new(osc))
     }
 
-    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+    fn codegen(&self, synth_spec: &SynthSpec, codegen: &mut Codegen) -> TokenStream {
         let f0 = self.f0;
         let a = self.a;
         let s0 = self.state[0];
         let s1 = self.state[1];
-        let i0 = gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap());
-        let i1 = gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap());
-        let i2 = gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap());
-        let i3 = gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap());
+        let i0 = codegen.add_stack_program(&self.inputs[0], &synth_spec);
+        let i1 = codegen.add_stack_program(&self.inputs[1], &synth_spec);
+        let i2 = codegen.add_stack_program(&self.inputs[2], &synth_spec);
+        let i3 = codegen.add_stack_program(&self.inputs[3], &synth_spec);
 
         quote! { SynthModule::Bowed(BowedOscillator::new( #f0, #a, #s0, #s1, #i0, #i1, #i2, #i3 )) }
     }

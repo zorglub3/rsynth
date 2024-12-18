@@ -5,6 +5,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
+use crate::codegen::Codegen;
 
 const MODULE_TYPE: &str = "midi_mono";
 const MODULE_NAME: &str = "name";
@@ -55,7 +56,7 @@ impl ModuleSpec for MonoKeysModuleSpec {
         Ok(Box::new(midi_mono))
     }
 
-    fn codegen(&self, _synth_spec: &SynthSpec) -> TokenStream {
+    fn codegen(&self, _synth_spec: &SynthSpec, _codegen: &mut Codegen) -> TokenStream {
         let s0 = self.state[0];
         let s1 = self.state[1];
         let s2 = self.state[2];

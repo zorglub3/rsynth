@@ -7,6 +7,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
+use crate::codegen::Codegen;
 
 const MODULE_TYPE: &str = "contour";
 const MODULE_NAME: &str = "name";
@@ -69,11 +70,11 @@ impl ModuleSpec for ContourModuleSpec {
         Ok(Box::new(env))
     }
 
-    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
-        let i0 = gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap());
-        let i1 = gen_stack_program(&self.inputs[1].compile(&synth_spec).unwrap());
-        let i2 = gen_stack_program(&self.inputs[2].compile(&synth_spec).unwrap());
-        let i3 = gen_stack_program(&self.inputs[3].compile(&synth_spec).unwrap());
+    fn codegen(&self, synth_spec: &SynthSpec, codegen: &mut Codegen) -> TokenStream {
+        let i0 = codegen.add_stack_program(&self.inputs[0], &synth_spec);
+        let i1 = codegen.add_stack_program(&self.inputs[0], &synth_spec);
+        let i2 = codegen.add_stack_program(&self.inputs[0], &synth_spec);
+        let i3 = codegen.add_stack_program(&self.inputs[0], &synth_spec);
         let s0 = self.state[0];
         let s1 = self.state[1];
 

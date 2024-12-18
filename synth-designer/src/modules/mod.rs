@@ -36,6 +36,7 @@ use std::num::ParseFloatError;
 use std::num::ParseIntError;
 use synth_engine::simulator::module::Module;
 use thiserror::Error;
+use crate::codegen::Codegen;
 
 #[derive(Error, Debug)]
 pub enum ModuleError {
@@ -64,7 +65,7 @@ pub enum ModuleError {
 pub trait ModuleSpec {
     fn allocate_state(&mut self, alloc: &mut StateAllocator);
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError>;
-    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream;
+    fn codegen(&self, synth_spec: &SynthSpec, codegen: &mut Codegen) -> TokenStream;
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError>;
     fn get_name(&self) -> &str;
     fn state_size(&self) -> usize;

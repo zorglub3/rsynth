@@ -7,6 +7,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
+use crate::codegen::Codegen;
 
 const MODULE_TYPE: &str = "delay_line";
 const MODULE_NAME: &str = "name";
@@ -78,15 +79,15 @@ impl ModuleSpec for DelayLineModuleSpec {
         Ok(Box::new(delay_line))
     }
 
-    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+    fn codegen(&self, synth_spec: &SynthSpec, codegen: &mut Codegen) -> TokenStream {
         let f0 = self.f0;
         let s0 = self.state[0];
-        let i0 = gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap());
-        let i1 = gen_stack_program(&self.inputs[1].compile(&synth_spec).unwrap());
-        let i2 = gen_stack_program(&self.inputs[2].compile(&synth_spec).unwrap());
-        let ds = self.data_size;
+        let i0 = codegen.add_stack_program(&self.inputs[0], &synth_spec);
+        let i1 = codegen.add_stack_program(&self.inputs[1], &synth_spec);
+        let i2 = codegen.add_stack_program(&self.inputs[2], &synth_spec);
+        let buffer = codegen.add_databuffer(self.data_size);
 
-        quote! { SynthModule::Delay(DelayLine::new(#f0, #s0, #i0, #i1, #i2, #ds)) }
+        quote! { SynthModule::Delay(DelayLine::new(#f0, #s0, #i0, #i1, #i2, #buffer)) }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

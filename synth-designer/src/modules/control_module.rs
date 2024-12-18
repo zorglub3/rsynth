@@ -5,6 +5,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
+use crate::codegen::Codegen;
 
 const MODULE_TYPE: &str = "midi_cc";
 const MODULE_NAME: &str = "name";
@@ -61,7 +62,7 @@ impl ModuleSpec for ControlModuleSpec {
         Ok(Box::new(midi_cc))
     }
 
-    fn codegen(&self, _synth_spec: &SynthSpec) -> TokenStream {
+    fn codegen(&self, _synth_spec: &SynthSpec, _codegen: &mut Codegen) -> TokenStream {
         let s0 = self.state[0];
         let c = self.control;
         let min = self.min_value;

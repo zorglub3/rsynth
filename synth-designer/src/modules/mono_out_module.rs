@@ -6,6 +6,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
+use crate::codegen::Codegen;
 
 const MODULE_TYPE: &str = "mono_output";
 const MODULE_NAME: &str = "name";
@@ -53,9 +54,9 @@ impl ModuleSpec for MonoOutputModuleSpec {
         Ok(Box::new(mono_output))
     }
 
-    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+    fn codegen(&self, synth_spec: &SynthSpec, codegen: &mut Codegen) -> TokenStream {
         let oi = self.output_index;
-        let i = gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap());
+        let i = codegen.add_stack_program(&self.inputs[0], &synth_spec);
 
         quote! { SynthModule::Output(MonoOutput::new(#oi, #i)) }
     }

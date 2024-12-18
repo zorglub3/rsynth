@@ -7,6 +7,7 @@ use synth_engine::modules::noise::A_PARAMETER_DEFAULT;
 use synth_engine::modules::noise::B_PARAMETER_DEFAULT;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
+use crate::codegen::Codegen;
 
 const MODULE_TYPE: &str = "noise";
 const MODULE_NAME: &str = "name";
@@ -73,7 +74,7 @@ impl ModuleSpec for NoiseGeneratorModuleSpec {
         Ok(Box::new(noise))
     }
 
-    fn codegen(&self, _synth_spec: &SynthSpec) -> TokenStream {
+    fn codegen(&self, _synth_spec: &SynthSpec, _codegen: &mut Codegen) -> TokenStream {
         let a = self.a;
         let b = self.b;
         let s = self.seed;

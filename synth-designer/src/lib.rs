@@ -2,6 +2,7 @@ pub mod input_expr;
 pub mod modules;
 pub mod state_allocator;
 pub mod synth_spec;
+pub mod codegen;
 
 use crate::modules::ModuleError;
 

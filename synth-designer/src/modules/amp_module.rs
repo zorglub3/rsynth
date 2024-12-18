@@ -7,6 +7,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
+use crate::codegen::Codegen;
 
 const MODULE_TYPE: &str = "amplifier";
 const MODULE_NAME: &str = "name";
@@ -64,11 +65,11 @@ impl ModuleSpec for AmpModuleSpec {
         Ok(Box::new(amplifier))
     }
 
-    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+    fn codegen(&self, synth_spec: &SynthSpec, codegen: &mut Codegen) -> TokenStream {
         let s0 = self.state[0];
-        let i0 = gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap());
-        let i1 = gen_stack_program(&self.inputs[1].compile(&synth_spec).unwrap());
-        let i2 = gen_stack_program(&self.inputs[2].compile(&synth_spec).unwrap());
+        let i0 = codegen.add_stack_program(&self.inputs[0], &synth_spec);
+        let i1 = codegen.add_stack_program(&self.inputs[1], &synth_spec);
+        let i2 = codegen.add_stack_program(&self.inputs[2], &synth_spec);
 
         quote! { SynthModule::Amp(Amplifier::new(#i0, #s0, #i1, #i2)) }
     }
