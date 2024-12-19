@@ -8,6 +8,7 @@ use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
 use crate::codegen::Codegen;
+use crate::synth_resource::SynthResource;
 
 const MODULE_TYPE: &str = "delay_line";
 const MODULE_NAME: &str = "name";
@@ -66,7 +67,7 @@ impl ModuleSpec for DelayLineModuleSpec {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
+    fn create_module(&self, synth_spec: &SynthSpec, synth_resource: &SynthResource) -> Result<SynthModule, ModuleError> {
         let delay_line = DelayLine::new(
             self.f0,
             self.state[0],
@@ -76,7 +77,7 @@ impl ModuleSpec for DelayLineModuleSpec {
             self.data_size,
         );
 
-        Ok(Box::new(delay_line))
+        Ok(SynthModule::Delay(delay_line))
     }
 
     fn codegen(&self, synth_spec: &SynthSpec, codegen: &mut Codegen) -> TokenStream {
@@ -88,6 +89,10 @@ impl ModuleSpec for DelayLineModuleSpec {
         let buffer = codegen.add_databuffer(self.data_size);
 
         quote! { SynthModule::Delay(DelayLine::new(#f0, #s0, #i0, #i1, #i2, #buffer)) }
+    }
+
+    fn create_resources(&self, synth_spec: &SynthSpec, synth_resources: &mut SynthResource) -> Result<(), ModuleError> {
+        todo!()
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {

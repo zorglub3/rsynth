@@ -31,10 +31,11 @@ pub use wavetable::WavetableOscillatorModuleSpec;
 use crate::input_expr::ExprError;
 use crate::state_allocator::StateAllocator;
 use crate::synth_spec::SynthSpec;
+use crate::synth_resource::SynthResource;
 use proc_macro2::TokenStream;
 use std::num::ParseFloatError;
 use std::num::ParseIntError;
-use synth_engine::simulator::module::Module;
+use synth_engine::modules::SynthModule;
 use thiserror::Error;
 use crate::codegen::Codegen;
 
@@ -64,7 +65,8 @@ pub enum ModuleError {
 
 pub trait ModuleSpec {
     fn allocate_state(&mut self, alloc: &mut StateAllocator);
-    fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError>;
+    fn create_module(&self, synth_spec: &SynthSpec, synth_resource: &SynthResource) -> Result<SynthModule, ModuleError>;
+    fn create_resources(&self, synth_spec: &SynthSpec, synth_resources: &mut SynthResource) -> Result<(), ModuleError>;
     fn codegen(&self, synth_spec: &SynthSpec, codegen: &mut Codegen) -> TokenStream;
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError>;
     fn get_name(&self) -> &str;

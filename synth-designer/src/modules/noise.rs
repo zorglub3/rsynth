@@ -8,6 +8,7 @@ use synth_engine::modules::noise::B_PARAMETER_DEFAULT;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
 use crate::codegen::Codegen;
+use crate::synth_resource::SynthResource;
 
 const MODULE_TYPE: &str = "noise";
 const MODULE_NAME: &str = "name";
@@ -68,10 +69,14 @@ impl ModuleSpec for NoiseGeneratorModuleSpec {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, _synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
+    fn create_module(&self, _synth_spec: &SynthSpec, _synth_resource: &SynthResource) -> Result<SynthModule, ModuleError> {
         let noise = NoiseGenerator::new(self.a, self.b, self.seed, self.state[0]);
 
-        Ok(Box::new(noise))
+        Ok(SynthModule::Noise(noise))
+    }
+
+    fn create_resources(&self, _synth_spec: &SynthSpec, _synth_resources: &mut SynthResource) -> Result<(), ModuleError> {
+        Ok(())
     }
 
     fn codegen(&self, _synth_spec: &SynthSpec, _codegen: &mut Codegen) -> TokenStream {

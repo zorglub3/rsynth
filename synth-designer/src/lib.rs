@@ -3,6 +3,7 @@ pub mod modules;
 pub mod state_allocator;
 pub mod synth_spec;
 pub mod codegen;
+pub mod synth_resource;
 
 use crate::modules::ModuleError;
 

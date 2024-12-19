@@ -76,6 +76,11 @@ impl<'a> StackProgram<'a> {
         Self { code, stack_size }
     }
 
+    pub fn new_compute_stack_size(code: &'a [Instr]) -> Self {
+        let stack_size = compute_stack_size(code);
+        Self { code, stack_size }
+    }
+
     pub fn run(&self, state: &State, stack: &mut [f32]) -> Result<f32, ExecError> {
         #[inline]
         fn pop_stack(stack: &[f32], stack_ptr: &mut usize) -> Result<f32, ExecError> {

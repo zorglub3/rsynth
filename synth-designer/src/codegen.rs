@@ -50,8 +50,8 @@ impl Codegen {
 
         self.stack_program_code.push(
             quote! { 
-                #instructions_id = [ #(#instructions_code),* ];
-                #program_id = StackProgram { 
+                let #instructions_id = [ #(#instructions_code),* ];
+                let #program_id = StackProgram { 
                     code: &#instructions_id, 
                     stack_size: #stack_size,
                 };

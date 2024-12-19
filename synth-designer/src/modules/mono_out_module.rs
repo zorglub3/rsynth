@@ -6,7 +6,9 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::module::Module;
+use synth_engine::stack_program::StackProgram;
 use crate::codegen::Codegen;
+use crate::synth_resource::SynthResource;
 
 const MODULE_TYPE: &str = "mono_output";
 const MODULE_NAME: &str = "name";
@@ -48,10 +50,22 @@ impl ModuleSpec for MonoOutputModuleSpec {
         /* do nothing */
     }
 
-    fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
-        let mono_output = MonoOutput::new(self.output_index, self.inputs[0].compile(&synth_spec)?);
+    fn create_module(&self, synth_spec: &SynthSpec, synth_resource: &SynthResource) -> Result<SynthModule, ModuleError> {
+        let mono_output = MonoOutput::new(
+            self.output_index, 
+            StackProgram::new_compute_stack_size(&synth_resource.get_code_buffer(self.get_name(), 0)?));
 
-        Ok(Box::new(mono_output))
+        Ok(SynthModule::Output(mono_output))
+    }
+
+    fn create_resources(&self, synth_spec: &SynthSpec, synth_resources: &mut SynthResource) -> Result<(), ModuleError> {
+        let code_buffers = vec![
+            self.inputs[0].compile_to_instructions(synth_spec)?
+        ];
+
+        synth_resources.add_code_buffers(self.get_name(), code_buffers);
+
+        Ok(())
     }
 
     fn codegen(&self, synth_spec: &SynthSpec, codegen: &mut Codegen) -> TokenStream {

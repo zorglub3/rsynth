@@ -3,6 +3,7 @@ use crate::modules::ModuleSpec;
 use crate::modules::*;
 use crate::state_allocator::StateAllocator;
 use crate::SynthError;
+use crate::synth_resource::SynthResource;
 use crate::codegen::Codegen;
 use ini::Ini;
 use proc_macro2::TokenStream;
@@ -12,6 +13,7 @@ use synth_engine::simulator::module::Module;
 use synth_engine::stack_program::Function;
 use synth_engine::stack_program::Instr;
 use synth_engine::stack_program::StackProgram;
+use synth_engine::modules::SynthModule;
 
 pub struct SynthSpec(BTreeMap<String, Box<dyn ModuleSpec>>);
 
@@ -71,12 +73,18 @@ impl SynthSpec {
         size
     }
 
-    pub fn make_modules(&self, modules: &mut Vec<Box<dyn Module>>) -> Result<(), ModuleError> {
-        for (_k, v) in self.0.iter() {
-            modules.push(v.create_module(self)?);
+    pub fn make_modules(&self, modules: &mut Vec<SynthModule>) -> Result<SynthResource, ModuleError> {
+        let mut synth_resources = SynthResource::new();
+
+        for (_k, module_spec) in self.0.iter() {
+            module_spec.create_resources(self, &mut synth_resources)?;
         }
 
-        Ok(())
+        for (_k, module_spec) in self.0.iter() {
+            modules.push(module_spec.create_module(self, &synth_resources)?);
+        }
+
+        Ok(synth_resources)
     }
 
     pub fn codegen(&self) -> TokenStream {
