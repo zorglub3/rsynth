@@ -51,12 +51,12 @@ impl<'a> State<'a> {
 
     // TODO check if we really need delta_time _and time_step
     pub fn clear_update_data(
-        &self, 
-        update_data: &mut StateUpdate, 
-        delta_time: f32, 
-        time_step: f32
+        &self,
+        update_data: &mut StateUpdate,
+        delta_time: f32,
+        time_step: f32,
     ) {
-        for i in 0 .. update_data.updates.len() { 
+        for i in 0..update_data.updates.len() {
             update_data.updates[i] = 0.;
             update_data.update_types[i] = UpdateType::Differentiable;
         }
@@ -66,7 +66,7 @@ impl<'a> State<'a> {
     }
 
     pub fn copy_values_to(&self, target: &mut Self) {
-        for i in 0 .. self.values.len() {
+        for i in 0..self.values.len() {
             target.values[i] = self.values[i];
         }
     }
@@ -80,10 +80,10 @@ impl<'a> State<'a> {
     }
 
     pub fn apply_updates(
-        &mut self, 
-        updates: &[StateUpdate], 
-        weights: &[f32], 
-        c: &[f32], 
+        &mut self,
+        updates: &[StateUpdate],
+        weights: &[f32],
+        c: &[f32],
         dt: f32,
         max_index: usize,
     ) {
@@ -94,7 +94,7 @@ impl<'a> State<'a> {
             let mut update = 0.0_f32;
             let mut previous_value = self.values[i];
 
-            for j in 0 .. max_index {
+            for j in 0..max_index {
                 match updates[j].update_types[i] {
                     UpdateType::Absolute => {
                         if j == 0 {

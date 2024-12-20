@@ -1,19 +1,18 @@
+use crate::codegen::Codegen;
 use crate::modules::ModuleError;
 use crate::modules::ModuleSpec;
 use crate::modules::*;
 use crate::state_allocator::StateAllocator;
-use crate::SynthError;
 use crate::synth_resource::SynthResource;
-use crate::codegen::Codegen;
+use crate::SynthError;
 use ini::Ini;
 use proc_macro2::TokenStream;
 use quote::quote;
 use std::collections::BTreeMap;
-use synth_engine::simulator::module::Module;
+use synth_engine::modules::SynthModule;
 use synth_engine::stack_program::Function;
 use synth_engine::stack_program::Instr;
 use synth_engine::stack_program::StackProgram;
-use synth_engine::modules::SynthModule;
 
 pub struct SynthSpec(BTreeMap<String, Box<dyn ModuleSpec>>);
 
@@ -73,18 +72,24 @@ impl SynthSpec {
         size
     }
 
-    pub fn make_modules(&self, modules: &mut Vec<SynthModule>) -> Result<SynthResource, ModuleError> {
-        let mut synth_resources = SynthResource::new();
-
+    pub fn make_resources(&self, synth_resources: &mut SynthResource) -> Result<(), ModuleError> {
         for (_k, module_spec) in self.0.iter() {
-            module_spec.create_resources(self, &mut synth_resources)?;
+            module_spec.create_resources(self, synth_resources)?;
         }
 
+        Ok(())
+    }
+
+    pub fn make_modules<'a>(
+        &self,
+        synth_resources: &'a SynthResource,
+        modules: &mut Vec<SynthModule<'a>>,
+    ) -> Result<(), ModuleError> {
         for (_k, module_spec) in self.0.iter() {
-            modules.push(module_spec.create_module(self, &synth_resources)?);
+            modules.push(module_spec.create_module(&synth_resources)?);
         }
 
-        Ok(synth_resources)
+        Ok(())
     }
 
     pub fn codegen(&self) -> TokenStream {
@@ -95,7 +100,7 @@ impl SynthSpec {
         }
 
         cg.generate_all_code()
-            /*
+        /*
         let mut module_code: Vec<TokenStream> = Vec::new();
 
         for (_k, v) in self.0.iter() {

@@ -4,7 +4,7 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use core::f32::consts::PI;
-use libm::{fabsf, expf, sqrtf};
+use libm::{expf, fabsf, sqrtf};
 
 // TODO this belongs in the mathlib (soon to be module somewhere in this crate)
 fn signumf(x: f32) -> f32 {

@@ -1,9 +1,9 @@
+pub mod codegen;
 pub mod input_expr;
 pub mod modules;
 pub mod state_allocator;
-pub mod synth_spec;
-pub mod codegen;
 pub mod synth_resource;
+pub mod synth_spec;
 
 use crate::modules::ModuleError;
 

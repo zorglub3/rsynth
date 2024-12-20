@@ -1,4 +1,6 @@
+use crate::codegen::Codegen;
 use crate::modules::*;
+use crate::synth_resource::SynthResource;
 use crate::synth_spec::SynthSpec;
 use ini::Properties;
 use proc_macro2::TokenStream;
@@ -6,9 +8,6 @@ use quote::quote;
 use synth_engine::modules::noise::A_PARAMETER_DEFAULT;
 use synth_engine::modules::noise::B_PARAMETER_DEFAULT;
 use synth_engine::modules::*;
-use synth_engine::simulator::module::Module;
-use crate::codegen::Codegen;
-use crate::synth_resource::SynthResource;
 
 const MODULE_TYPE: &str = "noise";
 const MODULE_NAME: &str = "name";
@@ -69,13 +68,20 @@ impl ModuleSpec for NoiseGeneratorModuleSpec {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, _synth_spec: &SynthSpec, _synth_resource: &SynthResource) -> Result<SynthModule, ModuleError> {
+    fn create_module<'a>(
+        &self,
+        _synth_resource: &'a SynthResource,
+    ) -> Result<SynthModule<'a>, ModuleError> {
         let noise = NoiseGenerator::new(self.a, self.b, self.seed, self.state[0]);
 
         Ok(SynthModule::Noise(noise))
     }
 
-    fn create_resources(&self, _synth_spec: &SynthSpec, _synth_resources: &mut SynthResource) -> Result<(), ModuleError> {
+    fn create_resources(
+        &self,
+        _synth_spec: &SynthSpec,
+        _synth_resources: &mut SynthResource,
+    ) -> Result<(), ModuleError> {
         Ok(())
     }
 

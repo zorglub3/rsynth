@@ -5,6 +5,7 @@ use peg::str::LineCol;
 use synth_engine::stack_program::*;
 use thiserror::Error;
 
+// TODO cleanup
 #[derive(Debug, PartialEq, Clone)]
 pub struct ParseLocation(String, LineCol);
 
@@ -84,6 +85,7 @@ parser! {
 }
 
 impl Expr {
+    /*
     pub fn compile(&self, synth_spec: &SynthSpec) -> Result<StackProgram, ExprError> {
         let mut program: Vec<Instr> = Vec::new();
 
@@ -93,6 +95,7 @@ impl Expr {
 
         Ok(StackProgram::new(&program, stack_size))
     }
+    */
 
     pub fn compile_to_instructions(&self, synth_spec: &SynthSpec) -> Result<Vec<Instr>, ExprError> {
         let mut instructions: Vec<Instr> = Vec::new();

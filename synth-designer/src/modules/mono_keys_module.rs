@@ -1,12 +1,11 @@
+use crate::codegen::Codegen;
 use crate::modules::*;
+use crate::synth_resource::SynthResource;
 use crate::synth_spec::SynthSpec;
 use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
-use synth_engine::simulator::module::Module;
-use crate::codegen::Codegen;
-use crate::synth_resource::SynthResource;
 
 const MODULE_TYPE: &str = "midi_mono";
 const MODULE_NAME: &str = "name";
@@ -45,7 +44,10 @@ impl ModuleSpec for MonoKeysModuleSpec {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, _synth_spec: &SynthSpec, _synth_resource: &SynthResource) -> Result<SynthModule, ModuleError> {
+    fn create_module<'a>(
+        &self,
+        _synth_resource: &'a SynthResource,
+    ) -> Result<SynthModule<'a>, ModuleError> {
         let midi_mono = MonoKeys::new(
             self.state[0],
             self.state[1],
@@ -57,7 +59,11 @@ impl ModuleSpec for MonoKeysModuleSpec {
         Ok(SynthModule::MonoKeys(midi_mono))
     }
 
-    fn create_resources(&self, synth_spec: &SynthSpec, _synth_resources: &mut SynthResource) -> Result<(), ModuleError> {
+    fn create_resources(
+        &self,
+        _synth_spec: &SynthSpec,
+        _synth_resources: &mut SynthResource,
+    ) -> Result<(), ModuleError> {
         Ok(())
     }
 

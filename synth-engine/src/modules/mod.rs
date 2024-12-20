@@ -27,8 +27,8 @@ pub use mono_keys::MonoKeys;
 pub use mono_output::MonoOutput;
 pub use noise::NoiseGenerator;
 pub use quadrature::QuadratureOscillator;
-pub use vosim::Vosim;
-pub use wavetable::Wavetable;
+pub use vosim::VosimOscillator;
+pub use wavetable::WavetableOscillator;
 
 use crate::simulator::module::Module;
 use libm::exp2f;
@@ -48,8 +48,8 @@ pub enum SynthModule<'a> {
     Output(MonoOutput<'a>),
     Noise(NoiseGenerator),
     QuadOscillator(QuadratureOscillator<'a>),
-    WavetableOscillator(Wavetable<'a, 'a>),
-    VosimOscillator(Vosim<'a, 'a>),
+    WavetableOscillator(WavetableOscillator<'a, 'a>),
+    VosimOscillator(VosimOscillator<'a, 'a>),
     Delay(DelayLine<'a, 'a>),
     Bowed(BowedOscillator<'a>),
 }
@@ -58,12 +58,7 @@ use crate::event::ControllerEvent;
 use crate::simulator::state::{State, StateUpdate};
 
 impl<'a> SynthModule<'a> {
-    pub fn simulate(
-        &self, 
-        state: &State, 
-        update: &mut StateUpdate, 
-        stack: &mut [f32],
-    ) {
+    pub fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         use SynthModule::*;
         match self {
             Amp(a) => a.simulate(state, update, stack),

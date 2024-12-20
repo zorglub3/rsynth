@@ -3,7 +3,7 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use core::f32::consts::PI;
-use libm::{fabsf, cosf};
+use libm::{cosf, fabsf};
 
 #[allow(dead_code)]
 fn hamming(x: f32) -> f32 {

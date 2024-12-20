@@ -1,5 +1,5 @@
 use crate::simulator::state::State;
-use libm::{sinf, cosf, tanf, tanhf, logf, expf, fabsf};
+use libm::{cosf, expf, fabsf, logf, sinf, tanf, tanhf};
 
 #[derive(PartialEq, Debug)]
 pub enum Instr {

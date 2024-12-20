@@ -1,6 +1,7 @@
+use crate::codegen::Codegen;
 use crate::input_expr::*;
 use crate::modules::*;
-use crate::synth_spec::gen_stack_program;
+use crate::synth_resource::SynthResource;
 use crate::synth_spec::SynthSpec;
 use crate::DEFAULT_FREQUENCY_ZERO;
 use hound;
@@ -8,9 +9,7 @@ use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::wavetable::*;
-use synth_engine::simulator::module::Module;
-use crate::codegen::Codegen;
-use crate::synth_resource::SynthResource;
+use synth_engine::stack_program::StackProgram;
 
 const MODULE_TYPE: &str = "wavetable_oscillator";
 const MODULE_NAME: &str = "name";
@@ -31,7 +30,7 @@ pub struct WavetableOscillatorModuleSpec {
     wavetables: Vec<Vec<f32>>,
 }
 
-fn load_wavetable(filename: &str) -> Result<Vec<f32>, ModuleError> {
+pub fn load_wavetable(filename: &str) -> Result<Vec<f32>, ModuleError> {
     let mut reader = hound::WavReader::open(filename)?;
     let mut result: Vec<f32> = Vec::new();
 
@@ -81,6 +80,7 @@ impl WavetableOscillatorModuleSpec {
     }
 }
 
+/*
 fn codegen_table_data(data: &WavetableData) -> TokenStream {
     let samples = data.samples.clone();
     let len = data.len_f32;
@@ -112,28 +112,52 @@ fn codegen_table_entries(entries: &Vec<WavetableEntry>) -> Vec<TokenStream> {
         })
         .collect()
 }
+*/
 
 impl ModuleSpec for WavetableOscillatorModuleSpec {
     fn allocate_state(&mut self, alloc: &mut StateAllocator) {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, synth_spec: &SynthSpec, synth_resource: &SynthResource) -> Result<SynthModule, ModuleError> {
-        let module = Wavetable::new(
+    fn create_module<'a>(
+        &self,
+        synth_resource: &'a SynthResource,
+    ) -> Result<SynthModule<'a>, ModuleError> {
+        let module = WavetableOscillator::new_with_precompute(
             self.f0,
             self.state[0],
             self.state[1],
-            self.inputs[0].compile(&synth_spec)?,
-            self.inputs[1].compile(&synth_spec)?,
-            self.inputs[2].compile(&synth_spec)?,
-            self.wavetables.clone(),
+            StackProgram::new_compute_stack_size(
+                &synth_resource.get_code_buffer(self.get_name(), 0)?,
+            ),
+            StackProgram::new_compute_stack_size(
+                &synth_resource.get_code_buffer(self.get_name(), 1)?,
+            ),
+            StackProgram::new_compute_stack_size(
+                &synth_resource.get_code_buffer(self.get_name(), 2)?,
+            ),
+            todo!("get wavetable data"),
         );
 
         Ok(SynthModule::WavetableOscillator(module))
     }
 
-    fn create_resources(&self, synth_spec: &SynthSpec, synth_resources: &mut SynthResource) -> Result<(), ModuleError> {
-        todo!()
+    fn create_resources(
+        &self,
+        synth_spec: &SynthSpec,
+        synth_resources: &mut SynthResource,
+    ) -> Result<(), ModuleError> {
+        let mut code_buffers = Vec::new();
+
+        for input in &self.inputs {
+            code_buffers.push(input.compile_to_instructions(synth_spec)?);
+        }
+
+        synth_resources.add_code_buffers(self.get_name(), code_buffers);
+
+        todo!("make the wavetable resources");
+
+        Ok(())
     }
 
     fn codegen(&self, synth_spec: &SynthSpec, codegen: &mut Codegen) -> TokenStream {
@@ -143,10 +167,10 @@ impl ModuleSpec for WavetableOscillatorModuleSpec {
         let i0 = codegen.add_stack_program(&self.inputs[0], &synth_spec);
         let i1 = codegen.add_stack_program(&self.inputs[1], &synth_spec);
         let i2 = codegen.add_stack_program(&self.inputs[2], &synth_spec);
-        let wavetables = codegen_table_entries(&Wavetable::precompute_wavetables(&self.wavetables));
+        let wavetables = codegen.add_wavetables(&self.wavetables);
 
         quote! { SynthModule::WavetableOscillator(Wavetable::new_with_precompute(
-            #f0, #s0, #s1, #i0, #i1, #i2, vec![#(#wavetables),*]
+            #f0, #s0, #s1, #i0, #i1, #i2, #wavetables
         )) }
     }
 

@@ -1,4 +1,4 @@
-use libm::{tanhf, logf, expf};
+use libm::{expf, logf, tanhf};
 
 fn smoothstep(x: f32) -> f32 {
     let x = x.clamp(0., 1.);

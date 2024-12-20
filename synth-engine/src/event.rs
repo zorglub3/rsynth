@@ -61,9 +61,16 @@ pub fn decode_midi_bytes(bytes: &[u8], channel: Option<u8>) -> Option<Controller
                 }),
                 (MIDI_NOTE_ON, [_, pitch, v]) => {
                     if *v == 0 {
-                        Some(NoteOff { pitch: *pitch, velocity: 0. })
+                        Some(NoteOff {
+                            pitch: *pitch,
+                            velocity: 0.,
+                        })
                     } else {
-                        Some(NoteOn { pitch: *pitch, velocity: u7_to_f32(*v), pitch_value: 0. })
+                        Some(NoteOn {
+                            pitch: *pitch,
+                            velocity: u7_to_f32(*v),
+                            pitch_value: 0.,
+                        })
                     }
                 }
                 (MIDI_POLY_AFTERTOUCH, [_, pitch, v]) => Some(PolyAftertouch {

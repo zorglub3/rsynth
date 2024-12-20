@@ -5,13 +5,13 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use core::f32::consts::PI;
-use libm::{floorf, fabsf};
+use libm::{fabsf, floorf};
 
 // TODO cleanup
 // #[cfg(any(feature = "allocator", test))]
 // use alloc::vec::Vec;
 
-pub struct Vosim<'a, 'b> {
+pub struct VosimOscillator<'a, 'b> {
     f0: f32,
     position_state: usize,
     signal_output: usize,
@@ -20,11 +20,11 @@ pub struct Vosim<'a, 'b> {
     grain_pitch_control: StackProgram<'b>,
     grain_linear_modulation: StackProgram<'b>,
     wavetable_select: StackProgram<'b>,
-    wavetables: &'a [WavetableEntry<'a>],
+    wavetables: &'a [Wavetable<'a>],
     amp: f32,
 }
 
-impl<'a, 'b> Vosim<'a, 'b> {
+impl<'a, 'b> VosimOscillator<'a, 'b> {
     /*
     #[cfg(any(feature = "allocator", test))]
     pub fn new(
@@ -68,7 +68,7 @@ impl<'a, 'b> Vosim<'a, 'b> {
         grain_pitch_control: StackProgram<'b>,
         grain_linear_modulation: StackProgram<'b>,
         wavetable_select: StackProgram<'b>,
-        wavetables: &'a [WavetableEntry<'a>],
+        wavetables: &'a [Wavetable<'a>],
     ) -> Self {
         Self {
             f0,
@@ -85,7 +85,7 @@ impl<'a, 'b> Vosim<'a, 'b> {
     }
 }
 
-impl<'a, 'b> Module for Vosim<'a, 'b> {
+impl<'a, 'b> Module for VosimOscillator<'a, 'b> {
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let velocity = control_to_frequency(
             self.f0,

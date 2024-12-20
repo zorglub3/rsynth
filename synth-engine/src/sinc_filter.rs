@@ -1,5 +1,5 @@
 use core::f32::consts::PI;
-use libm::{sinf, cosf, fabsf};
+use libm::{cosf, fabsf, sinf};
 
 fn sinc(fc: f32, x: isize) -> f32 {
     let x = x as f32;

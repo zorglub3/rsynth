@@ -28,16 +28,16 @@ pub use quad::QuadOscillatorModuleSpec;
 pub use vosim::VosimOscillatorModuleSpec;
 pub use wavetable::WavetableOscillatorModuleSpec;
 
+use crate::codegen::Codegen;
 use crate::input_expr::ExprError;
 use crate::state_allocator::StateAllocator;
-use crate::synth_spec::SynthSpec;
 use crate::synth_resource::SynthResource;
+use crate::synth_spec::SynthSpec;
 use proc_macro2::TokenStream;
 use std::num::ParseFloatError;
 use std::num::ParseIntError;
 use synth_engine::modules::SynthModule;
 use thiserror::Error;
-use crate::codegen::Codegen;
 
 #[derive(Error, Debug)]
 pub enum ModuleError {
@@ -65,8 +65,15 @@ pub enum ModuleError {
 
 pub trait ModuleSpec {
     fn allocate_state(&mut self, alloc: &mut StateAllocator);
-    fn create_module(&self, synth_spec: &SynthSpec, synth_resource: &SynthResource) -> Result<SynthModule, ModuleError>;
-    fn create_resources(&self, synth_spec: &SynthSpec, synth_resources: &mut SynthResource) -> Result<(), ModuleError>;
+    fn create_module<'a>(
+        &self,
+        synth_resource: &'a SynthResource,
+    ) -> Result<SynthModule<'a>, ModuleError>;
+    fn create_resources(
+        &self,
+        synth_spec: &SynthSpec,
+        synth_resources: &mut SynthResource,
+    ) -> Result<(), ModuleError>;
     fn codegen(&self, synth_spec: &SynthSpec, codegen: &mut Codegen) -> TokenStream;
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError>;
     fn get_name(&self) -> &str;

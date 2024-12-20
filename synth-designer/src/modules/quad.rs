@@ -1,6 +1,7 @@
+use crate::codegen::Codegen;
 use crate::input_expr::*;
 use crate::modules::*;
-use crate::synth_spec::gen_stack_program;
+use crate::synth_resource::SynthResource;
 use crate::synth_spec::SynthSpec;
 use crate::DEFAULT_FREQUENCY_ZERO;
 use ini::Properties;
@@ -8,9 +9,6 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::stack_program::StackProgram;
-use synth_engine::simulator::module::Module;
-use crate::codegen::Codegen;
-use crate::synth_resource::SynthResource;
 
 const MODULE_TYPE: &str = "bowed_oscillator";
 const MODULE_NAME: &str = "name";
@@ -60,27 +58,39 @@ impl ModuleSpec for QuadOscillatorModuleSpec {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, synth_spec: &SynthSpec, synth_resource: &SynthResource) -> Result<SynthModule, ModuleError> {
+    fn create_module<'a>(
+        &self,
+        synth_resource: &'a SynthResource,
+    ) -> Result<SynthModule<'a>, ModuleError> {
         let osc = QuadratureOscillator::new(
             self.f0,
             self.state[0],
             self.state[1],
-            StackProgram::new_compute_stack_size(&synth_resource.get_code_buffer(self.get_name(), 0)?),
-            StackProgram::new_compute_stack_size(&synth_resource.get_code_buffer(self.get_name(), 1)?));
+            StackProgram::new_compute_stack_size(
+                &synth_resource.get_code_buffer(self.get_name(), 0)?,
+            ),
+            StackProgram::new_compute_stack_size(
+                &synth_resource.get_code_buffer(self.get_name(), 1)?,
+            ),
+        );
 
         Ok(SynthModule::QuadOscillator(osc))
     }
 
-    fn create_resources(&self, synth_spec: &SynthSpec, synth_resources: &mut SynthResource) -> Result<(), ModuleError> {
+    fn create_resources(
+        &self,
+        synth_spec: &SynthSpec,
+        synth_resources: &mut SynthResource,
+    ) -> Result<(), ModuleError> {
         let mut code_buffers = Vec::new();
 
-        for input in self.inputs {
+        for input in &self.inputs {
             code_buffers.push(input.compile_to_instructions(synth_spec)?);
         }
 
         synth_resources.add_code_buffers(self.get_name(), code_buffers);
 
-        Ok( () )
+        Ok(())
     }
 
     fn codegen(&self, synth_spec: &SynthSpec, codegen: &mut Codegen) -> TokenStream {

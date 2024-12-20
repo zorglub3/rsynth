@@ -1,12 +1,11 @@
+use crate::codegen::Codegen;
 use crate::modules::*;
+use crate::synth_resource::SynthResource;
 use crate::synth_spec::SynthSpec;
 use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
-use synth_engine::simulator::module::Module;
-use crate::codegen::Codegen;
-use crate::synth_resource::SynthResource;
 
 const MODULE_TYPE: &str = "midi_cc";
 const MODULE_NAME: &str = "name";
@@ -56,14 +55,21 @@ impl ModuleSpec for ControlModuleSpec {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, _synth_spec: &SynthSpec, synth_resource: &SynthResource) -> Result<SynthModule, ModuleError> {
+    fn create_module<'a>(
+        &self,
+        _synth_resource: &'a SynthResource,
+    ) -> Result<SynthModule<'a>, ModuleError> {
         let cc =
             ContinuousControl::new(self.state[0], self.control, self.min_value, self.max_value);
 
         Ok(SynthModule::ContinuousControl(cc))
     }
 
-    fn create_resources(&self, synth_spec: &SynthSpec, _synth_resources: &mut SynthResource) -> Result<(), ModuleError> {
+    fn create_resources(
+        &self,
+        _synth_spec: &SynthSpec,
+        _synth_resources: &mut SynthResource,
+    ) -> Result<(), ModuleError> {
         Ok(())
     }
 

@@ -1,6 +1,6 @@
 use crate::event::ControllerEvent;
-use crate::simulator::state::{State, StateUpdate};
 use crate::modules::SynthModule;
+use crate::simulator::state::{State, StateUpdate};
 
 /*
  // TODO delete
@@ -19,8 +19,6 @@ use alloc::vec::Vec;
 // the cutoff frequency of a filter goes high. At some point the solver
 // won't be able to give a good approximation.
 
-const DEFAULT_STACK_SIZE: usize = 256;
-
 pub struct RungeKutta<'a, 'b, const STAGES: usize> {
     state: &'a mut State<'b>,
     a: [[f32; STAGES]; STAGES],
@@ -31,10 +29,7 @@ pub struct RungeKutta<'a, 'b, const STAGES: usize> {
 }
 
 impl<'a, 'b> RungeKutta<'a, 'b, 4_usize> {
-    pub fn rk4(
-        state: &'a mut State<'b>, 
-        stack: &'a mut [f32]
-    ) -> Self {
+    pub fn rk4(state: &'a mut State<'b>, stack: &'a mut [f32]) -> Self {
         Self {
             state,
             a: [
@@ -149,16 +144,12 @@ impl<'a, 'b, const STAGES: usize> RungeKutta<'a, 'b, STAGES> {
     */
 
     // TODO cleanup
-    pub fn step(
-        &mut self, 
-        dt: f32, 
-        updates: &mut [StateUpdate],
-        temp_states: &mut [State<'b>],
-    ) {
+    pub fn step(&mut self, dt: f32, updates: &mut [StateUpdate], temp_states: &mut [State<'b>]) {
         // let mut updates = vec![];
 
-        for stage in 0 .. STAGES {
-            self.state.clear_update_data(&mut updates[stage], dt * self.c[stage], dt);
+        for stage in 0..STAGES {
+            self.state
+                .clear_update_data(&mut updates[stage], dt * self.c[stage], dt);
             // let mut update = self.state.update_data(dt * self.c[stage], dt);
             self.state.copy_values_to(&mut temp_states[stage]);
             // let mut temp_state = self.state.clone();
@@ -173,7 +164,8 @@ impl<'a, 'b, const STAGES: usize> RungeKutta<'a, 'b, STAGES> {
             // updates.push(update);
         }
 
-        self.state.apply_updates(updates, &self.b, &self.c, dt, STAGES);
+        self.state
+            .apply_updates(updates, &self.b, &self.c, dt, STAGES);
 
         for module in self.modules.iter_mut() {
             module.finalize(&mut self.state, dt, &mut self.stack);

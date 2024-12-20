@@ -1,12 +1,12 @@
-use proc_macro2::TokenStream;
-use proc_macro2::Ident;
 use crate::input_expr::Expr;
 use crate::modules::ModuleSpec;
-use crate::synth_spec::SynthSpec;
-use quote::quote;
-use quote::format_ident;
-use synth_engine::stack_program::compute_stack_size;
 use crate::synth_spec::quote_instruction;
+use crate::synth_spec::SynthSpec;
+use proc_macro2::Ident;
+use proc_macro2::TokenStream;
+use quote::format_ident;
+use quote::quote;
+use synth_engine::stack_program::compute_stack_size;
 
 pub struct Codegen {
     stack_program_code: Vec<TokenStream>,
@@ -40,7 +40,7 @@ impl Codegen {
 
         let instructions = expr.compile_to_instructions(synth_spec).unwrap();
         let stack_size = compute_stack_size(&instructions);
-        let instructions_code: Vec<TokenStream> = 
+        let instructions_code: Vec<TokenStream> =
             instructions.iter().map(quote_instruction).collect();
 
         let instructions_id = format_ident!("instructions_{}", c);
@@ -48,22 +48,20 @@ impl Codegen {
 
         self.stack_program_ident_counter += 1;
 
-        self.stack_program_code.push(
-            quote! { 
-                let #instructions_id = [ #(#instructions_code),* ];
-                let #program_id = StackProgram { 
-                    code: &#instructions_id, 
-                    stack_size: #stack_size,
-                };
-            }
-        );
+        self.stack_program_code.push(quote! {
+            let #instructions_id = [ #(#instructions_code),* ];
+            let #program_id = StackProgram {
+                code: &#instructions_id,
+                stack_size: #stack_size,
+            };
+        });
 
         self.max_stack_size = self.max_stack_size.max(stack_size);
 
         program_id
     }
 
-    pub fn add_wavetable_entry(&mut self, data: Vec<f32>) -> Ident {
+    pub fn add_wavetables(&mut self, data: &Vec<Vec<f32>>) -> Ident {
         todo!()
     }
 
@@ -71,7 +69,11 @@ impl Codegen {
         todo!()
     }
 
-    pub fn add_synthmodule(&mut self, module_spec: &dyn ModuleSpec, synth_spec: &SynthSpec) -> Ident {
+    pub fn add_synthmodule(
+        &mut self,
+        module_spec: &dyn ModuleSpec,
+        synth_spec: &SynthSpec,
+    ) -> Ident {
         todo!()
     }
 
