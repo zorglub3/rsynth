@@ -9,6 +9,8 @@ use std::io::prelude::*;
 use std::sync::mpsc::channel;
 use synth_designer::synth_spec::SynthSpec;
 use synth_engine::simulator::rungekutta::RungeKutta;
+use synth_engine::simulator::Simulator;
+use synth_engine::modules::SynthModule;
 use thiserror::Error;
 
 mod audio;
@@ -61,12 +63,24 @@ pub enum RuntimeError {
     SclError(#[from] SclError),
 }
 
-fn make_simulator(simulator_name: &str, state_size: usize) -> RungeKutta {
+pub struct SimulatorKit {
+    pub state_data: Vec<f32>,
+    pub temp_state_data: Vec<Vec<f32>>,
+    pub update_data: Vec<Vec<f32>>,
+    pub update_type_data: Vec<Vec<UpdateType>>,
+    pub simulator: Box<dyn Simulator>,
+}
+
+fn make_simulator(simulator_name: &str, state_size: usize, model: &mut Vec<SynthModule>) -> Box<dyn Simulator> {
     match simulator_name {
-        "rk4" => RungeKutta::rk4(state_size),
-        "rk38" => RungeKutta::rk38(state_size),
-        "euler" => RungeKutta::euler(state_size),
-        "second_order" => RungeKutta::second_order(0.5, state_size),
+        "rk4" => {
+            let state_data = vec![0.; state_size];
+            todo!("wip");
+            Box::new(RungeKutta::rk4(state_size)),
+        }
+        "rk38" => todo!("RK38 simulator coming soon!"),
+        "euler" => todo!("Euler simulator coming to shop near you!"),
+        "second_order" => todo!("Second order simulator will come second time around!"),
         _ => panic!("Unsupported simulator: {}", simulator_name),
     }
 }
@@ -115,7 +129,7 @@ fn main() -> Result<(), RuntimeError> {
 
     print!("Creating simulator...");
     let simulator =
-        Box::new(make_simulator(args.simulator.as_str(), state_size).with_modules(model));
+        make_simulator(args.simulator.as_str(), state_size, &mut model);
     println!("done");
 
     print!("Creating communication channel...");

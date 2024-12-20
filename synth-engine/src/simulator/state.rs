@@ -11,7 +11,7 @@ pub enum UpdateType {
 
 #[derive(Debug)]
 pub struct State<'a> {
-    values: &'a mut [f32],
+    pub values: &'a mut [f32], // TODO remove pub here
     outputs: [f32; OUTPUTS],
 }
 
@@ -66,9 +66,12 @@ impl<'a> State<'a> {
     }
 
     pub fn copy_values_to(&self, target: &mut Self) {
-        for i in 0..self.values.len() {
+        target.values.copy_from_slice(self.values);
+        /*
+        for i in 0 .. self.values.len() {
             target.values[i] = self.values[i];
         }
+        */
     }
 
     pub fn get(&self, index: usize) -> f32 {
