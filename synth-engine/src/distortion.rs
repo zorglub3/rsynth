@@ -1,3 +1,5 @@
+use crate::synth_math::SynthMath;
+
 fn smoothstep(x: f32) -> f32 {
     let x = x.clamp(0., 1.);
     let x2 = x * x;

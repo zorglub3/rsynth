@@ -6,7 +6,6 @@ use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
-use synth_engine::simulator::module::Module;
 
 const MODULE_TYPE: &str = "contour";
 const MODULE_NAME: &str = "name";
@@ -56,7 +55,7 @@ impl ModuleSpec for ContourModuleSpec {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
+    fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
         let env = Envelope::new(
             self.inputs[0].compile(&synth_spec)?,
             self.inputs[1].compile(&synth_spec)?,
@@ -66,7 +65,7 @@ impl ModuleSpec for ContourModuleSpec {
             self.state[1],
         );
 
-        Ok(Box::new(env))
+        Ok(SynthModule::Contour(env))
     }
 
     fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {

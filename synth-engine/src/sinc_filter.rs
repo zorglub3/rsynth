@@ -1,3 +1,4 @@
+use crate::synth_math::SynthMath;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::f32::consts::PI;

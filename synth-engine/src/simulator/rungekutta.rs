@@ -1,7 +1,8 @@
 use crate::event::ControllerEvent;
-use crate::simulator::module::Module;
+use crate::modules::SynthModule;
 use crate::simulator::state::State;
-use alloc::boxed::Box;
+use crate::simulator::state::StateUpdate;
+use crate::simulator::Simulator;
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -10,98 +11,105 @@ use alloc::vec::Vec;
 // the cutoff frequency of a filter goes high. At some point the solver
 // won't be able to give a good approximation.
 
-const DEFAULT_STACK_SIZE: usize = 256;
-
-pub struct RungeKutta {
+pub struct RungeKutta<const STAGES: usize> {
     state: State,
-    a: Vec<Vec<f32>>,
-    b: Vec<f32>,
-    c: Vec<f32>,
-    stages: usize,
-    modules: Vec<Box<dyn Module>>,
+    updates: [StateUpdate; STAGES],
+    temp_states: [State; STAGES],
+    a: [[f32; STAGES]; STAGES],
+    b: [f32; STAGES],
+    c: [f32; STAGES],
+    modules: Vec<SynthModule>,
     stack: Vec<f32>,
 }
 
-impl RungeKutta {
-    pub fn rk4(state_size: usize) -> Self {
-        let a = vec![vec![], vec![0.5], vec![0.0, 0.5], vec![0.0, 0.0, 1.0]];
-
-        let b = vec![1.0 / 6.0, 1.0 / 3.0, 1.0 / 3.0, 1.0 / 6.0];
-
-        let c = vec![0.0, 0.5, 0.5, 1.0];
-
+impl RungeKutta<4> {
+    pub fn rk4(state_size: usize, stack_size: usize) -> Self {
         Self {
             state: State::new(state_size),
-            a,
-            b,
-            c,
-            stages: 4,
+            updates: [
+                StateUpdate::new(state_size),
+                StateUpdate::new(state_size),
+                StateUpdate::new(state_size),
+                StateUpdate::new(state_size),
+            ],
+            temp_states: [
+                State::new(state_size),
+                State::new(state_size),
+                State::new(state_size),
+                State::new(state_size),
+            ],
+            a: [
+                [0.0, 0.0, 0.0, 0.0],
+                [0.5, 0.0, 0.0, 0.0],
+                [0.0, 0.5, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+            ],
+            b: [1.0 / 6.0, 1.0 / 3.0, 1.0 / 3.0, 1.0 / 6.0],
+            c: [0.0, 0.5, 0.5, 1.0],
             modules: Vec::new(),
-            stack: vec![0.0_f32; DEFAULT_STACK_SIZE],
+            stack: vec![0.; stack_size],
         }
     }
 
-    pub fn rk38(state_size: usize) -> Self {
-        let a = vec![
-            vec![],
-            vec![1.0 / 3.0],
-            vec![-1.0 / 3.0, 1.0],
-            vec![1.0, -1.0, 1.0],
-        ];
-
-        let b = vec![1.0 / 8.0, 3.0 / 8.0, 3.0 / 8.0, 1.0 / 8.0];
-
-        let c = vec![0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0];
-
+    pub fn rk38(state_size: usize, stack_size: usize) -> Self {
         Self {
             state: State::new(state_size),
-            a,
-            b,
-            c,
-            stages: 4,
+            updates: [
+                StateUpdate::new(state_size),
+                StateUpdate::new(state_size),
+                StateUpdate::new(state_size),
+                StateUpdate::new(state_size),
+            ],
+            temp_states: [
+                State::new(state_size),
+                State::new(state_size),
+                State::new(state_size),
+                State::new(state_size),
+            ],
+            a: [
+                [0., 0., 0., 0.],
+                [1. / 3., 0., 0., 0.],
+                [-1. / 3., 1., 0., 0.],
+                [1., -1., 1., 0.],
+            ],
+            b: [1. / 8., 3. / 8., 3. / 8., 1. / 8.],
+            c: [0., 1. / 3., 2. / 3., 1.],
             modules: Vec::new(),
-            stack: vec![0.0_f32; DEFAULT_STACK_SIZE],
+            stack: vec![0.; stack_size],
         }
     }
+}
 
-    pub fn euler(state_size: usize) -> Self {
-        let a = vec![vec![]];
-        let b = vec![1.0];
-        let c = vec![0.0];
-
+impl RungeKutta<1> {
+    pub fn euler(state_size: usize, stack_size: usize) -> Self {
         Self {
             state: State::new(state_size),
-            a,
-            b,
-            c,
-            stages: 1,
+            updates: [StateUpdate::new(state_size)],
+            temp_states: [State::new(state_size)],
+            a: [[0.]],
+            b: [1.],
+            c: [0.],
             modules: Vec::new(),
-            stack: vec![0.0_f32; DEFAULT_STACK_SIZE],
+            stack: vec![0.; stack_size],
         }
     }
+}
 
-    pub fn second_order(_alpha: f32, _state_size: usize) -> Self {
+impl RungeKutta<2> {
+    pub fn second_order(_alpha: f32, _state_size: usize, _stack_size: usize) -> Self {
         todo!("Second order Runge Kutta method")
     }
+}
 
-    pub fn with_modules(&mut self, modules: Vec<Box<dyn Module>>) -> Self {
-        let state_size = self.state.len();
-
-        Self {
-            state: State::new(state_size),
-            a: self.a.clone(),
-            b: self.b.clone(),
-            c: self.c.clone(),
-            stages: self.stages,
-            modules,
-            stack: self.stack.clone(),
-        }
+impl<const STAGES: usize> Simulator for RungeKutta<STAGES> {
+    fn set_modules(&mut self, modules: Vec<SynthModule>) {
+        self.modules = modules;
     }
 
-    pub fn step(&mut self, dt: f32) {
+    fn step(&mut self, dt: f32) {
         let mut updates = vec![];
 
-        for stage in 0..self.stages {
+        for stage in 0..STAGES {
             let mut update = self.state.update_data(dt * self.c[stage], dt);
             let mut temp_state = self.state.clone();
 
@@ -121,17 +129,13 @@ impl RungeKutta {
         }
     }
 
-    pub fn get_stereo_output(&self) -> (f32, f32) {
+    fn get_stereo_output(&self) -> (f32, f32) {
         (self.state.get_output(0), self.state.get_output(1))
     }
 
-    pub fn process_event(&mut self, event: ControllerEvent) {
+    fn process_event(&mut self, event: ControllerEvent) {
         for module in &mut self.modules {
             module.process_event(&event);
         }
-    }
-
-    pub fn get_state(&mut self) -> &mut State {
-        &mut self.state
     }
 }

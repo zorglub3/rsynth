@@ -3,6 +3,7 @@ use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
+use crate::synth_math::SynthMath;
 use core::f32::consts::PI;
 
 // TODO add to synth designer

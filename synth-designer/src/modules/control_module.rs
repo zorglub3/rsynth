@@ -4,7 +4,6 @@ use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
-use synth_engine::simulator::module::Module;
 
 const MODULE_TYPE: &str = "midi_cc";
 const MODULE_NAME: &str = "name";
@@ -54,11 +53,11 @@ impl ModuleSpec for ControlModuleSpec {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, _synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
+    fn create_module(&self, _synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
         let midi_cc =
             ContinuousControl::new(self.state[0], self.control, self.min_value, self.max_value);
 
-        Ok(Box::new(midi_cc))
+        Ok(SynthModule::ContinuousControl(midi_cc))
     }
 
     fn codegen(&self, _synth_spec: &SynthSpec) -> TokenStream {

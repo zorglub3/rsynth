@@ -6,6 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+panic-semihosting = "0.6.0"
+static-alloc = "0.2.5"
 synth-engine = { version = "0.1.0", path = "../synth-engine" }
 
 [build-dependencies]

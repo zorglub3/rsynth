@@ -5,7 +5,6 @@ use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
-use synth_engine::simulator::module::Module;
 
 const MODULE_TYPE: &str = "mono_output";
 const MODULE_NAME: &str = "name";
@@ -47,10 +46,10 @@ impl ModuleSpec for MonoOutputModuleSpec {
         /* do nothing */
     }
 
-    fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
+    fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
         let mono_output = MonoOutput::new(self.output_index, self.inputs[0].compile(&synth_spec)?);
 
-        Ok(Box::new(mono_output))
+        Ok(SynthModule::Output(mono_output))
     }
 
     fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {

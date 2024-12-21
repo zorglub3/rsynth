@@ -6,7 +6,6 @@ use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
-use synth_engine::simulator::module::Module;
 
 const MODULE_TYPE: &str = "folder";
 const MODULE_NAME: &str = "name";
@@ -51,14 +50,14 @@ impl ModuleSpec for FolderModuleSpec {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
+    fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
         let folder = Folder::new(
             self.inputs[0].compile(&synth_spec)?,
             self.inputs[1].compile(&synth_spec)?,
             self.state[0],
         );
 
-        Ok(Box::new(folder))
+        Ok(SynthModule::Wavefolder(folder))
     }
 
     fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {

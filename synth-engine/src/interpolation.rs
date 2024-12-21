@@ -1,3 +1,4 @@
+use crate::synth_math::SynthMath;
 use core::ops::Deref;
 
 // see https://www.paulinternet.nl/?page=bicubic

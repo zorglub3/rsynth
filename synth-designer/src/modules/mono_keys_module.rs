@@ -4,7 +4,6 @@ use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
-use synth_engine::simulator::module::Module;
 
 const MODULE_TYPE: &str = "midi_mono";
 const MODULE_NAME: &str = "name";
@@ -43,7 +42,7 @@ impl ModuleSpec for MonoKeysModuleSpec {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, _synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
+    fn create_module(&self, _synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
         let midi_mono = MonoKeys::new(
             self.state[0],
             self.state[1],
@@ -52,7 +51,7 @@ impl ModuleSpec for MonoKeysModuleSpec {
             self.state[4],
         );
 
-        Ok(Box::new(midi_mono))
+        Ok(SynthModule::MonoKeys(midi_mono))
     }
 
     fn codegen(&self, _synth_spec: &SynthSpec) -> TokenStream {

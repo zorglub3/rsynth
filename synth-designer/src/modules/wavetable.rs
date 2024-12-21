@@ -8,7 +8,6 @@ use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::wavetable::*;
-use synth_engine::simulator::module::Module;
 
 const MODULE_TYPE: &str = "wavetable_oscillator";
 const MODULE_NAME: &str = "name";
@@ -116,7 +115,7 @@ impl ModuleSpec for WavetableOscillatorModuleSpec {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
+    fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
         let module = Wavetable::new(
             self.f0,
             self.state[0],
@@ -127,7 +126,7 @@ impl ModuleSpec for WavetableOscillatorModuleSpec {
             self.wavetables.clone(),
         );
 
-        Ok(Box::new(module))
+        Ok(SynthModule::WavetableOscillator(module))
     }
 
     fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {

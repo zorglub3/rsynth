@@ -7,7 +7,7 @@ use ini::Ini;
 use proc_macro2::TokenStream;
 use quote::quote;
 use std::collections::BTreeMap;
-use synth_engine::simulator::module::Module;
+use synth_engine::modules::SynthModule;
 use synth_engine::stack_program::Function;
 use synth_engine::stack_program::Instr;
 use synth_engine::stack_program::StackProgram;
@@ -69,7 +69,7 @@ impl SynthSpec {
         size
     }
 
-    pub fn make_modules(&self, modules: &mut Vec<Box<dyn Module>>) -> Result<(), ModuleError> {
+    pub fn make_modules(&self, modules: &mut Vec<SynthModule>) -> Result<(), ModuleError> {
         for (_k, v) in self.0.iter() {
             modules.push(v.create_module(self)?);
         }
@@ -202,5 +202,5 @@ pub fn gen_stack_program(stack_program: &StackProgram) -> TokenStream {
 
     let stack_size = stack_program.stack_size;
 
-    quote! { StackProgram::new(vec![#(#prg),*], #stack_size) }
+    quote! { StackProgram::new_with_stack_size(vec![#(#prg),*], #stack_size) }
 }

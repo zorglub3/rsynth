@@ -6,7 +6,6 @@ use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
-use synth_engine::simulator::module::Module;
 
 const MODULE_TYPE: &str = "amplifier";
 const MODULE_NAME: &str = "name";
@@ -53,7 +52,7 @@ impl ModuleSpec for AmpModuleSpec {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
+    fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
         let amplifier = Amplifier::new(
             self.inputs[0].compile(&synth_spec)?,
             self.state[0],
@@ -61,7 +60,7 @@ impl ModuleSpec for AmpModuleSpec {
             self.inputs[2].compile(&synth_spec)?,
         );
 
-        Ok(Box::new(amplifier))
+        Ok(SynthModule::Amp(amplifier))
     }
 
     fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {

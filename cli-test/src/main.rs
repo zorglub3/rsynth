@@ -1,7 +1,11 @@
 use clap::Parser;
 use std::f32::consts::PI;
+use synth_engine::modules::SynthModule;
+use synth_engine::simulator::Simulator;
 use synth_engine::stack_program::*;
-use synth_engine::{modules::*, simulator::module::Module, simulator::rungekutta::RungeKutta};
+use synth_engine::{modules::*, simulator::rungekutta::RungeKutta};
+
+const STACK_SIZE: usize = 256;
 
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
@@ -16,46 +20,52 @@ struct CliArgs {
     simulator: String,
 }
 
-fn test_simulator(simulator_name: &str, state_size: usize) -> RungeKutta {
+fn test_simulator(simulator_name: &str, state_size: usize) -> Box<dyn Simulator> {
     match simulator_name {
-        "rk4" => RungeKutta::rk4(state_size),
-        "rk38" => RungeKutta::rk38(state_size),
-        "euler" => RungeKutta::euler(state_size),
+        "rk4" => Box::new(RungeKutta::rk4(state_size, STACK_SIZE)),
+        "rk38" => Box::new(RungeKutta::rk38(state_size, STACK_SIZE)),
+        "euler" => Box::new(RungeKutta::euler(state_size, STACK_SIZE)),
         _ => panic!("Unsupported Runge Kutta simulator {}", simulator_name),
     }
 }
 
-fn test_modules(test: usize) -> Vec<Box<dyn Module>> {
-    let mut result: Vec<Box<dyn Module>> = Vec::new();
+fn test_modules(test: usize) -> Vec<SynthModule> {
+    let mut result: Vec<SynthModule> = Vec::new();
 
     match test {
         0 => {
-            result.push(Box::new(QuadratureOscillator::new(
+            result.push(SynthModule::QuadOscillator(QuadratureOscillator::new(
                 1.,
                 4,
                 5,
                 StackProgram::constant(0.),
                 StackProgram::constant(110.),
             )));
-            result.push(Box::new(Folder::new(
+            result.push(SynthModule::Wavefolder(Folder::new(
                 StackProgram::zero(),
                 StackProgram::zero(),
                 1,
             )));
-            result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(1))));
+            result.push(SynthModule::Output(MonoOutput::new(
+                0,
+                StackProgram::from_index(1),
+            )));
         }
         1 => {
-            result.push(Box::new(QuadratureOscillator::new(
+            result.push(SynthModule::QuadOscillator(QuadratureOscillator::new(
                 1.,
                 1,
                 2,
                 StackProgram::constant(0.),
                 StackProgram::constant(110.),
             )));
-            result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(1))));
+            result.push(SynthModule::Output(MonoOutput::new(
+                0,
+                StackProgram::from_index(1),
+            )));
         }
         2 => {
-            result.push(Box::new(BowedOscillator::new(
+            result.push(SynthModule::Bowed(BowedOscillator::new(
                 1.,
                 500.0,
                 1,
@@ -65,7 +75,10 @@ fn test_modules(test: usize) -> Vec<Box<dyn Module>> {
                 StackProgram::constant(500.),
                 StackProgram::constant(0.3),
             )));
-            result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(2))));
+            result.push(SynthModule::Output(MonoOutput::new(
+                0,
+                StackProgram::from_index(2),
+            )));
         }
         3 => {
             let mut wavetable1: Vec<f32> = Vec::new();
@@ -77,7 +90,7 @@ fn test_modules(test: usize) -> Vec<Box<dyn Module>> {
                 let v2 = ((i as f32) * 2. * PI / 256.).sin();
                 wavetable2.push(v2);
             }
-            result.push(Box::new(Wavetable::new(
+            result.push(SynthModule::WavetableOscillator(Wavetable::new(
                 0.,
                 1,
                 2,
@@ -86,11 +99,17 @@ fn test_modules(test: usize) -> Vec<Box<dyn Module>> {
                 StackProgram::constant(0.5),
                 vec![wavetable2, wavetable1],
             )));
-            result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(2))));
+            result.push(SynthModule::Output(MonoOutput::new(
+                0,
+                StackProgram::from_index(2),
+            )));
         }
         4 => {
-            result.push(Box::new(NoiseGenerator::new_with_default(1, 2)));
-            result.push(Box::new(MonoOutput::new(0, StackProgram::from_index(2))));
+            result.push(SynthModule::Noise(NoiseGenerator::new_with_default(1, 2)));
+            result.push(SynthModule::Output(MonoOutput::new(
+                0,
+                StackProgram::from_index(2),
+            )));
         }
         5 => {
             todo!("filter sweep");
@@ -104,7 +123,9 @@ fn test_modules(test: usize) -> Vec<Box<dyn Module>> {
 fn main() {
     let args = CliArgs::parse();
 
-    let mut simulator = test_simulator(&args.simulator, 32).with_modules(test_modules(args.test));
+    let mut simulator = test_simulator(&args.simulator, 32);
+
+    simulator.set_modules(test_modules(args.test));
 
     let dt = 1.0 / args.sample_rate;
 

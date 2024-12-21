@@ -9,7 +9,6 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::vosim::Vosim;
 use synth_engine::modules::wavetable::*;
-use synth_engine::simulator::module::Module;
 
 const MODULE_TYPE: &str = "wavetable_oscillator";
 const MODULE_NAME: &str = "name";
@@ -123,7 +122,7 @@ impl ModuleSpec for VosimOscillatorModuleSpec {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
+    fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
         let module = Vosim::new(
             self.f0,
             self.state[0],
@@ -136,7 +135,7 @@ impl ModuleSpec for VosimOscillatorModuleSpec {
             self.wavetables.clone(),
         );
 
-        Ok(Box::new(module))
+        Ok(SynthModule::VosimOscillator(module))
     }
 
     fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {

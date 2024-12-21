@@ -36,7 +36,7 @@ use crate::synth_spec::SynthSpec;
 use proc_macro2::TokenStream;
 use std::num::ParseFloatError;
 use std::num::ParseIntError;
-use synth_engine::simulator::module::Module;
+use synth_engine::modules::SynthModule;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -65,7 +65,7 @@ pub enum ModuleError {
 
 pub trait ModuleSpec {
     fn allocate_state(&mut self, alloc: &mut StateAllocator);
-    fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError>;
+    fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError>;
     fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream;
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError>;
     fn get_name(&self) -> &str;

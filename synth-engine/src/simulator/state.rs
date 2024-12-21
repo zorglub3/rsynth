@@ -20,6 +20,17 @@ pub struct StateUpdate {
     time_step: f32,
 }
 
+impl StateUpdate {
+    pub fn new(size: usize) -> Self {
+        Self {
+            updates: vec![0.; size],
+            update_types: vec![UpdateType::Differentiable; size],
+            delta_time: 0.,
+            time_step: 0.,
+        }
+    }
+}
+
 impl State {
     pub fn new(size: usize) -> Self {
         Self {

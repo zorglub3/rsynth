@@ -2,6 +2,7 @@ use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
+use crate::synth_math::SynthMath;
 
 pub struct Amplifier {
     signal_input: StackProgram,
@@ -29,11 +30,11 @@ impl Amplifier {
 fn amplifier_amount(lin_control: f32, exp_control: f32) -> f32 {
     // TODO - these are constants - put them in the Amplifier struct
     // 2.0 and 5.0 should be arguments to `new`
-    let min: f32 = 2.0_f32.powf(-5.0);
+    let min: f32 = -5.0_f32.exp2();
     let scale: f32 = 1. / (1. - min);
 
     let exp_control = exp_control.clamp(0., 1.);
-    let e = (2.0_f32.powf(5.0 * (exp_control - 1.)) - min) * scale;
+    let e = ((5. * (exp_control - 1.)).exp2() - min) * scale;
     (e + lin_control).max(0.)
 }
 

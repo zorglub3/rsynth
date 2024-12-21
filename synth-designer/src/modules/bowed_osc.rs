@@ -7,7 +7,6 @@ use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
-use synth_engine::simulator::module::Module;
 
 const MODULE_TYPE: &str = "bowed_oscillator";
 const MODULE_NAME: &str = "name";
@@ -68,7 +67,7 @@ impl ModuleSpec for BowedOscillatorModuleSpec {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
+    fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
         let osc = BowedOscillator::new(
             self.f0,
             self.a,
@@ -80,7 +79,7 @@ impl ModuleSpec for BowedOscillatorModuleSpec {
             self.inputs[3].compile(&synth_spec)?,
         );
 
-        Ok(Box::new(osc))
+        Ok(SynthModule::Bowed(osc))
     }
 
     fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {

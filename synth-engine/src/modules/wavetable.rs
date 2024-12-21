@@ -5,6 +5,7 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::sinc_filter::downsample_half;
 use crate::stack_program::*;
+use crate::synth_math::SynthMath;
 use alloc::vec::Vec;
 use core::f32::consts::PI;
 

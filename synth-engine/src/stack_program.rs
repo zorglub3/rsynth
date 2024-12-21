@@ -1,7 +1,7 @@
 use crate::simulator::state::State;
+use crate::synth_math::SynthMath;
 use alloc::vec;
 use alloc::vec::Vec;
-use thiserror::Error;
 
 #[derive(PartialEq, Debug)]
 pub enum Instr {
@@ -33,13 +33,10 @@ pub enum Function {
     Lerp,
 }
 
-#[derive(Error, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum ExecError {
-    #[error("Stack overflow")]
     StackOverflow,
-    #[error("Stack underflow")]
     StackUnderflow,
-    #[error("State index out of bounds: {0}")]
     StateOutOfBounds(usize),
 }
 
@@ -77,7 +74,13 @@ pub fn compute_stack_size(code: &Vec<Instr>) -> usize {
 }
 
 impl StackProgram {
-    pub fn new(code: Vec<Instr>, stack_size: usize) -> Self {
+    pub fn new_with_stack_size(code: Vec<Instr>, stack_size: usize) -> Self {
+        Self { code, stack_size }
+    }
+
+    pub fn new(code: Vec<Instr>) -> Self {
+        let stack_size = compute_stack_size(&code);
+
         Self { code, stack_size }
     }
 

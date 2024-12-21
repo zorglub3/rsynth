@@ -89,9 +89,7 @@ impl Expr {
 
         self.compile_helper(synth_spec, &mut program)?;
 
-        let stack_size = compute_stack_size(&program);
-
-        Ok(StackProgram::new(program, stack_size))
+        Ok(StackProgram::new(program))
     }
 
     fn compile_helper(

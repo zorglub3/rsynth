@@ -7,7 +7,7 @@ use cpal::{
 use scale::Scale;
 use std::sync::mpsc::Receiver;
 use synth_engine::event::ControllerEvent;
-use synth_engine::simulator::rungekutta::RungeKutta;
+use synth_engine::simulator::Simulator;
 
 pub struct AudioStream(Box<dyn StreamTrait>);
 
@@ -53,7 +53,7 @@ fn get_sound_config(
 pub fn sound_simulation(
     sample_rate: u32,
     buffer_size: u32,
-    mut simulation: Box<RungeKutta>,
+    mut simulation: Box<dyn Simulator>,
     receiver: Receiver<ControllerEvent>,
     scale: Scale,
     pitch_wheel_range: f32,

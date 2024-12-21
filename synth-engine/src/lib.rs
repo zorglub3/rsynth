@@ -17,3 +17,4 @@ pub mod modules;
 pub mod simulator;
 pub mod sinc_filter;
 pub mod stack_program;
+pub mod synth_math;

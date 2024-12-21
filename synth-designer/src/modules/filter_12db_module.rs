@@ -6,7 +6,6 @@ use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
-use synth_engine::simulator::module::Module;
 
 const MODULE_TYPE: &str = "filter_12db";
 const MODULE_NAME: &str = "name";
@@ -69,7 +68,7 @@ impl ModuleSpec for Filter12dbModuleSpec {
         alloc.allocate(&mut self.state);
     }
 
-    fn create_module(&self, synth_spec: &SynthSpec) -> Result<Box<dyn Module>, ModuleError> {
+    fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
         let filter = Filter12db::new(
             self.f0,
             self.state[0],
@@ -81,7 +80,7 @@ impl ModuleSpec for Filter12dbModuleSpec {
             self.inputs[0].compile(&synth_spec)?,
         );
 
-        Ok(Box::new(filter))
+        Ok(SynthModule::Filter2Pole(filter))
     }
 
     fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
