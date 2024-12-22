@@ -107,22 +107,34 @@ impl<const STAGES: usize> Simulator for RungeKutta<STAGES> {
     }
 
     fn step(&mut self, dt: f32) {
-        let mut updates = vec![];
+        // let mut updates = vec![];
 
         for stage in 0..STAGES {
-            let mut update = self.state.update_data(dt * self.c[stage], dt);
-            let mut temp_state = self.state.clone();
+            self.updates[stage].init(dt * self.c[stage], dt);
+            self.temp_states[stage].copy_from(&self.state);
+            // let mut update = self.state.update_data(dt * self.c[stage], dt);
+            // let mut temp_state = self.state.clone();
 
-            temp_state.apply_updates(&updates, &self.a[stage], &self.c, dt);
+            self.temp_states[stage].apply_updates(
+                &self.updates,
+                &self.a[stage],
+                &self.c,
+                dt,
+                stage);
+            // temp_state.apply_updates(&updates, &self.a[stage], &self.c, dt);
 
             for module in &self.modules {
-                module.simulate(&temp_state, &mut update, &mut self.stack);
+                module.simulate(
+                    &self.temp_states[stage], 
+                    &mut self.updates[stage], 
+                    &mut self.stack);
             }
 
-            updates.push(update);
+            // updates.push(update);
         }
 
-        self.state.apply_updates(&updates, &self.b, &self.c, dt);
+        self.state.apply_updates(&self.updates, &self.b, &self.c, dt, STAGES);
+        // self.state.apply_updates(&updates, &self.b, &self.c, dt);
 
         for module in &mut self.modules {
             module.finalize(&mut self.state, dt, &mut self.stack);

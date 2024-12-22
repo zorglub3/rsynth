@@ -11,6 +11,7 @@ use core::f32::consts::PI;
 
 pub const FREQUENCY_LIMIT: f32 = 18_000.0;
 
+// TODO use the `crate::wavetable::*` instead
 pub struct WavetableData {
     pub samples: Vec<f32>,
     pub len_f32: f32,

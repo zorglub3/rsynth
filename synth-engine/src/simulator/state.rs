@@ -20,17 +20,6 @@ pub struct StateUpdate {
     time_step: f32,
 }
 
-impl StateUpdate {
-    pub fn new(size: usize) -> Self {
-        Self {
-            updates: vec![0.; size],
-            update_types: vec![UpdateType::Differentiable; size],
-            delta_time: 0.,
-            time_step: 0.,
-        }
-    }
-}
-
 impl State {
     pub fn new(size: usize) -> Self {
         Self {
@@ -60,26 +49,26 @@ impl State {
     }
 
     pub fn get(&self, index: usize) -> f32 {
-        debug_assert!(index < self.values.len());
-
         self.values[index]
     }
 
     pub fn set(&mut self, index: usize, v: f32) {
-        debug_assert!(index < self.values.len());
-
         self.values[index] = v;
     }
 
-    pub fn apply_updates(&mut self, updates: &[StateUpdate], weights: &[f32], c: &[f32], dt: f32) {
-        debug_assert!(updates.len() == weights.len());
-        debug_assert!(updates.len() <= c.len());
-
+    pub fn apply_updates(
+        &mut self, 
+        updates: &[StateUpdate], 
+        weights: &[f32], 
+        c: &[f32], 
+        dt: f32,
+        update_count: usize,
+    ) {
         for i in 0..self.len() {
             let mut update = 0.0_f32;
             let mut previous_value = self.values[i];
 
-            for j in 0..updates.len() {
+            for j in 0 .. update_count.min(updates.len()) {
                 match updates[j].update_types[i] {
                     UpdateType::Absolute => {
                         if j == 0 {
@@ -98,6 +87,11 @@ impl State {
         }
     }
 
+    pub fn copy_from(&mut self, other: &State) {
+        self.values.copy_from_slice(&other.values);
+        self.outputs.copy_from_slice(&other.outputs);
+    }
+
     pub fn set_output(&mut self, index: usize, v: f32) {
         self.outputs[index] = v;
     }
@@ -108,6 +102,22 @@ impl State {
 }
 
 impl StateUpdate {
+    pub fn new(size: usize) -> Self {
+        Self {
+            updates: vec![0.; size],
+            update_types: vec![UpdateType::Differentiable; size],
+            delta_time: 0.,
+            time_step: 0.,
+        }
+    }
+
+    pub fn init(&mut self, delta_time: f32, time_step: f32) {
+        self.delta_time = delta_time;
+        self.time_step = time_step;
+        self.updates.fill(0.);
+        self.update_types.fill(UpdateType::Differentiable);
+    }
+
     pub fn set(&mut self, index: usize, update: f32, update_type: UpdateType) {
         debug_assert!(index < self.updates.len());
 

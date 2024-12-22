@@ -2,6 +2,38 @@
 /// faster (but maybe slightly less precise) function. For now we just get
 /// a wrapper on `libm`.
 
+/// See [this note on fast
+/// exponentation](https://codingforspeed.com/using-faster-exponential-approximation/)
+/// It works
+#[allow(dead_code)]
+fn fast_exp_256(x: f32) -> f32 {
+    let mut x = 1. + x / 256.;
+    x *= x; x *= x; x *= x; x *= x;
+    x *= x; x *= x; x *= x; x *= x;
+    x
+}
+
+#[allow(dead_code)]
+fn fast_exp_1024(x: f32) -> f32 {
+    let mut x = 1. + x / 1024.;
+    x *= x; x *= x; x *= x; x *= x;
+    x *= x; x *= x; x *= x; x *= x;
+    x *= x; x *= x;
+    x
+}
+
+const LN2: f32 = 0.6931471805599453;
+
+#[allow(dead_code)]
+fn fast_exp2_256(x: f32) -> f32 {
+    fast_exp_256(LN2 * x)
+}
+
+#[allow(dead_code)]
+fn fast_exp2_1024(x: f32) -> f32 {
+    fast_exp_1024(LN2 * x)
+}
+
 pub trait SynthMath {
     type Output;
 
@@ -83,4 +115,39 @@ impl SynthMath for f32 {
     fn fract(&self) -> Self {
         *self - self.floor()
     }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_fast_exp2_1024() {
+        let x = 1.;
+        assert_eq!(libm::exp2f(x), fast_exp2_1024(x));
+        let x = 2.;
+        assert_eq!(libm::exp2f(x), fast_exp2_1024(x));
+        let x = 5.;
+        assert_eq!(libm::exp2f(x), fast_exp2_1024(x));
+        let x = 0.;
+        assert_eq!(libm::exp2f(x), fast_exp2_1024(x));
+        let x = 0.001;
+        assert_eq!(libm::exp2f(x), fast_exp2_1024(x));
+    }
+
+    #[test]
+    fn test_fast_exp2_256() {
+        let x = 1.;
+        assert_eq!(libm::exp2f(x), fast_exp2_256(x));
+        let x = 2.;
+        assert_eq!(libm::exp2f(x), fast_exp2_256(x));
+        let x = 5.;
+        assert_eq!(libm::exp2f(x), fast_exp2_256(x));
+        let x = 0.;
+        assert_eq!(libm::exp2f(x), fast_exp2_256(x));
+        let x = 0.001;
+        assert_eq!(libm::exp2f(x), fast_exp2_256(x));
+    }
+
+
 }

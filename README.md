@@ -71,6 +71,23 @@ touch example/build.rs
 
 Use `rustfmt` to clean up the output.
 
+## Notes on daisy seed
+
+When it all goes wrong and even the boot loader is broken, then:
+
+1. Connect the daisy seed to the pc.
+2. Press and hold `boot` button.
+3. Press and release `reset button.
+4. Release `boot` button. One daisy seed LED should light up lots then just be lit.
+5. Go to the `core` folder in `libDaisy` (as found on github).
+6. Run `make program-boot`
+
+To upload something do as described [here](https://forum.electro-smith.com/t/resolved-error-when-using-program-dfu-with-diasy-bootloader-and-the-app-type-sram/3934/3):
+
+1. Press and release `reset` button.
+2. Press and release `boot` button. LED should "breathe" slowly. Boot loader is ready.
+3. Upload `.bin` file with the `bin_load.sh` script.
+
 ## References
 
 - Unsampled Digital Synthesis: Computing the Output of Implicit and Non-Linear

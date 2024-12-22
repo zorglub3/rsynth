@@ -213,7 +213,7 @@ mod test {
 
         let input = "2. * noise.signal_output";
         let expected =
-            StackProgram::new(vec![Instr::State(0), Instr::Const(2.), Instr::Multiply], 2);
+            StackProgram::new(vec![Instr::State(0), Instr::Const(2.), Instr::Multiply]);
 
         assert_eq!(
             Expr::parse(input).unwrap().compile(&synth_spec).unwrap(),
@@ -237,7 +237,6 @@ mod test {
                 Instr::Multiply,
                 Instr::Call(Function::Sin),
             ],
-            2,
         );
 
         assert_eq!(

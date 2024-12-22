@@ -1,0 +1,13 @@
+#!/bin/bash
+
+DAISY_PID=df11
+INTERNAL_ADDRESS=0x08000000
+QSPI_ADDRESS=0x90040000
+FLASH_ADDRESS=$QSPI_ADDRESS
+USBPID=$DAISY_PID
+
+program_dfu() {
+  dfu-util -a 0 -s $FLASH_ADDRESS:leave -D $1 -d ,0483:$USBPID
+}
+
+program_dfu $1

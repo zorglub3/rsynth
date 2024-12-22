@@ -253,7 +253,7 @@ mod test {
 
         use Instr::*;
 
-        let prg = StackProgram::new(vec![Const(2.), Const(3.), Add], 2);
+        let prg = StackProgram::new(vec![Const(2.), Const(3.), Add]);
 
         assert_eq!(prg.run(&state, &mut stack), Ok(5.));
     }

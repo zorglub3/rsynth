@@ -8,6 +8,7 @@ use crate::synth_math::SynthMath;
 use alloc::vec::Vec;
 use core::f32::consts::PI;
 
+// TODO use the crate::wavetable::* instead
 pub struct Vosim {
     f0: f32,
     position_state: usize,
