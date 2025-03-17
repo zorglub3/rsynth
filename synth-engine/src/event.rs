@@ -1,5 +1,7 @@
 //! Types for events that the synth engine can receive for real time control.
 
+use crate::midi::*;
+
 #[derive(Debug, Clone, Copy)]
 pub enum ControllerEvent {
     NoteOn {
@@ -25,24 +27,6 @@ pub enum ControllerEvent {
     PitchWheel {
         amount: f32,
     },
-}
-
-const MIDI_NOTE_OFF: u8 = 0x80;
-const MIDI_NOTE_ON: u8 = 0x90;
-const MIDI_POLY_AFTERTOUCH: u8 = 0xA0;
-const MIDI_CC: u8 = 0xB0;
-const MIDI_CHANNEL_AFTERTOUCH: u8 = 0xD0;
-const MIDI_PROGRAM_CHANGE: u8 = 0xC0;
-const MIDI_PITCH_WHEEL: u8 = 0xE0;
-const PITCH_WHEEL_MID: u16 = 0x2000;
-
-fn u7_to_f32(v: u8) -> f32 {
-    ((v & 0x7F) as f32) / (0x7F as f32)
-}
-
-fn pitchwheel(msb: u8, lsb: u8) -> f32 {
-    let x: u16 = (((msb & 0x7F) as u16) << 7) | ((lsb & 0x7F) as u16);
-    ((x as f32) - (PITCH_WHEEL_MID as f32)) / (PITCH_WHEEL_MID as f32)
 }
 
 pub fn decode_midi_bytes(bytes: &[u8], channel: Option<u8>) -> Option<ControllerEvent> {

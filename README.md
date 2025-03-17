@@ -13,8 +13,9 @@ simulates the synthesizer system. It can receive MIDI events and play sound.
 ## Future work
 
 - Compile time parsing of INI files to generate Rust code for defining a synth.
+  _This is work in progress. The basics are there, but this needs testing._
 - Compile to more exotic targets: Raspberry Pi and Daisy Seed. Use `no_std` in
-  `synth-engine` and allow for INI file to Rust compilation at build time.
+  `synth-engine`. _This is work in progress. For now I'm trying out the Daisy Seed._
 - Build unikernel deployments of a complete synth to Raspberry Pi to make a 
   "hardware synth" that starts up real quick. Have a look at unikraft.
 - More testing.
@@ -87,6 +88,13 @@ To upload something do as described [here](https://forum.electro-smith.com/t/res
 1. Press and release `reset` button.
 2. Press and release `boot` button. LED should "breathe" slowly. Boot loader is ready.
 3. Upload `.bin` file with the `bin_load.sh` script.
+
+## Copyright, License and Warranty
+
+All work is copyright Thomas Pécseli. The project comes with no warranty, fit for particular
+purpose or anything like that. Use it at your own risk. I haven't decided on license yet. If
+you want to use anything from this project, then you are welcome. I don't know what license
+is best suited here. I'm not a lawyer.
 
 ## References
 

@@ -8,17 +8,30 @@
 #[allow(dead_code)]
 fn fast_exp_256(x: f32) -> f32 {
     let mut x = 1. + x / 256.;
-    x *= x; x *= x; x *= x; x *= x;
-    x *= x; x *= x; x *= x; x *= x;
+    x *= x;
+    x *= x;
+    x *= x;
+    x *= x;
+    x *= x;
+    x *= x;
+    x *= x;
+    x *= x;
     x
 }
 
 #[allow(dead_code)]
 fn fast_exp_1024(x: f32) -> f32 {
     let mut x = 1. + x / 1024.;
-    x *= x; x *= x; x *= x; x *= x;
-    x *= x; x *= x; x *= x; x *= x;
-    x *= x; x *= x;
+    x *= x;
+    x *= x;
+    x *= x;
+    x *= x;
+    x *= x;
+    x *= x;
+    x *= x;
+    x *= x;
+    x *= x;
+    x *= x;
     x
 }
 
@@ -148,6 +161,4 @@ mod test {
         let x = 0.001;
         assert_eq!(libm::exp2f(x), fast_exp2_256(x));
     }
-
-
 }

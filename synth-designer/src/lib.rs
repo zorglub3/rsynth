@@ -8,7 +8,6 @@ use crate::modules::ModuleError;
 /// This matches the frequency of note zero for the default MIDI spec.
 pub const DEFAULT_FREQUENCY_ZERO: f32 = 8.18;
 
-// TODO use thiserror::Error here
 #[derive(Debug)]
 pub enum SynthError {
     FileError(ini::Error),

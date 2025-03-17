@@ -57,10 +57,10 @@ impl State {
     }
 
     pub fn apply_updates(
-        &mut self, 
-        updates: &[StateUpdate], 
-        weights: &[f32], 
-        c: &[f32], 
+        &mut self,
+        updates: &[StateUpdate],
+        weights: &[f32],
+        c: &[f32],
         dt: f32,
         update_count: usize,
     ) {
@@ -68,7 +68,7 @@ impl State {
             let mut update = 0.0_f32;
             let mut previous_value = self.values[i];
 
-            for j in 0 .. update_count.min(updates.len()) {
+            for j in 0..update_count.min(updates.len()) {
                 match updates[j].update_types[i] {
                     UpdateType::Absolute => {
                         if j == 0 {

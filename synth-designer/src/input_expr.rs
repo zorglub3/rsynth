@@ -212,8 +212,7 @@ mod test {
             .unwrap();
 
         let input = "2. * noise.signal_output";
-        let expected =
-            StackProgram::new(vec![Instr::State(0), Instr::Const(2.), Instr::Multiply]);
+        let expected = StackProgram::new(vec![Instr::State(0), Instr::Const(2.), Instr::Multiply]);
 
         assert_eq!(
             Expr::parse(input).unwrap().compile(&synth_spec).unwrap(),
@@ -230,14 +229,12 @@ mod test {
             .unwrap();
 
         let input = "sin(2. * noise.signal_output)";
-        let expected = StackProgram::new(
-            vec![
-                Instr::State(0),
-                Instr::Const(2.),
-                Instr::Multiply,
-                Instr::Call(Function::Sin),
-            ],
-        );
+        let expected = StackProgram::new(vec![
+            Instr::State(0),
+            Instr::Const(2.),
+            Instr::Multiply,
+            Instr::Call(Function::Sin),
+        ]);
 
         assert_eq!(
             Expr::parse(input).unwrap().compile(&synth_spec).unwrap(),

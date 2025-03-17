@@ -6,7 +6,6 @@ use std::sync::mpsc::Sender;
 use synth_engine::event::decode_midi_bytes;
 use synth_engine::event::ControllerEvent;
 
-// TODO cleanup
 #[derive(Debug)]
 pub enum MidiError {
     InputFail(String),

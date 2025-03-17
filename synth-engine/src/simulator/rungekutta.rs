@@ -120,20 +120,23 @@ impl<const STAGES: usize> Simulator for RungeKutta<STAGES> {
                 &self.a[stage],
                 &self.c,
                 dt,
-                stage);
+                stage,
+            );
             // temp_state.apply_updates(&updates, &self.a[stage], &self.c, dt);
 
             for module in &self.modules {
                 module.simulate(
-                    &self.temp_states[stage], 
-                    &mut self.updates[stage], 
-                    &mut self.stack);
+                    &self.temp_states[stage],
+                    &mut self.updates[stage],
+                    &mut self.stack,
+                );
             }
 
             // updates.push(update);
         }
 
-        self.state.apply_updates(&self.updates, &self.b, &self.c, dt, STAGES);
+        self.state
+            .apply_updates(&self.updates, &self.b, &self.c, dt, STAGES);
         // self.state.apply_updates(&updates, &self.b, &self.c, dt);
 
         for module in &mut self.modules {

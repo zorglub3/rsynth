@@ -54,15 +54,18 @@ impl Wavetable {
 
         data.push(current_entry);
 
-        Self { data, base_data_len: samples.len() as f32 }
+        Self {
+            data,
+            base_data_len: samples.len() as f32,
+        }
     }
 
     pub fn eval(&self, cycles_per_step: f32, x: f32) -> f32 {
         let mut samples_per_step = self.base_data_len * cycles_per_step;
 
-        for i in 0 .. self.data.len() {
+        for i in 0..self.data.len() {
             if samples_per_step <= 1. {
-                return self.data[i].eval(x)
+                return self.data[i].eval(x);
             } else {
                 samples_per_step /= 2.;
             }

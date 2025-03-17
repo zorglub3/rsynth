@@ -10,9 +10,11 @@
 
 extern crate alloc;
 
+pub mod control_interface;
 pub mod distortion;
 pub mod event;
 pub mod interpolation;
+pub mod midi;
 pub mod modules;
 pub mod simulator;
 pub mod sinc_filter;
