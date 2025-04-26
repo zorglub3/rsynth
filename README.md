@@ -12,6 +12,7 @@ simulates the synthesizer system. It can receive MIDI events and play sound.
 
 ## Future work
 
+- Use the f32 `mul_add` wherever possible.
 - Compile time parsing of INI files to generate Rust code for defining a synth.
   _This is work in progress. The basics are there, but this needs testing._
 - Compile to more exotic targets: Raspberry Pi and Daisy Seed. Use `no_std` in

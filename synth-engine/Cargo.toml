@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 libm = "0.2.11"
+atomic_float = "1.1.0"
