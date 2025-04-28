@@ -1,3 +1,4 @@
+use crate::control_interface::ControlInterface;
 use crate::event::ControllerEvent;
 use crate::interpolation::Interpolation;
 use crate::simulator::module::Module;
@@ -38,6 +39,33 @@ impl NoiseGenerator {
 }
 
 impl Module for NoiseGenerator {
+    fn simulate(
+        &self,
+        control_interface: &ControlInterface,
+        inputs: &[f32],
+        state: &mut [f32],
+        dt: f32,
+    ) {
+        todo!()
+    }
+
+    fn finalize(&mut self, state: &mut [f32], outputs: &mut [f32], dt: f32) {
+        todo!()
+    }
+
+    fn get_input_size(&self) -> usize {
+        todo!()
+    }
+
+    fn get_state_size(&self) -> usize {
+        todo!()
+    }
+
+    fn set_update_type(&self, update_types: &mut [UpdateType]) {
+        todo!()
+    }
+
+    /*
     fn simulate(&self, _state: &State, update: &mut StateUpdate, _stack: &mut [f32]) {
         update.set(
             self.output_index,
@@ -57,4 +85,5 @@ impl Module for NoiseGenerator {
         self.m = self.next(self.m);
         self.data[0] = 2. * (self.m as f32) / (MAX as f32) - 1.;
     }
+    */
 }

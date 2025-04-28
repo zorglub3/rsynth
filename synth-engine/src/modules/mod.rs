@@ -32,6 +32,7 @@ pub use quadrature::QuadratureOscillator;
 pub use vosim::Vosim;
 pub use wavetable::Wavetable;
 
+use crate::control_interface::ControlInterface;
 use crate::simulator::module::Module;
 use crate::synth_math::SynthMath;
 
@@ -58,9 +59,36 @@ pub enum SynthModule {
 }
 
 use crate::event::ControllerEvent;
-use crate::simulator::state::{State, StateUpdate};
+use crate::simulator::state::{State, StateUpdate, UpdateType};
 
 impl SynthModule {
+    pub fn simulate(
+        &self,
+        control_interface: &ControlInterface,
+        inputs: &[f32],
+        state: &mut [f32],
+        dt: f32,
+    ) {
+        todo!();
+    }
+
+    pub fn finalize(&mut self, state: &mut [f32], outputs: &mut [f32], dt: f32) {
+        todo!();
+    }
+
+    pub fn get_input_size(&self) -> usize {
+        todo!();
+    }
+
+    pub fn get_state_size(&self) -> usize {
+        todo!();
+    }
+
+    pub fn set_update_type(&self, update_types: &mut [UpdateType]) {
+        todo!();
+    }
+
+    /*
     pub fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         use SynthModule::*;
         match self {
@@ -105,4 +133,5 @@ impl SynthModule {
             _ => {}
         }
     }
+    */
 }

@@ -1,4 +1,5 @@
 use super::control_to_frequency;
+use crate::control_interface::ControlInterface;
 use crate::event::ControllerEvent;
 use crate::interpolation::Interpolation;
 use crate::simulator::module::Module;
@@ -53,6 +54,33 @@ impl DelayLine {
 }
 
 impl Module for DelayLine {
+    fn simulate(
+        &self,
+        control_interface: &ControlInterface,
+        inputs: &[f32],
+        state: &mut [f32],
+        dt: f32,
+    ) {
+        todo!()
+    }
+
+    fn finalize(&mut self, state: &mut [f32], outputs: &mut [f32], dt: f32) {
+        todo!()
+    }
+
+    fn get_input_size(&self) -> usize {
+        todo!()
+    }
+
+    fn get_state_size(&self) -> usize {
+        todo!()
+    }
+
+    fn set_update_type(&self, update_types: &mut [UpdateType]) {
+        todo!()
+    }
+
+    /*
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let wi = self.write_index() as f32;
         let l = self.data.len() as f32;
@@ -85,4 +113,5 @@ impl Module for DelayLine {
         self.data[write_index] = self.signal_input.run(state, stack).unwrap_or(0.);
         self.increment_index();
     }
+    */
 }

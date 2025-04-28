@@ -1,11 +1,13 @@
 use clap::Parser;
 use std::f32::consts::PI;
+use synth_engine::control_interface::ControlInterface;
 use synth_engine::modules::SynthModule;
 use synth_engine::simulator::Simulator;
 use synth_engine::stack_program::*;
 use synth_engine::{modules::*, simulator::rungekutta::RungeKutta};
 
 const STACK_SIZE: usize = 256;
+const OUTPUT_SIZE: usize = 2;
 
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
@@ -20,11 +22,30 @@ struct CliArgs {
     simulator: String,
 }
 
-fn test_simulator(simulator_name: &str, state_size: usize) -> Box<dyn Simulator> {
+fn test_simulator(
+    simulator_name: &str,
+    state_size: usize,
+    input_size: usize,
+) -> Box<dyn Simulator> {
     match simulator_name {
-        "rk4" => Box::new(RungeKutta::rk4(state_size, STACK_SIZE)),
-        "rk38" => Box::new(RungeKutta::rk38(state_size, STACK_SIZE)),
-        "euler" => Box::new(RungeKutta::euler(state_size, STACK_SIZE)),
+        "rk4" => Box::new(RungeKutta::rk4(
+            state_size,
+            input_size,
+            OUTPUT_SIZE,
+            STACK_SIZE,
+        )),
+        "rk38" => Box::new(RungeKutta::rk38(
+            state_size,
+            input_size,
+            OUTPUT_SIZE,
+            STACK_SIZE,
+        )),
+        "euler" => Box::new(RungeKutta::euler(
+            state_size,
+            input_size,
+            OUTPUT_SIZE,
+            STACK_SIZE,
+        )),
         _ => panic!("Unsupported Runge Kutta simulator {}", simulator_name),
     }
 }
@@ -123,14 +144,16 @@ fn test_modules(test: usize) -> Vec<SynthModule> {
 fn main() {
     let args = CliArgs::parse();
 
-    let mut simulator = test_simulator(&args.simulator, 32);
+    let mut simulator = test_simulator(&args.simulator, 32, 32);
 
     simulator.set_modules(test_modules(args.test));
 
     let dt = 1.0 / args.sample_rate;
 
+    let control_interface = ControlInterface::new();
+
     for _i in 0..args.count {
-        simulator.step(dt);
+        simulator.step(dt, &control_interface);
 
         let output = simulator.get_stereo_output();
 

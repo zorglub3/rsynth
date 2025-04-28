@@ -23,6 +23,7 @@ const DEFAULT_BASE_PITCH: usize = 0;
 const DEFAULT_PITCH_WHEEL_RANGE: f32 = 1.;
 const DEFAULT_DEBUG_EVENTS: bool = false;
 const STACK_SIZE: usize = 256;
+const OUTPUT_SIZE: usize = 2;
 
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
@@ -63,12 +64,30 @@ pub enum RuntimeError {
     SclError(#[from] SclError),
 }
 
-fn make_simulator(simulator_name: &str, state_size: usize) -> Box<dyn Simulator> {
+fn make_simulator(
+    simulator_name: &str,
+    state_size: usize,
+    input_size: usize,
+) -> Box<dyn Simulator> {
     match simulator_name {
-        "rk4" => Box::new(RungeKutta::rk4(state_size, STACK_SIZE)),
-        "rk38" => Box::new(RungeKutta::rk38(state_size, STACK_SIZE)),
-        "euler" => Box::new(RungeKutta::euler(state_size, STACK_SIZE)),
-        "second_order" => Box::new(RungeKutta::second_order(0.5, state_size, STACK_SIZE)),
+        "rk4" => Box::new(RungeKutta::rk4(
+            state_size,
+            input_size,
+            OUTPUT_SIZE,
+            STACK_SIZE,
+        )),
+        "rk38" => Box::new(RungeKutta::rk38(
+            state_size,
+            input_size,
+            OUTPUT_SIZE,
+            STACK_SIZE,
+        )),
+        "euler" => Box::new(RungeKutta::euler(
+            state_size,
+            input_size,
+            OUTPUT_SIZE,
+            STACK_SIZE,
+        )),
         _ => panic!("Unsupported simulator: {}", simulator_name),
     }
 }
@@ -103,7 +122,7 @@ fn main() -> Result<(), RuntimeError> {
 
     let mut model = Vec::new();
 
-    let state_size = spec.allocate_state();
+    let (state_size, input_size) = spec.allocate_state();
 
     match spec.make_modules(&mut model) {
         Ok(()) => {}
@@ -116,7 +135,7 @@ fn main() -> Result<(), RuntimeError> {
     println!("done");
 
     print!("Creating simulator...");
-    let mut simulator = make_simulator(args.simulator.as_str(), state_size);
+    let mut simulator = make_simulator(args.simulator.as_str(), state_size, input_size);
 
     simulator.set_modules(model);
     println!("done");

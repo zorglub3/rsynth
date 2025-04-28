@@ -1,8 +1,10 @@
 use midir::os::unix::VirtualInput;
 use midir::{MidiInput, MidiInputConnection};
+use scale::Scale;
 use std::error::Error;
 use std::fmt;
 use std::sync::mpsc::Sender;
+use synth_engine::control_interface::ControlInterface;
 use synth_engine::event::decode_midi_bytes;
 use synth_engine::event::ControllerEvent;
 
@@ -31,7 +33,8 @@ impl Midi {
     pub fn new(
         name: &str,
         channel: Option<u8>,
-        sender: Sender<ControllerEvent>,
+        control_interface: &ControlInterface,
+        scale: Scale,
     ) -> Result<Self, MidiError> {
         let input = MidiInput::new(name).map_err(|err| MidiError::InputFail(err.to_string()))?;
 
@@ -39,9 +42,13 @@ impl Midi {
             .create_virtual(
                 name,
                 move |_, message, _| {
+                    control_interface.midi_input(scale.values(), message, channel);
+
+                    /*
                     if let Some(event) = decode_midi_bytes(message, channel) {
                         let _ = sender.send(event);
                     }
+                    */
                 },
                 (),
             )

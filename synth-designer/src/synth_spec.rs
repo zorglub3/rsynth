@@ -47,7 +47,7 @@ impl SynthSpec {
         self.0.len()
     }
 
-    fn state_size(&self) -> usize {
+    pub fn state_size(&self) -> usize {
         let mut state_size: usize = 0;
 
         for (_k, v) in self.0.iter() {
@@ -57,7 +57,7 @@ impl SynthSpec {
         state_size
     }
 
-    pub fn allocate_state(&mut self) -> usize {
+    pub fn allocate_state(&mut self) -> (usize, usize) {
         let size = self.state_size();
 
         let mut state_allocator = StateAllocator::new(size);
@@ -66,7 +66,7 @@ impl SynthSpec {
             v.allocate_state(&mut state_allocator)
         }
 
-        size
+        (size, todo!("input_size"))
     }
 
     pub fn make_modules(&self, modules: &mut Vec<SynthModule>) -> Result<(), ModuleError> {

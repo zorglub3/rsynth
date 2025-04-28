@@ -6,6 +6,7 @@ use cpal::{
 };
 use scale::Scale;
 use std::sync::mpsc::Receiver;
+use synth_engine::control_interface::ControlInterface;
 use synth_engine::event::ControllerEvent;
 use synth_engine::simulator::Simulator;
 
@@ -54,7 +55,7 @@ pub fn sound_simulation(
     sample_rate: u32,
     buffer_size: u32,
     mut simulation: Box<dyn Simulator>,
-    receiver: Receiver<ControllerEvent>,
+    control_interface: &ControlInterface,
     scale: Scale,
     pitch_wheel_range: f32,
     debug_events: bool,
@@ -81,7 +82,7 @@ pub fn sound_simulation(
         &stream_config.config(),
         move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
             for frame in data.chunks_mut(num_channels) {
-                simulation.step(dt);
+                simulation.step(dt, control_interface);
 
                 let (left, right) = simulation.get_stereo_output();
 
@@ -94,6 +95,7 @@ pub fn sound_simulation(
                 }
             }
 
+            /*
             loop {
                 if let Some(event) = receiver.try_recv().ok() {
                     use ControllerEvent::*;
@@ -121,6 +123,7 @@ pub fn sound_simulation(
                     break;
                 }
             }
+            */
         },
         move |err| {
             eprintln!("Error occurred in the output stream: {:?}", err);

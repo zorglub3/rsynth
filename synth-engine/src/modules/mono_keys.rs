@@ -1,3 +1,4 @@
+use crate::control_interface::ControlInterface;
 use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
@@ -77,74 +78,102 @@ impl MonoKeys {
 }
 
 impl Module for MonoKeys {
-    fn simulate(&self, state: &State, update: &mut StateUpdate, _stack: &mut [f32]) {
-        update.set(
-            self.gate_output_index,
-            self.current_gate,
-            UpdateType::Absolute,
-        );
-        update.set(
-            self.pitchwheel_output_index,
-            PITCHWHEEL_FILTER_CONSTANT
-                * (self.pitch_wheel - state.get(self.pitchwheel_output_index)),
-            UpdateType::Differentiable,
-        );
-        update.set(
-            self.pitch_output_index,
-            self.current_pitch_value + state.get(self.pitchwheel_output_index),
-            UpdateType::Absolute,
-        );
-        update.set(
-            self.pressure_output_index,
-            PRESSURE_FILTER_CONSTANT
-                * (self.current_pressure - state.get(self.pressure_output_index)),
-            UpdateType::Differentiable,
-        );
-        update.set(
-            self.velocity_output_index,
-            self.current_velocity,
-            UpdateType::Absolute,
-        );
+    fn simulate(
+        &self,
+        control_interface: &ControlInterface,
+        inputs: &[f32],
+        state: &mut [f32],
+        dt: f32,
+    ) {
+        todo!()
     }
 
-    fn process_event(&mut self, event: &ControllerEvent) {
-        use ControllerEvent::*;
+    fn finalize(&mut self, state: &mut [f32], outputs: &mut [f32], dt: f32) {
+        todo!()
+    }
 
-        match event {
-            NoteOn {
-                pitch,
-                velocity,
-                pitch_value,
-            } => {
-                self.current_velocity = *velocity;
-                self.active_notes.insert(ActiveNote {
-                    pitch_code: *pitch,
-                    pitch_value: *pitch_value,
-                });
-            }
-            NoteOff { pitch, .. } => {
-                self.active_notes.remove(&ActiveNote {
-                    pitch_code: *pitch,
-                    pitch_value: 0.,
-                });
-            }
-            Aftertouch { amount } => self.current_pressure = *amount,
-            PitchWheel { amount } => self.pitch_wheel = *amount,
-            _ => {} // do nothing
+    fn get_input_size(&self) -> usize {
+        todo!()
+    }
+
+    fn get_state_size(&self) -> usize {
+        todo!()
+    }
+
+    fn set_update_type(&self, update_types: &mut [UpdateType]) {
+        todo!()
+    }
+
+    /*
+        fn simulate(&self, state: &State, update: &mut StateUpdate, _stack: &mut [f32]) {
+            update.set(
+                self.gate_output_index,
+                self.current_gate,
+                UpdateType::Absolute,
+            );
+            update.set(
+                self.pitchwheel_output_index,
+                PITCHWHEEL_FILTER_CONSTANT
+                    * (self.pitch_wheel - state.get(self.pitchwheel_output_index)),
+                UpdateType::Differentiable,
+            );
+            update.set(
+                self.pitch_output_index,
+                self.current_pitch_value + state.get(self.pitchwheel_output_index),
+                UpdateType::Absolute,
+            );
+            update.set(
+                self.pressure_output_index,
+                PRESSURE_FILTER_CONSTANT
+                    * (self.current_pressure - state.get(self.pressure_output_index)),
+                UpdateType::Differentiable,
+            );
+            update.set(
+                self.velocity_output_index,
+                self.current_velocity,
+                UpdateType::Absolute,
+            );
         }
 
-        match self.active_notes.first() {
-            Some(ActiveNote { pitch_value, .. }) => {
-                self.current_gate = 1.;
-                self.current_pitch_value = *pitch_value;
+        fn process_event(&mut self, event: &ControllerEvent) {
+            use ControllerEvent::*;
+
+            match event {
+                NoteOn {
+                    pitch,
+                    velocity,
+                    pitch_value,
+                } => {
+                    self.current_velocity = *velocity;
+                    self.active_notes.insert(ActiveNote {
+                        pitch_code: *pitch,
+                        pitch_value: *pitch_value,
+                    });
+                }
+                NoteOff { pitch, .. } => {
+                    self.active_notes.remove(&ActiveNote {
+                        pitch_code: *pitch,
+                        pitch_value: 0.,
+                    });
+                }
+                Aftertouch { amount } => self.current_pressure = *amount,
+                PitchWheel { amount } => self.pitch_wheel = *amount,
+                _ => {} // do nothing
             }
-            None => {
-                self.current_gate = 0.;
+
+            match self.active_notes.first() {
+                Some(ActiveNote { pitch_value, .. }) => {
+                    self.current_gate = 1.;
+                    self.current_pitch_value = *pitch_value;
+                }
+                None => {
+                    self.current_gate = 0.;
+                }
             }
         }
-    }
 
-    fn finalize(&mut self, _state: &mut State, _time_step: f32, _stack: &mut [f32]) {
-        /* do nothing */
-    }
+        fn finalize(&mut self, _state: &mut State, _time_step: f32, _stack: &mut [f32]) {
+            /* do nothing */
+        }
+    */
 }

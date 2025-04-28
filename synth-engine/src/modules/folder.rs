@@ -1,3 +1,4 @@
+use crate::control_interface::ControlInterface;
 use crate::event::ControllerEvent;
 use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
@@ -25,6 +26,33 @@ impl Folder {
 }
 
 impl Module for Folder {
+    fn simulate(
+        &self,
+        control_interface: &ControlInterface,
+        inputs: &[f32],
+        state: &mut [f32],
+        dt: f32,
+    ) {
+        todo!()
+    }
+
+    fn finalize(&mut self, state: &mut [f32], outputs: &mut [f32], dt: f32) {
+        todo!()
+    }
+
+    fn get_input_size(&self) -> usize {
+        todo!()
+    }
+
+    fn get_state_size(&self) -> usize {
+        todo!()
+    }
+
+    fn set_update_type(&self, update_types: &mut [UpdateType]) {
+        todo!()
+    }
+
+    /*
     fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
         let i = self.signal_input.run(state, stack).unwrap_or(0.);
         let c = self
@@ -45,4 +73,5 @@ impl Module for Folder {
     fn finalize(&mut self, _state: &mut State, _time_step: f32, _stack: &mut [f32]) {
         /* do nothing */
     }
+    */
 }

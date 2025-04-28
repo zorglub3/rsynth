@@ -37,4 +37,8 @@ impl Scale {
             None
         }
     }
+
+    pub fn values(&self) -> &[f32] {
+        &self.0
+    }
 }

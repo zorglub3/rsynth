@@ -1,8 +1,8 @@
 use crate::midi::*;
 use atomic_float::AtomicF32;
-use core::sync::atomic::Ordering;
-use core::sync::atomic::AtomicU8;
 use core::mem::MaybeUninit;
+use core::sync::atomic::AtomicU8;
+use core::sync::atomic::Ordering;
 
 pub const CONTROLLER_COUNT: usize = 256;
 pub const DEFAULT_ORDERING: Ordering = Ordering::Relaxed;
@@ -20,7 +20,7 @@ pub struct ControlInterface {
 impl ControlInterface {
     pub fn new() -> Self {
         let continuous_controls = {
-            let mut array: [MaybeUninit<AtomicF32>; CONTROLLER_COUNT] = 
+            let mut array: [MaybeUninit<AtomicF32>; CONTROLLER_COUNT] =
                 unsafe { MaybeUninit::uninit().assume_init() };
 
             for i in 0..CONTROLLER_COUNT {
@@ -59,7 +59,8 @@ impl ControlInterface {
                     }
                     (MIDI_NOTE_ON, [_, pitch, velocity]) if usize::from(*pitch) < scale.len() => {
                         self.pitch_code.store(*pitch, DEFAULT_ORDERING);
-                        self.key_pitch.store(scale[usize::from(*pitch)], DEFAULT_ORDERING);
+                        self.key_pitch
+                            .store(scale[usize::from(*pitch)], DEFAULT_ORDERING);
                         self.velocity.store(u7_to_f32(*velocity), DEFAULT_ORDERING);
                     }
                     (MIDI_POLY_AFTERTOUCH, [_, pitch, v]) if *pitch == pitch_code => {
@@ -73,7 +74,8 @@ impl ControlInterface {
                             .store(u7_to_f32(*v), DEFAULT_ORDERING);
                     }
                     (MIDI_PITCH_WHEEL, [_, d1, d2]) => {
-                        self.pitch_bend.store(pitchwheel(*d2, *d1), DEFAULT_ORDERING);
+                        self.pitch_bend
+                            .store(pitchwheel(*d2, *d1), DEFAULT_ORDERING);
                     }
                     _ => { /* do nothing */ }
                 }

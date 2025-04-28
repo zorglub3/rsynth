@@ -16,6 +16,14 @@ pub enum ExprError {
     ParseError(String, peg::error::ParseError<LineCol>),
     #[error("Missing module field. Module: {0}, field: {1}")]
     MissingField(String, String),
+    #[error("Internal program error after compilation: {0:?}")]
+    ProgramError(ProgramError),
+}
+
+impl From<ProgramError> for ExprError {
+    fn from(pe: ProgramError) -> Self {
+        Self::ProgramError(pe)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -89,7 +97,9 @@ impl Expr {
 
         self.compile_helper(synth_spec, &mut program)?;
 
-        Ok(StackProgram::new(program))
+        let stack_size = static_check(&program, synth_spec.state_size())?;
+
+        Ok(StackProgram::new_with_stack_size(program, stack_size))
     }
 
     fn compile_helper(
