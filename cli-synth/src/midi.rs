@@ -33,7 +33,7 @@ impl Midi {
     pub fn new(
         name: &str,
         channel: Option<u8>,
-        control_interface: &ControlInterface,
+        control_interface: ControlInterface,
         scale: Scale,
     ) -> Result<Self, MidiError> {
         let input = MidiInput::new(name).map_err(|err| MidiError::InputFail(err.to_string()))?;

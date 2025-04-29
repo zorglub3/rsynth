@@ -4,7 +4,6 @@ use cpal::{
     Device, PlayStreamError, SampleFormat, SampleRate, SupportedBufferSize, SupportedStreamConfig,
     SupportedStreamConfigRange,
 };
-use scale::Scale;
 use std::sync::mpsc::Receiver;
 use synth_engine::control_interface::ControlInterface;
 use synth_engine::event::ControllerEvent;
@@ -55,8 +54,7 @@ pub fn sound_simulation(
     sample_rate: u32,
     buffer_size: u32,
     mut simulation: Box<dyn Simulator>,
-    control_interface: &ControlInterface,
-    scale: Scale,
+    control_interface: ControlInterface,
     pitch_wheel_range: f32,
     debug_events: bool,
 ) -> Result<AudioStream, BuildStreamError> {
@@ -82,7 +80,7 @@ pub fn sound_simulation(
         &stream_config.config(),
         move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
             for frame in data.chunks_mut(num_channels) {
-                simulation.step(dt, control_interface);
+                simulation.step(dt, &control_interface);
 
                 let (left, right) = simulation.get_stereo_output();
 

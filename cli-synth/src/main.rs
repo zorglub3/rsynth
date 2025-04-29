@@ -10,6 +10,7 @@ use std::sync::mpsc::channel;
 use synth_designer::synth_spec::SynthSpec;
 use synth_engine::simulator::rungekutta::RungeKutta;
 use synth_engine::simulator::Simulator;
+use synth_engine::control_interface::ControlInterface;
 use thiserror::Error;
 
 mod audio;
@@ -140,8 +141,14 @@ fn main() -> Result<(), RuntimeError> {
     simulator.set_modules(model);
     println!("done");
 
+    /*
     print!("Creating communication channel...");
     let (send, receive) = channel();
+    println!("done");
+    */
+
+    print!("Creating control interface...");
+    let control_interface = ControlInterface::new();
     println!("done");
 
     print!("Creating the simulation runner...");
@@ -149,8 +156,7 @@ fn main() -> Result<(), RuntimeError> {
         args.sample_rate,
         args.buffer_size,
         simulator,
-        receive,
-        scale,
+        control_interface.clone(),
         args.pitch_wheel_range,
         args.debug_events,
     )?;
@@ -160,7 +166,8 @@ fn main() -> Result<(), RuntimeError> {
     let midi = Midi::new(
         args.name.as_str(),
         args.channel.map(|x| x.try_into().unwrap()),
-        send,
+        control_interface,
+        scale,
     )?;
     println!("done");
 

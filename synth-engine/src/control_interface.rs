@@ -3,41 +3,43 @@ use atomic_float::AtomicF32;
 use core::mem::MaybeUninit;
 use core::sync::atomic::AtomicU8;
 use core::sync::atomic::Ordering;
+use alloc::sync::Arc;
 
 pub const CONTROLLER_COUNT: usize = 256;
 pub const DEFAULT_ORDERING: Ordering = Ordering::Relaxed;
 
+#[derive(Clone, Debug)]
 pub struct ControlInterface {
-    continuous_controls: [AtomicF32; CONTROLLER_COUNT],
-    key_pitch: AtomicF32,
-    gate: AtomicF32,
-    velocity: AtomicF32,
-    aftertouch: AtomicF32,
-    pitch_bend: AtomicF32,
-    pitch_code: AtomicU8,
+    continuous_controls: [Arc<AtomicF32>; CONTROLLER_COUNT],
+    key_pitch: Arc<AtomicF32>,
+    gate: Arc<AtomicF32>,
+    velocity: Arc<AtomicF32>,
+    aftertouch: Arc<AtomicF32>,
+    pitch_bend: Arc<AtomicF32>,
+    pitch_code: Arc<AtomicU8>,
 }
 
 impl ControlInterface {
     pub fn new() -> Self {
         let continuous_controls = {
-            let mut array: [MaybeUninit<AtomicF32>; CONTROLLER_COUNT] =
+            let mut array: [MaybeUninit<Arc<AtomicF32>>; CONTROLLER_COUNT] =
                 unsafe { MaybeUninit::uninit().assume_init() };
 
             for i in 0..CONTROLLER_COUNT {
-                array[i] = MaybeUninit::new(AtomicF32::new(0.));
+                array[i] = MaybeUninit::new(Arc::new(AtomicF32::new(0.)));
             }
 
-            unsafe { core::mem::transmute::<_, [AtomicF32; CONTROLLER_COUNT]>(array) }
+            unsafe { core::mem::transmute::<_, [Arc<AtomicF32>; CONTROLLER_COUNT]>(array) }
         };
 
         Self {
             continuous_controls,
-            key_pitch: 1.0.into(),
-            gate: 0.0.into(),
-            pitch_bend: 0.0.into(),
-            pitch_code: 0_u8.into(),
-            velocity: 0.0.into(),
-            aftertouch: 0.0.into(),
+            key_pitch: Arc::new(AtomicF32::new(1.0)),
+            gate: Arc::new(AtomicF32::new(0.0)),
+            pitch_bend: Arc::new(AtomicF32::new(0.0)),
+            pitch_code: Arc::new(AtomicU8::new(0)),
+            velocity: Arc::new(AtomicF32::new(0.0)),
+            aftertouch: Arc::new(AtomicF32::new(0.0)),
         }
     }
 
