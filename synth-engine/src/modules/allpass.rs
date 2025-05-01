@@ -6,6 +6,18 @@ use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use core::f32::consts::PI;
 
+pub const STATE_SIZE: usize = 2;
+pub const INPUT_SIZE: usize = 3;
+
+// state/outputs
+const CAP_STATE: usize = 0;
+const SIGNAL_OUTPUT: usize = 1;
+
+// inputs
+const FREQ_CONTROL_INPUT: usize = 0;
+const LINEAR_CONTROL_INPUT: usize = 1;
+const SIGNAL_INPUT: usize = 2;
+
 pub struct AllpassFilter {
     f0: f32,
     cap_state: usize,
@@ -38,28 +50,38 @@ impl AllpassFilter {
 impl Module for AllpassFilter {
     fn simulate(
         &self,
-        control_interface: &ControlInterface,
+        _control_interface: &ControlInterface,
         inputs: &[f32],
-        state: &mut [f32],
-        dt: f32,
+        state: &[f32],
+        update: &mut [f32],
+        _dt: f32,
     ) {
-        todo!()
+        let input = inputs[SIGNAL_INPUT];
+        let f = control_to_frequency(
+            self.f0,
+            inputs[FREQ_CONTROL_INPUT],
+            inputs[LINEAR_CONTROL_INPUT],
+        );
+
+        update[CAP_STATE] = 2. * PI * f * (input - state[CAP_STATE]);
+        update[SIGNAL_OUTPUT] = 2. * state[CAP_STATE] - input;
     }
 
-    fn finalize(&mut self, state: &mut [f32], outputs: &mut [f32], dt: f32) {
-        todo!()
+    fn finalize(&mut self, _inputs: &[f32], _state: &mut [f32], _outputs: &mut [f32], _dt: f32) {
+        /* do nothing */
     }
 
     fn get_input_size(&self) -> usize {
-        todo!()
+        INPUT_SIZE
     }
 
     fn get_state_size(&self) -> usize {
-        todo!()
+        STATE_SIZE
     }
 
     fn set_update_type(&self, update_types: &mut [UpdateType]) {
-        todo!()
+        update_types[CAP_STATE] = UpdateType::Differentiable;
+        update_types[SIGNAL_OUTPUT] = UpdateType::Absolute;
     }
 
     /*

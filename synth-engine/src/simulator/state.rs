@@ -34,8 +34,12 @@ impl State {
         }
     }
 
-    pub fn borrow_values(&self) -> &[f32] {
+    pub fn borrow_all_values(&self) -> &[f32] {
         &self.values
+    }
+
+    pub fn borrow_values(&self, lo: usize, hi: usize) -> &[f32] {
+        &self.values[lo..hi]
     }
 
     pub fn values_mut(&mut self, lo: usize, hi: usize) -> &mut [f32] {

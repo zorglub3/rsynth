@@ -7,6 +7,19 @@ use crate::stack_program::*;
 use crate::synth_math::SynthMath;
 use core::f32::consts::PI;
 
+pub const STATE_SIZE: usize = 2;
+pub const INPUT_SIZE: usize = 4;
+
+// state/outputs
+const STATE_U: usize = 0;
+const STATE_V: usize = 1;
+
+// inputs/control
+const EXP_CONTROL_INPUT: usize = 0;
+const LINEAR_CONTROL_INPUT: usize = 1;
+const PRESSURE_CONTROL_INPUT: usize = 2;
+const VELOCITY_CONTROL_INPUT: usize = 3;
+
 // NOTE the amplitude of this oscillator needs to be scaled up. It usually goes
 // in the range of 0.008 to 0.016 peak-to-peak.
 
@@ -69,28 +82,45 @@ fn discontinuous_friction(a: f32, x: f32) -> f32 {
 impl Module for BowedOscillator {
     fn simulate(
         &self,
-        control_interface: &ControlInterface,
+        _control_interface: &ControlInterface,
         inputs: &[f32],
-        state: &mut [f32],
-        dt: f32,
+        state: &[f32],
+        update: &mut [f32],
+        _dt: f32,
     ) {
-        todo!()
+        let omega = control_to_frequency(
+            self.f0,
+            inputs[EXP_CONTROL_INPUT],
+            inputs[LINEAR_CONTROL_INPUT],
+        );
+
+        let u = state[STATE_U];
+        let v = state[STATE_V];
+
+        let vb = inputs[VELOCITY_CONTROL_INPUT].max(-1.).min(1.);
+        let force = inputs[PRESSURE_CONTROL_INPUT];
+
+        let f = force * friction(self.a, u - vb);
+
+        update[STATE_U] = -(omega * omega) * v - f;
+        update[STATE_V] = u;
     }
 
-    fn finalize(&mut self, state: &mut [f32], outputs: &mut [f32], dt: f32) {
-        todo!()
+    fn finalize(&mut self, _inputs: &[f32], _state: &mut [f32], _outputs: &mut [f32], _dt: f32) {
+        /* do nothing */
     }
 
     fn get_input_size(&self) -> usize {
-        todo!()
+        INPUT_SIZE
     }
 
     fn get_state_size(&self) -> usize {
-        todo!()
+        STATE_SIZE
     }
 
     fn set_update_type(&self, update_types: &mut [UpdateType]) {
-        todo!()
+        update_types[STATE_U] = UpdateType::Differentiable;
+        update_types[STATE_V] = UpdateType::Differentiable;
     }
 
     /*

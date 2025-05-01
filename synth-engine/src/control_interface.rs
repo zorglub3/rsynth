@@ -43,6 +43,34 @@ impl ControlInterface {
         }
     }
 
+    pub fn get_continuous_control(&self, controller: usize) -> f32 {
+        if controller >= CONTROLLER_COUNT {
+            0.
+        } else {
+            self.continuous_controls[controller].load(DEFAULT_ORDERING)
+        }
+    }
+
+    pub fn get_gate(&self) -> f32 {
+        self.gate.load(DEFAULT_ORDERING)
+    }
+
+    pub fn get_pitch(&self) -> f32 {
+        self.key_pitch.load(DEFAULT_ORDERING)
+    }
+
+    pub fn get_pitchwheel(&self) -> f32 {
+        self.pitch_bend.load(DEFAULT_ORDERING)
+    }
+
+    pub fn get_aftertouch(&self) -> f32 {
+        self.aftertouch.load(DEFAULT_ORDERING)
+    }
+
+    pub fn get_velocity(&self) -> f32 {
+        self.velocity.load(DEFAULT_ORDERING)
+    }
+
     pub fn midi_input(&self, scale: &[f32], bytes: &[u8], channel: Option<u8>) {
         if bytes.len() > 1 {
             let chn = bytes[0] & 0xF;

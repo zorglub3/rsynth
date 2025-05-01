@@ -5,6 +5,16 @@ use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use crate::synth_math::SynthMath;
 
+pub const STATE_SIZE: usize = 1;
+pub const INPUT_SIZE: usize = 2;
+
+// state/outputs
+const SIGNAL_OUTPUT: usize = 0;
+
+// inputs/control
+const SIGNAL_INPUT: usize = 0;
+const CONTROL_INPUT: usize = 1;
+
 pub struct Folder {
     signal_input: StackProgram,
     control_input: StackProgram,
@@ -30,26 +40,30 @@ impl Module for Folder {
         &self,
         control_interface: &ControlInterface,
         inputs: &[f32],
-        state: &mut [f32],
+        state: &[f32],
+        update: &mut [f32],
         dt: f32,
     ) {
-        todo!()
+        let i = inputs[SIGNAL_INPUT];
+        let c = inputs[CONTROL_INPUT].clamp(0., 5.);
+
+        update[SIGNAL_OUTPUT] = (i * c).sin();
     }
 
-    fn finalize(&mut self, state: &mut [f32], outputs: &mut [f32], dt: f32) {
-        todo!()
+    fn finalize(&mut self, _inputs: &[f32], state: &mut [f32], outputs: &mut [f32], dt: f32) {
+        /* do nothing */
     }
 
     fn get_input_size(&self) -> usize {
-        todo!()
+        INPUT_SIZE
     }
 
     fn get_state_size(&self) -> usize {
-        todo!()
+        STATE_SIZE
     }
 
     fn set_update_type(&self, update_types: &mut [UpdateType]) {
-        todo!()
+        update_types[SIGNAL_OUTPUT] = UpdateType::Absolute;
     }
 
     /*

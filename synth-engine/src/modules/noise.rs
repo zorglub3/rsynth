@@ -5,6 +5,12 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use core::u32::MAX;
 
+pub const STATE_SIZE: usize = 1;
+pub const INPUT_SIZE: usize = 0;
+
+// states/output
+const SIGNAL_OUTPUT: usize = 0;
+
 // From the book, "Musical applications of Microprocessors", Chamberlin
 pub const A_PARAMETER_DEFAULT: u32 = 196314165;
 pub const B_PARAMETER_DEFAULT: u32 = 907633515;
@@ -43,26 +49,29 @@ impl Module for NoiseGenerator {
         &self,
         control_interface: &ControlInterface,
         inputs: &[f32],
-        state: &mut [f32],
+        state: &[f32],
+        update: &mut [f32],
         dt: f32,
     ) {
-        todo!()
+        update[SIGNAL_OUTPUT] = self.data.as_slice().cubic_interpolate(1. + dt);
     }
 
-    fn finalize(&mut self, state: &mut [f32], outputs: &mut [f32], dt: f32) {
-        todo!()
+    fn finalize(&mut self, _inputs: &[f32], state: &mut [f32], outputs: &mut [f32], dt: f32) {
+        self.data.copy_within(0..3, 1);
+        self.m = self.next(self.m);
+        self.data[0] = 2. * (self.m as f32) / (MAX as f32) - 1.;
     }
 
     fn get_input_size(&self) -> usize {
-        todo!()
+        INPUT_SIZE
     }
 
     fn get_state_size(&self) -> usize {
-        todo!()
+        STATE_SIZE
     }
 
     fn set_update_type(&self, update_types: &mut [UpdateType]) {
-        todo!()
+        update_types[SIGNAL_OUTPUT] = UpdateType::Absolute;
     }
 
     /*

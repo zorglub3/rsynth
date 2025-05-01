@@ -7,6 +7,21 @@ use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use core::f32::consts::PI;
 
+pub const STATE_SIZE: usize = 4;
+pub const INPUT_SIZE: usize = 4;
+
+// state/outputs
+const STATE0: usize = 0;
+const STATE1: usize = 1;
+const STATE2: usize = 2;
+const STATE3: usize = 3;
+
+// inputs/controls
+const EXP_CONTROL_INPUT: usize = 0;
+const LINEAR_CONTROL_INPUT: usize = 1;
+const RESONANCE_CONTROL_INPUT: usize = 2;
+const SIGNAL_INPUT: usize = 3;
+
 pub struct Filter24db {
     f0: f32,
     state0_index: usize,
@@ -50,28 +65,50 @@ impl Filter24db {
 impl Module for Filter24db {
     fn simulate(
         &self,
-        control_interface: &ControlInterface,
+        _control_interface: &ControlInterface,
         inputs: &[f32],
-        state: &mut [f32],
-        dt: f32,
+        state: &[f32],
+        update: &mut [f32],
+        _dt: f32,
     ) {
-        todo!()
+        let f = control_to_frequency(
+            self.f0,
+            inputs[EXP_CONTROL_INPUT],
+            inputs[LINEAR_CONTROL_INPUT],
+        );
+        let g = f * 2. * PI;
+        let r = inputs[RESONANCE_CONTROL_INPUT].max(0.);
+        let input = inputs[SIGNAL_INPUT];
+        let d = &self.distortion;
+
+        update[STATE0] =
+            g * ((input - r * state[STATE3]).distort(d)
+                 - state[STATE0]).distort(d);
+        update[STATE1] =
+            g * (state[STATE0].distort(d) - state[STATE1].distort(d));
+        update[STATE2] =
+            g * (state[STATE1].distort(d) - state[STATE2].distort(d));
+        update[STATE3] =
+            g * (state[STATE2].distort(d) - state[STATE3].distort(d));
     }
 
-    fn finalize(&mut self, state: &mut [f32], outputs: &mut [f32], dt: f32) {
-        todo!()
+    fn finalize(&mut self, _inputs: &[f32], state: &mut [f32], outputs: &mut [f32], dt: f32) {
+        /* do nothing */
     }
 
     fn get_input_size(&self) -> usize {
-        todo!()
+        INPUT_SIZE
     }
 
     fn get_state_size(&self) -> usize {
-        todo!()
+        STATE_SIZE
     }
 
     fn set_update_type(&self, update_types: &mut [UpdateType]) {
-        todo!()
+        update_types[STATE0] = UpdateType::Differentiable;
+        update_types[STATE1] = UpdateType::Differentiable;
+        update_types[STATE2] = UpdateType::Differentiable;
+        update_types[STATE3] = UpdateType::Differentiable;
     }
 
     /*

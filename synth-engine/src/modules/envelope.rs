@@ -6,6 +6,19 @@ use crate::stack_program::*;
 use crate::synth_math::SynthMath;
 use core::f32::consts::PI;
 
+pub const STATE_SIZE: usize = 2;
+pub const INPUT_SIZE: usize = 4;
+
+// state/outputs
+const CONTROL_OUTPUT: usize = 0;
+const CYCLE_STATE: usize = 1;
+
+// inputs
+const SIGNAL_INPUT: usize = 0;
+const ATTACK_INPUT: usize = 1;
+const DECAY_INPUT: usize = 2;
+const SHAPE_SELECT: usize = 3;
+
 #[allow(dead_code)]
 fn hamming(x: f32) -> f32 {
     let x = x.clamp(0., 1.);
@@ -91,28 +104,74 @@ fn output_value(cycle_index: f32, shape: f32) -> f32 {
 impl Module for Envelope {
     fn simulate(
         &self,
-        control_interface: &ControlInterface,
+        _control_interface: &ControlInterface,
         inputs: &[f32],
-        state: &mut [f32],
-        dt: f32,
+        state: &[f32],
+        updates: &mut [f32],
+        _dt: f32,
     ) {
-        todo!()
+        let attack = inputs[ATTACK_INPUT];
+        let decay = inputs[DECAY_INPUT];
+        
+        match self.env_state {
+            EnvState::Attack => {
+                let delta = rise_decay(attack);
+                updates[CYCLE_STATE] = delta;
+                updates[CONTROL_OUTPUT] = 
+                    output_value(
+                        state[CYCLE_STATE],
+                        inputs[SHAPE_SELECT],
+                    );
+            }
+            EnvState::Decay => {
+                let delta = -rise_decay(decay);
+                updates[CYCLE_STATE] = delta;
+                updates[CONTROL_OUTPUT] =
+                    output_value(
+                        state[CYCLE_STATE],
+                        inputs[SHAPE_SELECT],
+                    );
+            }
+            _ => { /* do nothing */ }
+        }
     }
 
-    fn finalize(&mut self, state: &mut [f32], outputs: &mut [f32], dt: f32) {
-        todo!()
+    fn finalize(&mut self, inputs: &[f32], state: &mut [f32], _outputs: &mut [f32], _dt: f32) {
+        let input_state = inputs[SIGNAL_INPUT];
+        let output_state = state[CONTROL_OUTPUT];
+        let cycle = state[CYCLE_STATE];
+
+        use EnvState::*;
+        use EnvType::*;
+
+        match (&self.env_state, &self.env_type) {
+            (Attack, AttackRelease) if cycle >= 1. => self.env_state = Hold,
+            (Attack, AttackDecay|Cyclic) if cycle >= 1. => self.env_state = Decay,
+            (Hold, AttackRelease) if input_state < 0.5 => self.env_state = Decay,
+            (Hold, AttackDecay|Cyclic) => self.env_state = Decay,
+            (Decay, Cyclic) if cycle <= 0. => self.env_state = Attack,
+            (Decay, AttackRelease|AttackDecay) if input_state >= 0.5 => self.env_state = Attack,
+            (Decay, AttackRelease|AttackDecay) if cycle <= 0. => self.env_state = Finished,
+            (Finished, Cyclic) => self.env_state = Attack,
+            (Finished, AttackRelease|AttackDecay) if input_state > 0.5 => self.env_state = Attack,
+            _ => { /* do nothing */ }
+        }
+
+        state[CONTROL_OUTPUT] = output_state.clamp(0., 1.);
+        state[CYCLE_STATE] = cycle.clamp(0., 1.);
     }
 
     fn get_input_size(&self) -> usize {
-        todo!()
+        INPUT_SIZE
     }
 
     fn get_state_size(&self) -> usize {
-        todo!()
+        STATE_SIZE
     }
 
     fn set_update_type(&self, update_types: &mut [UpdateType]) {
-        todo!()
+        update_types[CYCLE_STATE] = UpdateType::Differentiable;
+        update_types[CONTROL_OUTPUT] = UpdateType::Absolute;
     }
 
     /*

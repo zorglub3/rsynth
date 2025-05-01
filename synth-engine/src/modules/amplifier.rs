@@ -5,6 +5,17 @@ use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use crate::synth_math::SynthMath;
 
+pub const STATE_SIZE: usize = 1;
+pub const INPUT_SIZE: usize = 3;
+
+// state/outputs
+const SIGNAL_OUTPUT: usize = 0;
+
+// inputs/controls
+const SIGNAL_INPUT: usize = 0;
+const LINEAR_CONTROL_INPUT: usize = 1;
+const EXP_CONTROL_INPUT: usize = 2;
+
 pub struct Amplifier {
     signal_input: StackProgram,
     output_index: usize,
@@ -42,28 +53,34 @@ fn amplifier_amount(lin_control: f32, exp_control: f32) -> f32 {
 impl Module for Amplifier {
     fn simulate(
         &self,
-        control_interface: &ControlInterface,
+        _control_interface: &ControlInterface,
         inputs: &[f32],
-        state: &mut [f32],
-        dt: f32,
+        _state: &[f32],
+        update: &mut [f32],
+        _dt: f32,
     ) {
-        todo!()
+        let input = inputs[SIGNAL_INPUT];
+        let m = amplifier_amount(
+            inputs[LINEAR_CONTROL_INPUT],
+            inputs[EXP_CONTROL_INPUT],
+        );
+        update[SIGNAL_OUTPUT] = input * m;
     }
 
-    fn finalize(&mut self, state: &mut [f32], outputs: &mut [f32], dt: f32) {
-        todo!()
+    fn finalize(&mut self, _inputs: &[f32], _state: &mut [f32], _outputs: &mut [f32], _dt: f32) {
+        /* do nothing */
     }
 
     fn get_input_size(&self) -> usize {
-        todo!()
+        INPUT_SIZE
     }
 
     fn get_state_size(&self) -> usize {
-        todo!()
+        STATE_SIZE
     }
 
     fn set_update_type(&self, update_types: &mut [UpdateType]) {
-        todo!()
+        update_types[SIGNAL_OUTPUT] = UpdateType::Absolute;
     }
 
     /*

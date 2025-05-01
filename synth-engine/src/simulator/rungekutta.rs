@@ -189,13 +189,15 @@ impl<const STAGES: usize> Simulator for RungeKutta<STAGES> {
             );
 
             self.state_input
-                .compute_inputs(self.temp_states[stage].borrow_values());
+                .compute_inputs(self.temp_states[stage].borrow_all_values());
 
             for synth_module in &self.module_entries {
                 synth_module.module.simulate(
                     control_interface,
                     self.state_input
                         .borrow_inputs(synth_module.input_offset, synth_module.input_end),
+                    self.temp_states[stage]
+                        .borrow_values(synth_module.output_offset, synth_module.output_end),
                     self.updates[stage]
                         .values_mut(synth_module.output_offset, synth_module.output_end),
                     self.c[stage], // TODO - or is it dt...? or dt * c?
@@ -222,8 +224,13 @@ impl<const STAGES: usize> Simulator for RungeKutta<STAGES> {
             STAGES,
         );
 
+        self.state_input
+            .compute_inputs(self.state.borrow_all_values());
+
         for synth_module in &mut self.module_entries {
             synth_module.module.finalize(
+                self.state_input
+                    .borrow_inputs(synth_module.input_offset, synth_module.input_end),
                 self.state
                     .values_mut(synth_module.output_offset, synth_module.output_end),
                 &mut self.outputs,

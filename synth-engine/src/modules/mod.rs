@@ -66,13 +66,14 @@ impl SynthModule {
         &self,
         control_interface: &ControlInterface,
         inputs: &[f32],
-        state: &mut [f32],
+        state: &[f32],
+        update: &mut [f32],
         dt: f32,
     ) {
         todo!();
     }
 
-    pub fn finalize(&mut self, state: &mut [f32], outputs: &mut [f32], dt: f32) {
+    pub fn finalize(&mut self, _inputs: &[f32], state: &mut [f32], outputs: &mut [f32], dt: f32) {
         todo!();
     }
 

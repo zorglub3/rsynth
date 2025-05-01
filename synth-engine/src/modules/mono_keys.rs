@@ -7,6 +7,16 @@ use core::cmp::Ord;
 use core::cmp::Ordering;
 use core::f32::consts::PI;
 
+pub const STATE_SIZE: usize = 5;
+pub const INPUT_SIZE: usize = 0;
+
+// state/output
+const GATE_OUTPUT: usize = 0;
+const PITCH_OUTPUT: usize = 1;
+const PITCHWHEEL_OUTPUT: usize = 2;
+const VELOCITY_OUTPUT: usize = 3;
+const PRESSURE_OUTPUT: usize = 4;
+
 const PRESSURE_FILTER_CONSTANT: f32 = 2. * PI * 20.;
 const PITCHWHEEL_FILTER_CONSTANT: f32 = 2. * PI * 20.;
 
@@ -81,27 +91,36 @@ impl Module for MonoKeys {
     fn simulate(
         &self,
         control_interface: &ControlInterface,
-        inputs: &[f32],
-        state: &mut [f32],
-        dt: f32,
+        _inputs: &[f32],
+        state: &[f32],
+        update: &mut [f32],
+        _dt: f32,
     ) {
-        todo!()
+        update[GATE_OUTPUT] = control_interface.get_gate();
+        update[PITCH_OUTPUT] = control_interface.get_pitch();
+        update[PITCHWHEEL_OUTPUT] = PITCHWHEEL_FILTER_CONSTANT * (control_interface.get_pitchwheel() - state[PITCHWHEEL_OUTPUT]);
+        update[PRESSURE_OUTPUT] = PRESSURE_FILTER_CONSTANT * (control_interface.get_aftertouch() - state[PRESSURE_OUTPUT]);
+        update[VELOCITY_OUTPUT] = control_interface.get_velocity();
     }
 
-    fn finalize(&mut self, state: &mut [f32], outputs: &mut [f32], dt: f32) {
-        todo!()
+    fn finalize(&mut self, _inputs: &[f32], state: &mut [f32], outputs: &mut [f32], dt: f32) {
+        /* do nothing */
     }
 
     fn get_input_size(&self) -> usize {
-        todo!()
+        INPUT_SIZE
     }
 
     fn get_state_size(&self) -> usize {
-        todo!()
+        STATE_SIZE
     }
 
     fn set_update_type(&self, update_types: &mut [UpdateType]) {
-        todo!()
+        update_types[GATE_OUTPUT] = UpdateType::Absolute;
+        update_types[PITCH_OUTPUT] = UpdateType::Absolute;
+        update_types[PITCHWHEEL_OUTPUT] = UpdateType::Differentiable;
+        update_types[VELOCITY_OUTPUT] = UpdateType::Absolute;
+        update_types[PRESSURE_OUTPUT] = UpdateType::Differentiable;
     }
 
     /*

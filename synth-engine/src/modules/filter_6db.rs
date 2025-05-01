@@ -6,6 +6,19 @@ use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use core::f32::consts::PI;
 
+pub const STATE_SIZE: usize = 3;
+pub const INPUT_SIZE: usize = 3;
+
+// state/outputs
+const INTERNAL_STATE: usize = 0;
+const LOWPASS_OUTPUT: usize = 1;
+const HIGHPASS_OUTPUT: usize  = 2;
+
+// inputs/control
+const EXP_CONTROL_INPUT: usize = 0;
+const LINEAR_CONTROL_INPUT: usize = 1;
+const SIGNAL_INPUT: usize = 2;
+
 pub struct Filter6db {
     f0: f32,
     internal_state: usize,
@@ -41,28 +54,41 @@ impl Filter6db {
 impl Module for Filter6db {
     fn simulate(
         &self,
-        control_interface: &ControlInterface,
+        _control_interface: &ControlInterface,
         inputs: &[f32],
-        state: &mut [f32],
-        dt: f32,
+        state: &[f32],
+        update: &mut [f32],
+        _dt: f32,
     ) {
-        todo!()
+        let input = inputs[SIGNAL_INPUT];
+        let f = control_to_frequency(
+            self.f0,
+            inputs[EXP_CONTROL_INPUT],
+            inputs[LINEAR_CONTROL_INPUT],
+        );
+        let a = 2. * PI * f;
+
+        update[LOWPASS_OUTPUT] = a * (input - state[LOWPASS_OUTPUT]);
+        update[HIGHPASS_OUTPUT] = input - a * state[INTERNAL_STATE];
+        update[INTERNAL_STATE] = state[HIGHPASS_OUTPUT];
     }
 
-    fn finalize(&mut self, state: &mut [f32], outputs: &mut [f32], dt: f32) {
-        todo!()
+    fn finalize(&mut self, _inputs: &[f32], _state: &mut [f32], _outputs: &mut [f32], _dt: f32) {
+        /* do nothing */
     }
 
     fn get_input_size(&self) -> usize {
-        todo!()
+        INPUT_SIZE
     }
 
     fn get_state_size(&self) -> usize {
-        todo!()
+        STATE_SIZE
     }
 
     fn set_update_type(&self, update_types: &mut [UpdateType]) {
-        todo!()
+        update_types[LOWPASS_OUTPUT] = UpdateType::Differentiable;
+        update_types[HIGHPASS_OUTPUT] = UpdateType::Absolute;
+        update_types[INTERNAL_STATE] = UpdateType::Differentiable;
     }
 
     /*
