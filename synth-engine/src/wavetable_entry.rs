@@ -2,12 +2,12 @@ use crate::interpolation::Interpolation;
 use crate::sinc_filter::downsample_half;
 use alloc::vec::Vec;
 
-pub struct WavetableEntry {
+pub struct WavetableData {
     pub samples: Vec<f32>,
     pub len_f32: f32,
 }
 
-impl WavetableEntry {
+impl WavetableData {
     pub fn from_slice(data: &[f32]) -> Self {
         let mut samples = Vec::new();
         samples.extend_from_slice(data);
@@ -36,16 +36,16 @@ impl WavetableEntry {
     }
 }
 
-pub struct Wavetable {
-    pub data: Vec<WavetableEntry>,
+pub struct WavetableEntry {
+    pub data: Vec<WavetableData>,
     pub base_data_len: f32,
 }
 
-impl Wavetable {
+impl WavetableEntry {
     pub fn from_slice(samples: &[f32]) -> Self {
         let mut data = Vec::new();
 
-        let mut current_entry = WavetableEntry::from_slice(samples);
+        let mut current_entry = WavetableData::from_slice(samples);
 
         while let Some(next_entry) = current_entry.downsample() {
             data.push(current_entry);

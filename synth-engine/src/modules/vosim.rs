@@ -6,10 +6,24 @@ use crate::simulator::module::Module;
 use crate::simulator::state::{State, StateUpdate, UpdateType};
 use crate::stack_program::*;
 use crate::synth_math::SynthMath;
+use crate::wavetable_entry::WavetableEntry;
 use alloc::vec::Vec;
 use core::f32::consts::PI;
 
-// TODO use the crate::wavetable::* instead
+pub const STATE_SIZE: usize = 2;
+pub const INPUT_SIZE: usize = 5;
+
+// state/outputs
+const POSITION_STATE: usize = 0;
+const SIGNAL_OUTPUT: usize = 1;
+
+// inputs/control
+const EXP_CONTROL_INPUT: usize = 0;
+const LINEAR_CONTROL_INPUT: usize = 1;
+const WAVETABLE_SELECT_INPUT: usize = 2;
+const GRAIN_EXP_CONTROL_INPUT: usize = 3;
+const GRAIN_LINEAR_CONTROL_INPUT: usize = 4;
+
 pub struct Vosim {
     f0: f32,
     position_state: usize,
@@ -87,23 +101,72 @@ impl Module for Vosim {
         update: &mut [f32],
         dt: f32,
     ) {
-        todo!()
+        let velocity = control_to_frequency(
+            self.f0,
+            inputs[EXP_CONTROL_INPUT],
+            inputs[LINEAR_CONTROL_INPUT],
+        );
+        let grain_velocity = control_to_frequency(
+            self.f0,
+            inputs[GRAIN_EXP_CONTROL_INPUT],
+            inputs[GRAIN_LINEAR_CONTROL_INPUT],
+        );
+
+        let position = state[POSITION_STATE];
+        let grain_distance = dt * velocity;
+
+        let position = ((position % 1.) + 1.) % 1.;
+        let grain_ratio = if grain_velocity > f32::EPSILON {
+            velocity.abs() / grain_velocity.abs()
+        } else {
+            0.
+        };
+
+        let sample = if position >= grain_ratio {
+            0.
+        } else {
+            let position = position / grain_ratio;
+
+            if self.wavetables.len() == 1 {
+                self.wavetables[0].eval(grain_distance, position)
+            } else if self.wavetables.len() > 1 {
+                let scan = inputs[WAVETABLE_SELECT_INPUT].clamp(0., 1.);
+                let scan_select = scan * ((self.wavetables.len() - 1) as f32);
+                let index = scan_select.floor() as usize;
+                let x = scan_select.fract();
+                let index0 = index.min(self.wavetables.len() - 1);
+                let index1 = (index + 1).min(self.wavetables.len() - 1);
+
+                let v1 = self.wavetables[index0].eval(grain_distance, position);
+                let v2 = self.wavetables[index1].eval(grain_distance, position);
+
+                v1 + (v2 - v1) * x
+            } else {
+                0.
+            }
+        };
+
+        update[SIGNAL_OUTPUT] = self.amp * (sample - state[SIGNAL_OUTPUT]);
+        update[POSITION_STATE] = velocity;
     }
 
     fn finalize(&mut self, _inputs: &[f32], state: &mut [f32], outputs: &mut [f32], dt: f32) {
-        todo!()
+        let p = ((state[POSITION_STATE] % 1.) + 1.) % 1.;
+
+        state[POSITION_STATE] = p;
     }
 
     fn get_input_size(&self) -> usize {
-        todo!()
+        INPUT_SIZE
     }
 
     fn get_state_size(&self) -> usize {
-        todo!()
+        STATE_SIZE
     }
 
     fn set_update_type(&self, update_types: &mut [UpdateType]) {
-        todo!()
+        update_types[POSITION_STATE] = UpdateType::Differentiable;
+        update_types[SIGNAL_OUTPUT] = UpdateType::Differentiable;
     }
 
     /*

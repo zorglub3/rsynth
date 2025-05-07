@@ -8,6 +8,7 @@ use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::wavetable::*;
+use synth_engine::wavetable_entry::*;
 
 const MODULE_TYPE: &str = "wavetable_oscillator";
 const MODULE_NAME: &str = "name";
