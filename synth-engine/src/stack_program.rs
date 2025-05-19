@@ -1,4 +1,3 @@
-use crate::simulator::state::State;
 use crate::synth_math::SynthMath;
 use alloc::vec;
 use alloc::vec::Vec;

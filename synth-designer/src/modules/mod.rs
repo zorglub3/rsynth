@@ -37,7 +37,9 @@ use proc_macro2::TokenStream;
 use std::num::ParseFloatError;
 use std::num::ParseIntError;
 use synth_engine::modules::SynthModule;
+use synth_engine::simulator::ModuleEntry;
 use thiserror::Error;
+use synth_engine::simulator::state::StateInput;
 
 #[derive(Error, Debug)]
 pub enum ModuleError {
@@ -63,11 +65,27 @@ pub enum ModuleError {
     ModuleNameClash(String),
 }
 
+// to build a synth from module specs
+// - gather all module specs in a synth spec
+// - allocate state/input for all module specs
+// - compile input exprs (and put stack programs in StateInput struct)
+// - make ModuleEntry from all module specs (put in a vec)
+// - give StateInput struct and vec of ModuleEntry to simulator
+// - ... good to go!
+
 pub trait ModuleSpec {
-    fn allocate_state(&mut self, alloc: &mut StateAllocator);
-    fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError>;
-    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream;
+    // fn allocate_state(&mut self, alloc: &mut StateAllocator);
+    fn allocate_state_input(&mut self, alloc: &mut StateAllocator);
+
+    // fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError>;
+    fn compile_input_exprs(&self, synth_spec: &SynthSpec, state_input: &mut StateInput) -> Result<(), ModuleError>;
+    fn make_module_entry(&self) -> ModuleEntry;
+
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError>;
     fn get_name(&self) -> &str;
+
     fn state_size(&self) -> usize;
+    fn input_size(&self) -> usize;
+
+    fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream;
 }

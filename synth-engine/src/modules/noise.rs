@@ -1,8 +1,7 @@
 use crate::control_interface::ControlInterface;
-use crate::event::ControllerEvent;
 use crate::interpolation::Interpolation;
 use crate::simulator::module::Module;
-use crate::simulator::state::{State, StateUpdate, UpdateType};
+use crate::simulator::state::UpdateType;
 use core::u32::MAX;
 
 pub const STATE_SIZE: usize = 1;
@@ -20,23 +19,28 @@ pub struct NoiseGenerator {
     b: u32,
     data: [f32; 4],
     m: u32,
-    output_index: usize,
+    // output_index: usize,
 }
 
 impl NoiseGenerator {
-    pub fn new(a: u32, b: u32, m: u32, output_index: usize) -> Self {
+    pub fn new(
+        a: u32, 
+        b: u32, 
+        m: u32, 
+        // output_index: usize,
+    ) -> Self {
         let data = [0.; 4];
         NoiseGenerator {
             a,
             b,
             data,
             m,
-            output_index,
+            // output_index,
         }
     }
 
-    pub fn new_with_default(seed: u32, output_index: usize) -> Self {
-        Self::new(A_PARAMETER_DEFAULT, B_PARAMETER_DEFAULT, seed, output_index)
+    pub fn new_with_default(seed: u32/*, output_index: usize*/) -> Self {
+        Self::new(A_PARAMETER_DEFAULT, B_PARAMETER_DEFAULT, seed/*, output_index*/)
     }
 
     pub fn next(&self, state: u32) -> u32 {
@@ -48,15 +52,15 @@ impl Module for NoiseGenerator {
     fn simulate(
         &self,
         control_interface: &ControlInterface,
-        inputs: &[f32],
-        state: &[f32],
+        _inputs: &[f32],
+        _state: &[f32],
         update: &mut [f32],
         dt: f32,
     ) {
         update[SIGNAL_OUTPUT] = self.data.as_slice().cubic_interpolate(1. + dt);
     }
 
-    fn finalize(&mut self, _inputs: &[f32], state: &mut [f32], outputs: &mut [f32], dt: f32) {
+    fn finalize(&mut self, _inputs: &[f32], _state: &mut [f32], _outputs: &mut [f32], _dt: f32) {
         self.data.copy_within(0..3, 1);
         self.m = self.next(self.m);
         self.data[0] = 2. * (self.m as f32) / (MAX as f32) - 1.;
@@ -73,26 +77,4 @@ impl Module for NoiseGenerator {
     fn set_update_type(&self, update_types: &mut [UpdateType]) {
         update_types[SIGNAL_OUTPUT] = UpdateType::Absolute;
     }
-
-    /*
-    fn simulate(&self, _state: &State, update: &mut StateUpdate, _stack: &mut [f32]) {
-        update.set(
-            self.output_index,
-            self.data
-                .as_slice()
-                .cubic_interpolate(1. + update.get_delta_time()),
-            UpdateType::Absolute,
-        );
-    }
-
-    fn process_event(&mut self, _event: &ControllerEvent) {
-        /* do nothing */
-    }
-
-    fn finalize(&mut self, _state: &mut State, _time_step: f32, _stack: &mut [f32]) {
-        self.data.copy_within(0..3, 1);
-        self.m = self.next(self.m);
-        self.data[0] = 2. * (self.m as f32) / (MAX as f32) - 1.;
-    }
-    */
 }

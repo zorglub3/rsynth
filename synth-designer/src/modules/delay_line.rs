@@ -6,6 +6,8 @@ use ini::Properties;
 use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
+use synth_engine::simulator::state::StateInput;
+use core::ops::Range;
 
 const MODULE_TYPE: &str = "delay_line";
 const MODULE_NAME: &str = "name";
@@ -26,24 +28,27 @@ pub struct DelayLineModuleSpec {
     f0: f32,
     state: [usize; STATE_SIZE],
     data_size: usize,
+    state_range: Range<usize>,
+    input_range: Range<usize>,
 }
 
 impl DelayLineModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
         let mut f0: f32 = 1.;
-        let mut fc: Expr = Expr::zero();
-        let mut lc: Expr = Expr::zero();
-        let mut input: Expr = Expr::zero();
+        // let mut fc: Expr = Expr::zero();
+        // let mut lc: Expr = Expr::zero();
+        // let mut input: Expr = Expr::zero();
         let mut data_size: usize = DATA_SIZE_VALUE;
+        let mut inputs = vec![Expr::zero(); DelayLine::INPUT_SIZE];
 
         for (k, v) in props {
             match k.as_str() {
                 MODULE_NAME => name = v.to_string(),
-                SIGNAL_INPUT => input = Expr::parse(&v)?,
+                SIGNAL_INPUT => inputs[DelayLine::SIGNAL_INPUT] = Expr::parse(&v)?,
                 FREQUENCY_ZERO => f0 = v.parse::<f32>()?,
-                FREQUENCY_CONTROL => fc = Expr::parse(&v)?,
-                LINEAR_CONTROL => lc = Expr::parse(&v)?,
+                FREQUENCY_CONTROL => inputs[DelayLine::EXP_CONTROL_INPUT] = Expr::parse(&v)?,
+                LINEAR_CONTROL => inputs[DelayLine::LINEAR_CONTROL_INPUT] = Expr::parse(&v)?,
                 DATA_SIZE_FIELD => data_size = v.parse::<usize>()?,
                 _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
             }
@@ -51,19 +56,46 @@ impl DelayLineModuleSpec {
 
         Ok(Self {
             name,
-            inputs: [input, fc, lc],
+            inputs,
             f0,
-            state: [0; STATE_SIZE],
             data_size,
+            state_range: 0..0,
+            input_range: 0..0,
         })
     }
 }
 
 impl ModuleSpec for DelayLineModuleSpec {
-    fn allocate_state(&mut self, alloc: &mut StateAllocator) {
-        alloc.allocate(&mut self.state);
+    fn allocate_state_input(&mut self, alloc: &mut StateAllocator) {
+        let state_input_range = alloc.allocate(DelayLine::STATE_SIZE, DelayLine::INPUT_SIZE);
+        self.input_range = state_input_range.input_range;
+        self.state_range = state_input_range.state_range;
     }
 
+    fn compile_input_exprs(
+        &self,
+        synth_spec: &SynthSpec,
+        state_input: &mut StateInput,
+    ) -> Result<(), ModuleError> {
+        for i in 0..DelayLine::INPUT_SIZE {
+            let program = self.inputs[i].compile(synth_spec)?;
+            let index = i + self.input_range.start;
+            state_input.set_program(index, program);
+        }
+        Ok(())
+    }
+
+    fn make_module_entry(&self) -> ModuleEntry {
+        let m = DelayLine::new(self.f0, self.data_size);
+
+        Ok(ModuleEntry {
+            synth_module: SynthModule::Delay(m),
+            input: self.input_range.clone(),
+            state: self.state_range.clone(),
+        })
+    }
+
+    /*
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
         let delay_line = DelayLine::new(
             self.f0,
@@ -76,21 +108,25 @@ impl ModuleSpec for DelayLineModuleSpec {
 
         Ok(SynthModule::Delay(delay_line))
     }
+    */
 
     fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+        /*
         let f0 = self.f0;
         let s0 = self.state[0];
         let i0 = gen_stack_program(&self.inputs[0].compile(&synth_spec).unwrap());
         let i1 = gen_stack_program(&self.inputs[1].compile(&synth_spec).unwrap());
         let i2 = gen_stack_program(&self.inputs[2].compile(&synth_spec).unwrap());
         let ds = self.data_size;
+        */
 
-        quote! { SynthModule::Delay(DelayLine::new(#f0, #s0, #i0, #i1, #i2, #ds)) }
+        todo!()
+        // quote! { SynthModule::Delay(DelayLine::new(#f0, #s0, #i0, #i1, #i2, #ds)) }
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
         match state_field {
-            SIGNAL_OUTPUT => Ok(self.state[0]),
+            SIGNAL_OUTPUT => Ok(self.state_range.start + DelayLine::SIGNAL_OUTPUT),
             _ => Err(ModuleError::MissingStateName(
                 MODULE_TYPE.to_string(),
                 self.name.clone(),
@@ -104,6 +140,10 @@ impl ModuleSpec for DelayLineModuleSpec {
     }
 
     fn state_size(&self) -> usize {
-        self.state.len()
+        DelayLine::STATE_SIZE
+    }
+
+    fn input_size(&self) -> usize {
+        DelayLine::INPUT_SIZE
     }
 }

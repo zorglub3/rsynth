@@ -58,8 +58,7 @@ pub enum SynthModule {
     Bowed(BowedOscillator),
 }
 
-use crate::event::ControllerEvent;
-use crate::simulator::state::{State, StateUpdate, UpdateType};
+use crate::simulator::state::UpdateType;
 
 impl SynthModule {
     pub fn simulate(
@@ -70,69 +69,112 @@ impl SynthModule {
         update: &mut [f32],
         dt: f32,
     ) {
-        todo!();
+        use SynthModule::*;
+
+        match self {
+            Amp(a) => a.simulate(control_interface, inputs, state, update, dt),
+            Contour(c) => c.simulate(control_interface, inputs, state, update, dt),
+            Filter1Pole(f) => f.simulate(control_interface, inputs, state, update, dt),
+            Filter2Pole(f) => f.simulate(control_interface, inputs, state, update, dt),
+            Filter4Pole(f) => f.simulate(control_interface, inputs, state, update, dt),
+            ContinuousControl(c) => c.simulate(control_interface, inputs, state, update, dt),
+            MonoKeys(m) => m.simulate(control_interface, inputs, state, update, dt),
+            Noise(n) => n.simulate(control_interface, inputs, state, update, dt),
+            QuadOscillator(q) => q.simulate(control_interface, inputs, state, update, dt),
+            WavetableOscillator(w) => w.simulate(control_interface, inputs, state, update, dt),
+            VosimOscillator(v) => v.simulate(control_interface, inputs, state, update, dt),
+            Delay(d) => d.simulate(control_interface, inputs, state, update, dt),
+            Wavefolder(w) => w.simulate(control_interface, inputs, state, update, dt),
+            Bowed(b) => b.simulate(control_interface, inputs, state, update, dt),
+            Output(o) => o.simulate(control_interface, inputs, state, update, dt),
+        }
     }
 
-    pub fn finalize(&mut self, _inputs: &[f32], state: &mut [f32], outputs: &mut [f32], dt: f32) {
-        todo!();
+    pub fn finalize(&mut self, inputs: &[f32], state: &mut [f32], outputs: &mut [f32], dt: f32) {
+        use SynthModule::*;
+
+        match self {
+            Amp(a) => a.finalize(inputs, state, outputs, dt),
+            Contour(c) => c.finalize(inputs, state, outputs, dt),
+            Filter1Pole(f) => f.finalize(inputs, state, outputs, dt),
+            Filter2Pole(f) => f.finalize(inputs, state, outputs, dt),
+            Filter4Pole(f) => f.finalize(inputs, state, outputs, dt),
+            ContinuousControl(c) => c.finalize(inputs, state, outputs, dt),
+            MonoKeys(m) => m.finalize(inputs, state, outputs, dt),
+            Noise(n) => n.finalize(inputs, state, outputs, dt),
+            QuadOscillator(q) => q.finalize(inputs, state, outputs, dt),
+            WavetableOscillator(w) => w.finalize(inputs, state, outputs, dt),
+            VosimOscillator(v) => v.finalize(inputs, state, outputs, dt),
+            Delay(d) => d.finalize(inputs, state, outputs, dt),
+            Wavefolder(w) => w.finalize(inputs, state, outputs, dt),
+            Bowed(b) => b.finalize(inputs, state, outputs, dt),
+            Output(o) => o.finalize(inputs, state, outputs, dt),
+        }
     }
 
     pub fn get_input_size(&self) -> usize {
-        todo!();
+        use SynthModule::*;
+
+        match self {
+            Amp(a) => a.get_input_size(),
+            Contour(c) => c.get_input_size(),
+            Filter1Pole(f) => f.get_input_size(),
+            Filter2Pole(f) => f.get_input_size(),
+            Filter4Pole(f) => f.get_input_size(),
+            ContinuousControl(c) => c.get_input_size(),
+            MonoKeys(m) => m.get_input_size(),
+            Noise(n) => n.get_input_size(),
+            QuadOscillator(q) => q.get_input_size(),
+            WavetableOscillator(w) => w.get_input_size(),
+            VosimOscillator(v) => v.get_input_size(),
+            Delay(d) => d.get_input_size(),
+            Wavefolder(w) => w.get_input_size(),
+            Bowed(b) => b.get_input_size(),
+            Output(o) => o.get_input_size(),
+        }
     }
 
     pub fn get_state_size(&self) -> usize {
-        todo!();
+        use SynthModule::*;
+
+        match self {
+            Amp(a) => a.get_state_size(),
+            Contour(c) => c.get_state_size(),
+            Filter1Pole(f) => f.get_state_size(),
+            Filter2Pole(f) => f.get_state_size(),
+            Filter4Pole(f) => f.get_state_size(),
+            ContinuousControl(c) => c.get_state_size(),
+            MonoKeys(m) => m.get_state_size(),
+            Noise(n) => n.get_state_size(),
+            QuadOscillator(q) => q.get_state_size(),
+            WavetableOscillator(w) => w.get_state_size(),
+            VosimOscillator(v) => v.get_state_size(),
+            Delay(d) => d.get_state_size(),
+            Wavefolder(w) => w.get_state_size(),
+            Bowed(b) => b.get_state_size(),
+            Output(o) => o.get_state_size(),
+        }
     }
 
     pub fn set_update_type(&self, update_types: &mut [UpdateType]) {
-        todo!();
-    }
-
-    /*
-    pub fn simulate(&self, state: &State, update: &mut StateUpdate, stack: &mut [f32]) {
-        use SynthModule::*;
-        match self {
-            Amp(a) => a.simulate(state, update, stack),
-            Contour(c) => c.simulate(state, update, stack),
-            Filter1Pole(f) => f.simulate(state, update, stack),
-            Filter2Pole(f) => f.simulate(state, update, stack),
-            Filter4Pole(f) => f.simulate(state, update, stack),
-            ContinuousControl(c) => c.simulate(state, update, stack),
-            MonoKeys(mk) => mk.simulate(state, update, stack),
-            Noise(n) => n.simulate(state, update, stack),
-            QuadOscillator(q) => q.simulate(state, update, stack),
-            WavetableOscillator(w) => w.simulate(state, update, stack),
-            VosimOscillator(v) => v.simulate(state, update, stack),
-            Delay(d) => d.simulate(state, update, stack),
-            Wavefolder(f) => f.simulate(state, update, stack),
-            Bowed(b) => b.simulate(state, update, stack),
-            _ => { /* do nothing */ }
-        }
-    }
-
-    pub fn process_event(&mut self, event: &ControllerEvent) {
-        use SynthModule::*;
-        match self {
-            ContinuousControl(c) => c.process_event(event),
-            MonoKeys(m) => m.process_event(event),
-            _ => { /* do nothing */ }
-        }
-    }
-
-    pub fn finalize(&mut self, state: &mut State, time_step: f32, stack: &mut [f32]) {
         use SynthModule::*;
 
-        // TODO add filters here - make sure they don't run wild
         match self {
-            Noise(n) => n.finalize(state, time_step, stack),
-            Output(m) => m.finalize(state, time_step, stack),
-            Delay(d) => d.finalize(state, time_step, stack),
-            Contour(c) => c.finalize(state, time_step, stack),
-            QuadOscillator(q) => q.finalize(state, time_step, stack),
-            WavetableOscillator(w) => w.finalize(state, time_step, stack),
-            _ => {}
+            Amp(a) => a.set_update_type(update_types),
+            Contour(c) => c.set_update_type(update_types),
+            Filter1Pole(f) => f.set_update_type(update_types),
+            Filter2Pole(f) => f.set_update_type(update_types),
+            Filter4Pole(f) => f.set_update_type(update_types),
+            ContinuousControl(c) => c.set_update_type(update_types),
+            MonoKeys(m) => m.set_update_type(update_types),
+            Noise(n) => n.set_update_type(update_types),
+            QuadOscillator(q) => q.set_update_type(update_types),
+            WavetableOscillator(w) => w.set_update_type(update_types),
+            VosimOscillator(v) => v.set_update_type(update_types),
+            Delay(d) => d.set_update_type(update_types),
+            Wavefolder(w) => w.set_update_type(update_types),
+            Bowed(b) => b.set_update_type(update_types),
+            Output(o) => o.set_update_type(update_types),
         }
     }
-    */
 }

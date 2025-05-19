@@ -1,11 +1,11 @@
 use crate::control_interface::ControlInterface;
-use crate::event::ControllerEvent;
-use crate::modules::SynthModule;
+// use crate::modules::SynthModule;
 use crate::simulator::state::State;
 use crate::simulator::state::StateInput;
 use crate::simulator::state::StateUpdate;
 use crate::simulator::state::UpdateType;
 use crate::simulator::Simulator;
+use crate::simulator::ModuleEntry;
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -13,14 +13,6 @@ use alloc::vec::Vec;
 // [here](https://en.wikipedia.org/wiki/Stiff_equation). This is eg when
 // the cutoff frequency of a filter goes high. At some point the solver
 // won't be able to give a good approximation.
-
-struct ModuleEntry {
-    module: SynthModule,
-    input_offset: usize,
-    input_end: usize,
-    output_offset: usize,
-    output_end: usize,
-}
 
 pub struct RungeKutta<const STAGES: usize> {
     state: State,
@@ -137,15 +129,14 @@ impl RungeKutta<1> {
     }
 }
 
-/*
 impl RungeKutta<2> {
     pub fn second_order(_alpha: f32, _state_size: usize, _stack_size: usize) -> Self {
         todo!("Second order Runge Kutta method")
     }
 }
-*/
 
 impl<const STAGES: usize> RungeKutta<STAGES> {
+    /*
     pub fn add_module(&mut self, module: SynthModule) {
         let input_offset = self.max_input;
         let input_end = input_offset + module.get_input_size();
@@ -165,13 +156,22 @@ impl<const STAGES: usize> RungeKutta<STAGES> {
             output_end,
         });
     }
+    */
 }
 
 impl<const STAGES: usize> Simulator for RungeKutta<STAGES> {
-    fn set_modules(&mut self, modules: Vec<SynthModule>) {
+    fn set_model(
+        &mut self, 
+        modules: Vec<ModuleEntry>,
+        state_input: StateInput,
+    ) {
+        self.module_entries = modules;
+        self.state_input = state_input;
+        /*
         for module in modules {
             self.add_module(module);
         }
+        */
     }
 
     fn step(&mut self, dt: f32, control_interface: &ControlInterface) {
@@ -191,15 +191,15 @@ impl<const STAGES: usize> Simulator for RungeKutta<STAGES> {
             self.state_input
                 .compute_inputs(self.temp_states[stage].borrow_all_values());
 
-            for synth_module in &self.module_entries {
-                synth_module.module.simulate(
+            for module in &self.module_entries {
+                module.synth_module.simulate(
                     control_interface,
                     self.state_input
-                        .borrow_inputs(synth_module.input_offset, synth_module.input_end),
+                        .borrow_inputs(module.input.start, module.input.end),
                     self.temp_states[stage]
-                        .borrow_values(synth_module.output_offset, synth_module.output_end),
+                        .borrow_values(module.state.start, module.state.end),
                     self.updates[stage]
-                        .values_mut(synth_module.output_offset, synth_module.output_end),
+                        .values_mut(module.state.start, module.state.end),
                     self.c[stage], // TODO - or is it dt...? or dt * c?
                 );
             }
@@ -227,12 +227,12 @@ impl<const STAGES: usize> Simulator for RungeKutta<STAGES> {
         self.state_input
             .compute_inputs(self.state.borrow_all_values());
 
-        for synth_module in &mut self.module_entries {
-            synth_module.module.finalize(
+        for module in &mut self.module_entries {
+            module.synth_module.finalize(
                 self.state_input
-                    .borrow_inputs(synth_module.input_offset, synth_module.input_end),
+                    .borrow_inputs(module.input.start, module.input.end),
                 self.state
-                    .values_mut(synth_module.output_offset, synth_module.output_end),
+                    .values_mut(module.state.start, module.state.end),
                 &mut self.outputs,
                 dt,
             );
