@@ -9,6 +9,8 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::wavetable::*;
 use synth_engine::wavetable_entry::*;
+use synth_engine::simulator::state::StateInput;
+use core::ops::Range;
 
 const MODULE_TYPE: &str = "wavetable_oscillator";
 const MODULE_NAME: &str = "name";
@@ -23,10 +25,11 @@ const STATE_SIZE: usize = 2;
 
 pub struct WavetableOscillatorModuleSpec {
     name: String,
-    inputs: [Expr; INPUT_SIZE],
-    state: [usize; STATE_SIZE],
+    inputs: [Expr; Wavetable::INPUT_SIZE],
     f0: f32,
     wavetables: Vec<Vec<f32>>,
+    state_range: Range<usize>,
+    input_range: Range<usize>,
 }
 
 fn load_wavetable(filename: &str) -> Result<Vec<f32>, ModuleError> {
@@ -45,17 +48,18 @@ impl WavetableOscillatorModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
         let mut f0: f32 = DEFAULT_FREQUENCY_ZERO;
-        let mut fc: Expr = Expr::zero();
-        let mut lc: Expr = Expr::zero();
-        let mut sc: Expr = Expr::zero();
+        // let mut fc: Expr = Expr::zero();
+        // let mut lc: Expr = Expr::zero();
+        // let mut sc: Expr = Expr::zero();
         let mut wavetables: Vec<Vec<f32>> = Vec::new();
+        let mut inputs = vec![Expr::zero(); Wavetable::INPUT_SIZE];
 
         for (k, v) in props {
             match k.as_str() {
                 MODULE_NAME => name = v.to_string(),
-                FREQUENCY_CONTROL => fc = Expr::parse(&v)?,
-                LINEAR_CONTROL => lc = Expr::parse(&v)?,
-                SCAN_CONTROL => sc = Expr::parse(&v)?,
+                FREQUENCY_CONTROL => inputs[Wavetable::EXP_CONTROL_INPUT] = Expr::parse(&v)?,
+                LINEAR_CONTROL => inputs[Wavetable::LINEAR_CONTROL_INPUT] = Expr::parse(&v)?,
+                SCAN_CONTROL => inputs[Wavetable::WAVETABLE_SELECT_INPUT] = Expr::parse(&v)?,
                 FREQUENCY_ZERO => f0 = v.parse::<f32>()?,
                 WAVETABLE_FIELD => wavetables.push(load_wavetable(&v)?),
                 _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
@@ -70,10 +74,11 @@ impl WavetableOscillatorModuleSpec {
         } else {
             Ok(Self {
                 name,
-                inputs: [fc, lc, sc],
-                state: [0; STATE_SIZE],
+                inputs,
                 f0,
                 wavetables,
+                state_range: 0..0,
+                input_range: 0..0,
             })
         }
     }
@@ -112,10 +117,24 @@ fn codegen_table_entries(entries: &Vec<WavetableEntry>) -> Vec<TokenStream> {
 }
 
 impl ModuleSpec for WavetableOscillatorModuleSpec {
-    fn allocate_state(&mut self, alloc: &mut StateAllocator) {
-        alloc.allocate(&mut self.state);
+    fn allocate_state_input(&mut self, alloc: &mut StateAllocator) {
+        let state_input_range = alloc.allocate(Wavetable::STATE_SIZE, Wavetable::INPUT_SIZE);
+        self.state_range = state_input_range.state_range;
+        self.input_range = state_input_range.input_range;
     }
 
+    fn compile_input_exprs(
+        &self,
+        synth_spec: &SynthSpec,
+        state_input: &mut StateInput,
+    ) -> Result<(), ModuleError> {
+        todo!()
+    }
+
+    fn make_module_entry(&self) -> ModuleEntry {
+        todo!()
+    }
+    /*
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
         let module = Wavetable::new(
             self.f0,
@@ -129,8 +148,10 @@ impl ModuleSpec for WavetableOscillatorModuleSpec {
 
         Ok(SynthModule::WavetableOscillator(module))
     }
+    */
 
     fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+        /*
         let f0 = self.f0;
         let s0 = self.state[0];
         let s1 = self.state[1];
@@ -142,11 +163,13 @@ impl ModuleSpec for WavetableOscillatorModuleSpec {
         quote! { SynthModule::WavetableOscillator(Wavetable::new_with_precompute(
             #f0, #s0, #s1, #i0, #i1, #i2, vec![#(#wavetables),*]
         )) }
+        */
+        todo!()
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
         match state_field {
-            SIGNAL_OUTPUT => Ok(self.state[1]),
+            SIGNAL_OUTPUT => Ok(self.state_range.start + Wavetable::SIGNAL_OUTPUT)
             _ => Err(ModuleError::MissingStateName(
                 MODULE_TYPE.to_string(),
                 self.name.clone(),
@@ -160,6 +183,10 @@ impl ModuleSpec for WavetableOscillatorModuleSpec {
     }
 
     fn state_size(&self) -> usize {
-        self.state.len()
+        Wavetable::STATE_SIZE
+    }
+
+    fn input_size(&self) -> usize {
+        Wavetable::INPUT_SIZE
     }
 }

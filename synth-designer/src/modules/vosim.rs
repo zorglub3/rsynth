@@ -21,15 +21,14 @@ const GRAIN_LINEAR_CONTROL: &str = "grain_linear_modulation";
 const SCAN_CONTROL: &str = "scan_control";
 const WAVETABLE_FIELD: &str = "wavetable";
 const SIGNAL_OUTPUT: &str = "signal_output";
-const INPUT_SIZE: usize = 5;
-const STATE_SIZE: usize = 2;
 
 pub struct VosimOscillatorModuleSpec {
     name: String,
-    inputs: [Expr; INPUT_SIZE],
-    state: [usize; STATE_SIZE],
+    inputs: [Expr; Vosim::INPUT_SIZE],
     f0: f32,
     wavetables: Vec<Vec<f32>>,
+    state_range: Range<usize>,
+    input_range: Range<usize>,
 }
 
 fn load_wavetable(filename: &str) -> Result<Vec<f32>, ModuleError> {
@@ -48,21 +47,24 @@ impl VosimOscillatorModuleSpec {
     pub fn from_ini_properties(props: Properties) -> Result<Self, ModuleError> {
         let mut name: String = MODULE_TYPE.to_string();
         let mut f0: f32 = DEFAULT_FREQUENCY_ZERO;
+        /*
         let mut fc: Expr = Expr::zero();
         let mut gfc: Expr = Expr::zero();
         let mut lc: Expr = Expr::zero();
         let mut glc: Expr = Expr::zero();
         let mut sc: Expr = Expr::zero();
+        */
+        let mut inputs = vec![Expr::zero(); Vosim::INPUT_SIZE];
         let mut wavetables: Vec<Vec<f32>> = Vec::new();
 
         for (k, v) in props {
             match k.as_str() {
                 MODULE_NAME => name = v.to_string(),
-                FREQUENCY_CONTROL => fc = Expr::parse(&v)?,
-                GRAIN_FREQUENCY_CONTROL => gfc = Expr::parse(&v)?,
-                LINEAR_CONTROL => lc = Expr::parse(&v)?,
-                GRAIN_LINEAR_CONTROL => glc = Expr::parse(&v)?,
-                SCAN_CONTROL => sc = Expr::parse(&v)?,
+                FREQUENCY_CONTROL => inputs[Vosim::EXP_CONTROL_INPUT] = Expr::parse(&v)?,
+                GRAIN_FREQUENCY_CONTROL => inputs[Vosim::GRAIN_EXP_CONTROL_INPUT] = Expr::parse(&v)?,
+                LINEAR_CONTROL => inputs[Vosim::LINEAR_CONTROL_INPUT] = Expr::parse(&v)?,
+                GRAIN_LINEAR_CONTROL => inputs[Vosim::GRAIN_LINEAR_CONTROL_INPUT] = Expr::parse(&v)?,
+                SCAN_CONTROL => inputs[Vosim::WAVETABLE_SELECT_INPUT] = Expr::parse(&v)?,
                 FREQUENCY_ZERO => f0 = v.parse::<f32>()?,
                 WAVETABLE_FIELD => wavetables.push(load_wavetable(&v)?),
                 _ => return Err(ModuleError::InvalidField(MODULE_TYPE.to_string(), k)),
@@ -77,10 +79,11 @@ impl VosimOscillatorModuleSpec {
         } else {
             Ok(Self {
                 name,
-                inputs: [fc, lc, sc, gfc, glc],
-                state: [0; STATE_SIZE],
+                inputs,
                 f0,
                 wavetables,
+                state_range: 0..0,
+                input_range: 0..0,
             })
         }
     }
@@ -119,10 +122,37 @@ fn codegen_table_entries(entries: &Vec<WavetableEntry>) -> Vec<TokenStream> {
 }
 
 impl ModuleSpec for VosimOscillatorModuleSpec {
-    fn allocate_state(&mut self, alloc: &mut StateAllocator) {
-        alloc.allocate(&mut self.state);
+    fn allocate_state_input(&mut self, alloc: &mut StateAllocator) {
+        let state_input_range = alloc.allocate(Vosim::STATE_SIZE, Vosim::INPUT_SIZE);
+        self.state_range = state_input_range.state_range;
+        self.input_range = state_input_range.input_range;
     }
 
+    fn compile_input_exprs(
+        &self,
+        synth_spec: &SynthSpec,
+        state_input: &mut StateInput,
+    ) -> Result<(), ModuleError> {
+        for i in 0..Vosim::INPUT_SIZE {
+            let program = self.inputs[i].compile(synth_spec)?;
+            let index = self.input_range.start + i;
+            state_input.set_program(index, program);
+        }
+
+        Ok(())
+    }
+
+    fn make_module_entry(&self) -> ModuleEntry {
+        let m = Vosim::new(self.f0, self.wavetables.clone());
+
+        ModuleEntry {
+            synth_module: SynthModule::VosimOscillator(m),
+            state: self.state_range.clone(),
+            input: self.input_range.clone(),
+        }
+    }
+
+    /*
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
         let module = Vosim::new(
             self.f0,
@@ -138,8 +168,10 @@ impl ModuleSpec for VosimOscillatorModuleSpec {
 
         Ok(SynthModule::VosimOscillator(module))
     }
+    */
 
     fn codegen(&self, synth_spec: &SynthSpec) -> TokenStream {
+        /*
         let f0 = self.f0;
         let s0 = self.state[0];
         let s1 = self.state[1];
@@ -153,11 +185,13 @@ impl ModuleSpec for VosimOscillatorModuleSpec {
         quote! { SynthModule::Vosim(Vosim::new_with_precompute(
             #f0, #s0, #s1, #i0, #i1, #i3, #i4, #i2, vec![#(#wavetables),*]
         )) }
+        */
+        todo!()
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
         match state_field {
-            SIGNAL_OUTPUT => Ok(self.state[1]),
+            SIGNAL_OUTPUT => Ok(self.state_range.start + Vosim::SIGNAL_OUTPU),
             _ => Err(ModuleError::MissingStateName(
                 MODULE_TYPE.to_string(),
                 self.name.clone(),
@@ -171,6 +205,10 @@ impl ModuleSpec for VosimOscillatorModuleSpec {
     }
 
     fn state_size(&self) -> usize {
-        self.state.len()
+        Vosim::STATE_SIZE
+    }
+
+    fn input_size(&self) -> usize {
+        Vosim::INPUT_SIZE
     }
 }

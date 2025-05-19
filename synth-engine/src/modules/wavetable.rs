@@ -8,18 +8,6 @@ use crate::wavetable_entry::WavetableEntry;
 use alloc::vec::Vec;
 use core::f32::consts::PI;
 
-pub const STATE_SIZE: usize = 2;
-pub const INPUT_SIZE: usize = 3;
-
-// state/outputs
-const POSITION_STATE: usize = 0;
-const SIGNAL_OUTPUT: usize = 1;
-
-// inputs/control
-const EXP_CONTROL_INPUT: usize = 0;
-const LINEAR_CONTROL_INPUT: usize = 1;
-const WAVETABLE_SELECT_INPUT: usize = 2;
-
 pub const FREQUENCY_LIMIT: f32 = 18_000.0;
 
 pub struct Wavetable {
@@ -34,6 +22,18 @@ pub struct Wavetable {
 }
 
 impl Wavetable {
+    pub const STATE_SIZE: usize = 2;
+    pub const INPUT_SIZE: usize = 3;
+
+    // state/outputs
+    pub const POSITION_STATE: usize = 0;
+    pub const SIGNAL_OUTPUT: usize = 1;
+
+    // inputs/control
+    pub const EXP_CONTROL_INPUT: usize = 0;
+    pub const LINEAR_CONTROL_INPUT: usize = 1;
+    pub const WAVETABLE_SELECT_INPUT: usize = 2;
+
     pub fn new(
         f0: f32,
         // position_state: usize,
@@ -98,16 +98,16 @@ impl Module for Wavetable {
     ) {
         let velocity = control_to_frequency(
             self.f0,
-            inputs[EXP_CONTROL_INPUT],
-            inputs[LINEAR_CONTROL_INPUT],
+            inputs[Wavetable::EXP_CONTROL_INPUT],
+            inputs[Wavetable::LINEAR_CONTROL_INPUT],
         );
-        let position = state[POSITION_STATE];
+        let position = state[Wavetable::POSITION_STATE];
         let distance = dt * velocity;
 
         let sample = if self.wavetables.len() == 1 {
             self.wavetables[0].eval(distance, position)
         } else if self.wavetables.len() > 1 {
-            let scan = inputs[WAVETABLE_SELECT_INPUT].clamp(0., 1.);
+            let scan = inputs[Wavetable::WAVETABLE_SELECT_INPUT].clamp(0., 1.);
             let scan_select = scan * ((self.wavetables.len() - 1) as f32);
             let index = scan_select.floor() as usize;
             let x = scan_select.fract();
@@ -122,26 +122,26 @@ impl Module for Wavetable {
             0.
         };
 
-        update[SIGNAL_OUTPUT] = self.amp * (sample - state[SIGNAL_OUTPUT]);
-        update[POSITION_STATE] = velocity;
+        update[Wavetable::SIGNAL_OUTPUT] = self.amp * (sample - state[Wavetable::SIGNAL_OUTPUT]);
+        update[Wavetable::POSITION_STATE] = velocity;
     }
 
     fn finalize(&mut self, _inputs: &[f32], state: &mut [f32], _outputs: &mut [f32], _dt: f32) {
-        let p = ((state[POSITION_STATE] % 1.) + 1.) % 1.;
+        let p = ((state[Wavetable::POSITION_STATE] % 1.) + 1.) % 1.;
 
-        state[POSITION_STATE] = p;
+        state[Wavetable::POSITION_STATE] = p;
     }
 
     fn get_input_size(&self) -> usize {
-        INPUT_SIZE
+        Wavetable::INPUT_SIZE
     }
 
     fn get_state_size(&self) -> usize {
-        STATE_SIZE
+        Wavetable::STATE_SIZE
     }
 
     fn set_update_type(&self, update_types: &mut [UpdateType]) {
-        update_types[POSITION_STATE] = UpdateType::Differentiable;
-        update_types[SIGNAL_OUTPUT] = UpdateType::Differentiable;
+        update_types[Wavetable::POSITION_STATE] = UpdateType::Differentiable;
+        update_types[Wavetable::SIGNAL_OUTPUT] = UpdateType::Differentiable;
     }
 }

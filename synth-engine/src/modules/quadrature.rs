@@ -6,17 +6,6 @@ use crate::simulator::state::UpdateType;
 use crate::synth_math::SynthMath;
 use core::f32::consts::PI;
 
-pub const STATE_SIZE: usize = 2;
-pub const INPUT_SIZE: usize = 2;
-
-// state/outputs
-const STATE_X: usize = 0;
-const STATE_Y: usize = 1;
-
-// inputs/controls
-const EXP_CONTROL_INPUT: usize = 0;
-const LINEAR_CONTROL_INPUT: usize = 1;
-
 // TODO add to synth designer
 pub struct QuadratureOscillator {
     f0: f32,
@@ -27,6 +16,17 @@ pub struct QuadratureOscillator {
 }
 
 impl QuadratureOscillator {
+    pub const STATE_SIZE: usize = 2;
+    pub const INPUT_SIZE: usize = 2;
+
+    // state/outputs
+    pub const STATE_X: usize = 0;
+    pub const STATE_Y: usize = 1;
+
+    // inputs/controls
+    pub const EXP_CONTROL_INPUT: usize = 0;
+    pub const LINEAR_CONTROL_INPUT: usize = 1;
+
     pub fn new(
         f0: f32,
         // state_x_index: usize,
@@ -55,41 +55,41 @@ impl Module for QuadratureOscillator {
     ) {
         let omega = 2. * PI * control_to_frequency(
             self.f0,
-            inputs[EXP_CONTROL_INPUT],
-            inputs[LINEAR_CONTROL_INPUT],
+            inputs[QuadratureOscillator::EXP_CONTROL_INPUT],
+            inputs[QuadratureOscillator::LINEAR_CONTROL_INPUT],
         );
 
-        let x = state[STATE_X];
-        let y = state[STATE_Y];
+        let x = state[QuadratureOscillator::STATE_X];
+        let y = state[QuadratureOscillator::STATE_Y];
 
-        update[STATE_X] = omega * y;
-        update[STATE_Y] = -omega * x;
+        update[QuadratureOscillator::STATE_X] = omega * y;
+        update[QuadratureOscillator::STATE_Y] = -omega * x;
     }
 
     fn finalize(&mut self, _inputs: &[f32], state: &mut [f32], _outputs: &mut [f32], _dt: f32) {
-        let x = state[STATE_X];
-        let y = state[STATE_Y];
+        let x = state[QuadratureOscillator::STATE_X];
+        let y = state[QuadratureOscillator::STATE_Y];
         let s = (x * x + y * y).sqrt();
 
         if s < f32::EPSILON {
-            state[STATE_X] = 0.;
-            state[STATE_Y] = 1.;
+            state[QuadratureOscillator::STATE_X] = 0.;
+            state[QuadratureOscillator::STATE_Y] = 1.;
         } else {
-            state[STATE_X] /= s;
-            state[STATE_Y] /= s;
+            state[QuadratureOscillator::STATE_X] /= s;
+            state[QuadratureOscillator::STATE_Y] /= s;
         }
     }
 
     fn get_input_size(&self) -> usize {
-        INPUT_SIZE
+        QuadratureOscillator::INPUT_SIZE
     }
 
     fn get_state_size(&self) -> usize {
-        STATE_SIZE
+        QuadratureOscillator::STATE_SIZE
     }
 
     fn set_update_type(&self, update_types: &mut [UpdateType]) {
-        update_types[STATE_X] = UpdateType::Differentiable;
-        update_types[STATE_Y] = UpdateType::Differentiable;
+        update_types[QuadratureOscillator::STATE_X] = UpdateType::Differentiable;
+        update_types[QuadratureOscillator::STATE_Y] = UpdateType::Differentiable;
     }
 }

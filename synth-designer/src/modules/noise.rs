@@ -6,6 +6,8 @@ use quote::quote;
 use synth_engine::modules::noise::A_PARAMETER_DEFAULT;
 use synth_engine::modules::noise::B_PARAMETER_DEFAULT;
 use synth_engine::modules::*;
+use synth_engine::simulator::state::StateInput;
+use core::ops::Range;
 
 const MODULE_TYPE: &str = "noise";
 const MODULE_NAME: &str = "name";
@@ -18,10 +20,11 @@ const STATE_SIZE: usize = 1;
 
 pub struct NoiseGeneratorModuleSpec {
     name: String,
-    state: [usize; STATE_SIZE],
     a: u32,
     b: u32,
     seed: u32,
+    state_range: Range<usize>,
+    input_range: Range<usize>,
 }
 
 impl NoiseGeneratorModuleSpec {
@@ -53,37 +56,63 @@ impl NoiseGeneratorModuleSpec {
 
         Ok(Self {
             name,
-            state: [0; STATE_SIZE],
             a,
             b,
             seed,
+            state_range: 0..0,
+            input_range: 0..0,
         })
     }
 }
 
 impl ModuleSpec for NoiseGeneratorModuleSpec {
-    fn allocate_state(&mut self, alloc: &mut StateAllocator) {
-        alloc.allocate(&mut self.state);
+    fn allocate_state_input(&mut self, alloc: &mut StateAllocator) {
+        let state_input_range = alloc.allocate(NoiseGenerator::STATE_SIZE, NoiseGenerator::INPUT_SIZE);
+        self.state_range = state_input_range.state_range;
+        self.input_range = state_input_range.input_range;
     }
 
+    fn compile_input_exprs(
+        &self,
+        _synth_spec: &SynthSpec,
+        _state_input: &mut StateInput,
+    ) -> Result<(), ModuleError> {
+        /* do nothing */
+        Ok(())
+    }
+
+    fn make_module_entry(&self) -> ModuleEntry {
+        let m = NoiseGenerator::new(self.a, self.b, self.seed);
+
+        ModuleEntry {
+            synth_module: SynthModule::Noise(m),
+            state: self.state_range.clone(),
+            input: self.input_range.clone(),
+        }
+    }
+    /*
     fn create_module(&self, _synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
         let noise = NoiseGenerator::new(self.a, self.b, self.seed, self.state[0]);
 
         Ok(SynthModule::Noise(noise))
     }
+    */
 
     fn codegen(&self, _synth_spec: &SynthSpec) -> TokenStream {
+        /*
         let a = self.a;
         let b = self.b;
         let s = self.seed;
         let s0 = self.state[0];
 
         quote! { SynthModule::Noise(NoiseGenerator::new(#a, #b, #s, #s0)) }
+        */
+        todo!()
     }
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
         match state_field {
-            SIGNAL_OUTPUT => Ok(self.state[0]),
+            SIGNAL_OUTPUT => Ok(self.state_range.start + NoiseGenerator::SIGNAL_OUTPUT),
             _ => Err(ModuleError::MissingStateName(
                 MODULE_TYPE.to_string(),
                 self.name.clone(),
@@ -97,6 +126,10 @@ impl ModuleSpec for NoiseGeneratorModuleSpec {
     }
 
     fn state_size(&self) -> usize {
-        self.state.len()
+        NoiseGenerator::STATE_SIZE
+    }
+
+    fn input_size(&self) -> usize {
+        NoiseGenerator::INPUT_SIZE
     }
 }
