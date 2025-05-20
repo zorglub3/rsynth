@@ -22,7 +22,7 @@ const STATE_SIZE: usize = 2;
 
 pub struct ContourModuleSpec {
     name: String,
-    inputs: [Expr; Envelope::INPUT_SIZE],
+    inputs: Vec<Expr>,
     state_range: Range<usize>,
     input_range: Range<usize>,
 }
@@ -80,11 +80,11 @@ impl ModuleSpec for ContourModuleSpec {
     }
     
     fn make_module_entry(&self) -> ModuleEntry {
-        Ok(ModuleEntry {
+        ModuleEntry {
             synth_module: SynthModule::Contour(Envelope::new(EnvType::AttackRelease)),
             input: self.input_range.clone(),
             state: self.state_range.clone(),
-        })
+        }
     }
 
     /*

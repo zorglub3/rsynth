@@ -25,7 +25,7 @@ const STATE_SIZE: usize = 2;
 
 pub struct WavetableOscillatorModuleSpec {
     name: String,
-    inputs: [Expr; Wavetable::INPUT_SIZE],
+    inputs: Vec<Expr>,
     f0: f32,
     wavetables: Vec<Vec<f32>>,
     state_range: Range<usize>,
@@ -169,7 +169,7 @@ impl ModuleSpec for WavetableOscillatorModuleSpec {
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
         match state_field {
-            SIGNAL_OUTPUT => Ok(self.state_range.start + Wavetable::SIGNAL_OUTPUT)
+            SIGNAL_OUTPUT => Ok(self.state_range.start + Wavetable::SIGNAL_OUTPUT),
             _ => Err(ModuleError::MissingStateName(
                 MODULE_TYPE.to_string(),
                 self.name.clone(),

@@ -24,7 +24,7 @@ const STATE_SIZE: usize = 3;
 
 pub struct Filter12dbModuleSpec {
     name: String,
-    inputs: [Expr; INPUT_SIZE],
+    inputs: Vec<Expr>,
     f0: f32,
     state_range: Range<usize>,
     input_range: Range<usize>,
@@ -88,11 +88,11 @@ impl ModuleSpec for Filter12dbModuleSpec {
     fn make_module_entry(&self) -> ModuleEntry {
         let m = Filter12db::new(self.f0, None); // TODO parameterize distortion type
 
-        Ok(ModuleEntry {
+        ModuleEntry {
             synth_module: SynthModule::Filter2Pole(m),
             state: self.state_range.clone(),
             input: self.input_range.clone(),
-        })
+        }
     }
 
     /*

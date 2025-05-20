@@ -20,7 +20,7 @@ const HIGHPASS_OUTPUT: &str = "highpass_output";
 
 pub struct Filter6dbModuleSpec {
     name: String,
-    inputs: [Expr; Filter6db::INPUT_SIZE],
+    inputs: Vec<Expr>,
     f0: f32,
     state_range: Range<usize>,
     input_range: Range<usize>,

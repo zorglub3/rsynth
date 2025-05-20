@@ -10,6 +10,7 @@ use quote::quote;
 use synth_engine::modules::vosim::Vosim;
 use synth_engine::modules::wavetable::*;
 use synth_engine::wavetable_entry::*;
+use core::ops::Range;
 
 const MODULE_TYPE: &str = "wavetable_oscillator";
 const MODULE_NAME: &str = "name";
@@ -24,7 +25,7 @@ const SIGNAL_OUTPUT: &str = "signal_output";
 
 pub struct VosimOscillatorModuleSpec {
     name: String,
-    inputs: [Expr; Vosim::INPUT_SIZE],
+    inputs: Vec<Expr>,
     f0: f32,
     wavetables: Vec<Vec<f32>>,
     state_range: Range<usize>,
@@ -191,7 +192,7 @@ impl ModuleSpec for VosimOscillatorModuleSpec {
 
     fn state_index(&self, state_field: &str) -> Result<usize, ModuleError> {
         match state_field {
-            SIGNAL_OUTPUT => Ok(self.state_range.start + Vosim::SIGNAL_OUTPU),
+            SIGNAL_OUTPUT => Ok(self.state_range.start + Vosim::SIGNAL_OUTPUT),
             _ => Err(ModuleError::MissingStateName(
                 MODULE_TYPE.to_string(),
                 self.name.clone(),

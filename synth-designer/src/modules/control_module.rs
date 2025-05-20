@@ -5,6 +5,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use synth_engine::modules::*;
 use synth_engine::simulator::state::StateInput;
+use core::ops::Range;
 
 const MODULE_TYPE: &str = "midi_cc";
 const MODULE_NAME: &str = "name";
@@ -13,7 +14,6 @@ const SIGNAL_OUTPUT: &str = "signal_output";
 const MIN_VALUE: &str = "min_value";
 const MAX_VALUE: &str = "max_value";
 const FILTER_VALUE: &str = "filter";
-const STATE_SIZE: usize = 1;
 
 pub struct ControlModuleSpec {
     name: String,
@@ -22,6 +22,7 @@ pub struct ControlModuleSpec {
     min_value: f32,
     max_value: f32,
     filter_freq: Option<f32>,
+    state_range: Range<usize>,
 }
 
 impl ControlModuleSpec {
@@ -49,6 +50,7 @@ impl ControlModuleSpec {
             min_value,
             max_value,
             filter_freq,
+            state_range: 0..0,
         })
     }
 }

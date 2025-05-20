@@ -24,9 +24,8 @@ const DATA_SIZE_VALUE: usize = 1024;
 
 pub struct DelayLineModuleSpec {
     name: String,
-    inputs: [Expr; INPUT_SIZE],
+    inputs: Vec<Expr>,
     f0: f32,
-    state: [usize; STATE_SIZE],
     data_size: usize,
     state_range: Range<usize>,
     input_range: Range<usize>,
@@ -88,11 +87,11 @@ impl ModuleSpec for DelayLineModuleSpec {
     fn make_module_entry(&self) -> ModuleEntry {
         let m = DelayLine::new(self.f0, self.data_size);
 
-        Ok(ModuleEntry {
+        ModuleEntry {
             synth_module: SynthModule::Delay(m),
             input: self.input_range.clone(),
             state: self.state_range.clone(),
-        })
+        }
     }
 
     /*

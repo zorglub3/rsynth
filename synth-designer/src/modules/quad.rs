@@ -22,7 +22,7 @@ const STATE_SIZE: usize = 2;
 
 pub struct QuadOscillatorModuleSpec {
     name: String,
-    inputs: [Expr; INPUT_SIZE],
+    inputs: Vec<Expr>,
     f0: f32,
     state_range: Range<usize>,
     input_range: Range<usize>,

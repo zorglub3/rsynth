@@ -31,10 +31,11 @@ impl NoiseGeneratorModuleSpec {
     pub fn new(name: &str, out_index: usize) -> Self {
         Self {
             name: name.to_string(),
-            state: [out_index],
             a: A_PARAMETER_DEFAULT,
             b: B_PARAMETER_DEFAULT,
             seed: 1,
+            state_range: 0..0,
+            input_range: 0..0,
         }
     }
 

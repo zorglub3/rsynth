@@ -52,12 +52,7 @@ impl ModuleSpec for MonoKeysModuleSpec {
         synth_spec: &SynthSpec,
         state_input: &mut StateInput,
     ) -> Result<(), ModuleError> {
-        for i in 0..MonoKeys::INPUT_SIZE {
-            let program = self.inputs[i].compile(synth_spec);
-            let index = self.input_range.start + i;
-            state_input.set_program(index, program);
-        }
-
+        /* do nothing */
         Ok(())
     }
 

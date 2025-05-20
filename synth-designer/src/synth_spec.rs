@@ -11,6 +11,8 @@ use synth_engine::modules::SynthModule;
 use synth_engine::stack_program::Function;
 use synth_engine::stack_program::Instr;
 use synth_engine::stack_program::StackProgram;
+use synth_engine::simulator::ModuleEntry;
+use synth_engine::simulator::state::StateInput;
 
 pub struct SynthSpec(BTreeMap<String, Box<dyn ModuleSpec>>);
 
@@ -78,9 +80,25 @@ impl SynthSpec {
         */
     }
 
+    /*
     pub fn make_modules(&self, modules: &mut Vec<SynthModule>) -> Result<(), ModuleError> {
         for (_k, v) in self.0.iter() {
             modules.push(v.create_module(self)?);
+        }
+
+        Ok(())
+    }
+    */
+
+    pub fn make_module_entries(&self, module_entries: &mut Vec<ModuleEntry>) {
+        for (_k, v) in self.0.iter() {
+            module_entries.push(v.make_module_entry());
+        }
+    }
+
+    pub fn compile_input_exprs(&self, state_input: &mut StateInput) -> Result<(), SynthError> {
+        for (_k, module) in self.0.iter() {
+            module.compile_input_exprs(self, state_input)?;
         }
 
         Ok(())

@@ -18,7 +18,7 @@ const SIGNAL_OUTPUT: &str = "signal_output";
 
 pub struct AmpModuleSpec {
     name: String,
-    inputs: [Expr; Amplifier::INPUT_SIZE],
+    inputs: Vec<Expr>,
     state_range: Range<usize>,
     input_range: Range<usize>,
 }

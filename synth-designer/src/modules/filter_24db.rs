@@ -23,7 +23,7 @@ const HIGHPASS_OUTPUT: &str = "highpass_output";
 
 pub struct Filter24dbModuleSpec {
     name: String,
-    inputs: [Expr; Filter24db::INPUT_SIZE],
+    inputs: Vec<Expr>,
     f0: f32,
     state_range: Range<usize>,
     input_range: Range<usize>,
@@ -74,7 +74,7 @@ impl ModuleSpec for Filter24dbModuleSpec {
         state_input: &mut StateInput,
     ) -> Result<(), ModuleError> {
         for i in 0..Filter24db::INPUT_SIZE {
-            let program = self.inputs[i].compile(synth_spec);
+            let program = self.inputs[i].compile(synth_spec)?;
             let index = i + self.input_range.start;
             state_input.set_program(index, program);
         }

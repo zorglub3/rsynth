@@ -17,7 +17,7 @@ const SIGNAL_OUTPUT: &str = "signal_output";
 
 pub struct FolderModuleSpec {
     name: String,
-    inputs: [Expr; Folder::INPUT_SIZE],
+    inputs: Vec<Expr>,
     state_range: Range<usize>,
     input_range: Range<usize>,
 }

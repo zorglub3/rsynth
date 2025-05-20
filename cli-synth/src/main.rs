@@ -11,6 +11,7 @@ use synth_designer::synth_spec::SynthSpec;
 use synth_engine::simulator::rungekutta::RungeKutta;
 use synth_engine::simulator::Simulator;
 use synth_engine::control_interface::ControlInterface;
+use synth_engine::simulator::state::StateInput;
 use thiserror::Error;
 
 mod audio;
@@ -123,22 +124,37 @@ fn main() -> Result<(), RuntimeError> {
 
     let mut model = Vec::new();
 
+    print!("Allocating state and input...");
     let (state_size, input_size) = spec.allocate_state();
+    println!("done");
 
+    print!("Creating module entries...");
+    spec.make_module_entries(&mut model);
+    /*
     match spec.make_modules(&mut model) {
         Ok(()) => {}
         Err(err) => panic!("Error creating synth modules: {:?}", err),
     }
+    */
     println!("done");
 
-    println!("Getting scale...");
+    let mut state_input = StateInput::new(input_size, STACK_SIZE);
+
+    print!("Compiling input expressions...");
+    if let Err(e) = spec.compile_input_exprs(&mut state_input) {
+        panic!("Error compiling input expressions: {:?}", e);
+    }
+    println!("done");
+
+    print!("Getting scale...");
     let scale = make_scale(args.scale, args.base_pitch).expect("Could not get scale");
     println!("done");
 
     print!("Creating simulator...");
     let mut simulator = make_simulator(args.simulator.as_str(), state_size, input_size);
 
-    simulator.set_modules(model);
+    simulator.set_model(model, state_input);
+    // simulator.set_modules(model);
     println!("done");
 
     /*

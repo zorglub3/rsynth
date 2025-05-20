@@ -16,7 +16,7 @@ const OUTPUT_INDEX: &str = "output_index";
 pub struct MonoOutputModuleSpec {
     name: String,
     output_index: usize,
-    inputs: [Expr; MonoOutput::INPUT_SIZE],
+    inputs: Vec<Expr>,
     state_range: Range<usize>,
     input_range: Range<usize>,
 }
@@ -60,7 +60,7 @@ impl ModuleSpec for MonoOutputModuleSpec {
         state_input: &mut StateInput,
     ) -> Result<(), ModuleError> {
         for i in 0..MonoOutput::INPUT_SIZE {
-            let program = self.inputs[i].compile(synth_spec);
+            let program = self.inputs[i].compile(synth_spec)?;
             let index = self.input_range.start + i;
             state_input.set_program(index, program);
         }

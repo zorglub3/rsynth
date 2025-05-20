@@ -25,7 +25,7 @@ const PARAM_A: &str = "param_a";
 
 pub struct BowedOscillatorModuleSpec {
     name: String,
-    inputs: [Expr; BowedOscillator::INPUT_SIZE],
+    inputs: Vec<Expr>,
     // state: [usize; STATE_SIZE],
     f0: f32,
     a: f32,
@@ -94,11 +94,11 @@ impl ModuleSpec for BowedOscillatorModuleSpec {
     }
 
     fn make_module_entry(&self) -> ModuleEntry {
-        Ok(ModuleEntry {
+        ModuleEntry {
             synth_module: SynthModule::Bowed(BowedOscillator::new(self.f0, self.a)),
             input: self.input_range.clone(),
             state: self.state_range.clone(),
-        })
+        }
     }
     /*
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
