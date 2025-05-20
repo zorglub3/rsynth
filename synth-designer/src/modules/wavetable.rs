@@ -128,11 +128,23 @@ impl ModuleSpec for WavetableOscillatorModuleSpec {
         synth_spec: &SynthSpec,
         state_input: &mut StateInput,
     ) -> Result<(), ModuleError> {
-        todo!()
+        for i in 0..Wavetable::INPUT_SIZE {
+            let program = self.inputs[i].compile(synth_spec)?;
+            let index = self.input_range.start + i;
+            state_input.set_program(index, program);
+        }
+
+        Ok(())
     }
 
     fn make_module_entry(&self) -> ModuleEntry {
-        todo!()
+        let m = Wavetable::new(self.f0, self.wavetables.clone());
+
+        ModuleEntry {
+            synth_module: SynthModule::WavetableOscillator(m),
+            state: self.state_range.clone(),
+            input: self.input_range.clone(),
+        }
     }
     /*
     fn create_module(&self, synth_spec: &SynthSpec) -> Result<SynthModule, ModuleError> {
