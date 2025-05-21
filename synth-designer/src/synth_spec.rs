@@ -92,6 +92,7 @@ impl SynthSpec {
 
     pub fn make_module_entries(&self, module_entries: &mut Vec<ModuleEntry>) {
         for (_k, v) in self.0.iter() {
+            let module_entry = v.make_module_entry();
             module_entries.push(v.make_module_entry());
         }
     }

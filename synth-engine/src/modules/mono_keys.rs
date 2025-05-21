@@ -105,6 +105,8 @@ impl Module for MonoKeys {
     }
 
     fn finalize(&mut self, _inputs: &[f32], _state: &mut [f32], _outputs: &mut [f32], _dt: f32) {
+        // println!("gate: {}", _state[MonoKeys::GATE_OUTPUT]);
+        // println!("pitch: {}", _state[MonoKeys::PITCH_OUTPUT]);
         /* do nothing */
     }
 

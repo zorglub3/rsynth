@@ -6,7 +6,7 @@
 //! be provided in the program using the synth simulator. See the `cli-synth` example
 //! program for suggestions.
 
-#![no_std]
+// #![no_std]
 
 extern crate alloc;
 

@@ -167,6 +167,13 @@ impl<const STAGES: usize> Simulator for RungeKutta<STAGES> {
     ) {
         self.module_entries = modules;
         self.state_input = state_input;
+
+        for module_entry in &self.module_entries {
+            module_entry.synth_module.set_update_type(
+                &mut self.update_types[module_entry.state.clone()],
+            );
+        }
+
         /*
         for module in modules {
             self.add_module(module);
