@@ -69,7 +69,7 @@ impl ModuleSpec for AmpModuleSpec {
     }
 
     fn make_module_entry(&self) -> ModuleEntry {
-        let min = -5.0_f32.exp2();
+        let min = (-5.0_f32).exp2();
         let scale = 1. / (1. - min);
 
         let amplifier = Amplifier::new(min, scale);

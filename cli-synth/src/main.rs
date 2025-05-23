@@ -128,14 +128,11 @@ fn main() -> Result<(), RuntimeError> {
     let (state_size, input_size) = spec.allocate_state();
     println!("done");
 
+    println!("state size: {}", state_size);
+    println!("input size: {}", input_size);
+
     print!("Creating module entries...");
     spec.make_module_entries(&mut model);
-    /*
-    match spec.make_modules(&mut model) {
-        Ok(()) => {}
-        Err(err) => panic!("Error creating synth modules: {:?}", err),
-    }
-    */
     println!("done");
 
     let mut state_input = StateInput::new(input_size, STACK_SIZE);
@@ -154,14 +151,7 @@ fn main() -> Result<(), RuntimeError> {
     let mut simulator = make_simulator(args.simulator.as_str(), state_size, input_size);
 
     simulator.set_model(model, state_input);
-    // simulator.set_modules(model);
     println!("done");
-
-    /*
-    print!("Creating communication channel...");
-    let (send, receive) = channel();
-    println!("done");
-    */
 
     print!("Creating control interface...");
     let control_interface = ControlInterface::new();

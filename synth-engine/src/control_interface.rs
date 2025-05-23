@@ -89,6 +89,7 @@ impl ControlInterface {
                     }
                     (MIDI_NOTE_ON, [_, pitch, velocity]) if usize::from(*pitch) < scale.len() => {
                         self.pitch_code.store(*pitch, DEFAULT_ORDERING);
+                        self.gate.store(1., DEFAULT_ORDERING);
                         self.key_pitch
                             .store(scale[usize::from(*pitch)], DEFAULT_ORDERING);
                         self.velocity.store(u7_to_f32(*velocity), DEFAULT_ORDERING);
@@ -100,8 +101,9 @@ impl ControlInterface {
                         self.aftertouch.store(u7_to_f32(*v), DEFAULT_ORDERING);
                     }
                     (MIDI_CC, [_, c, v]) if usize::from(*c) < CONTROLLER_COUNT => {
+                        let value = u7_to_f32(*v);
                         self.continuous_controls[usize::from(*c)]
-                            .store(u7_to_f32(*v), DEFAULT_ORDERING);
+                            .store(value, DEFAULT_ORDERING);
                     }
                     (MIDI_PITCH_WHEEL, [_, d1, d2]) => {
                         self.pitch_bend

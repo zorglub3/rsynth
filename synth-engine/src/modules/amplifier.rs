@@ -43,15 +43,21 @@ impl Amplifier {
             // exp_control_input,
         }
     }
+
+    fn amount(&self, lin_control: f32, exp_control: f32) -> f32 {
+        let exp_control = exp_control.clamp(0., 1.);
+        let e = ((5. * (exp_control - 1.)).exp2() - self.min) * self.scale;
+        (e + lin_control).max(0.)
+    }
 }
 
+/*
 fn amplifier_amount(
     min: f32,
     scale: f32,
     lin_control: f32, 
     exp_control: f32,
 ) -> f32 {
-    // TODO - these are constants - put them in the Amplifier struct
     // 2.0 and 5.0 should be arguments to `new`
     // let min: f32 = -5.0_f32.exp2();
     // let scale: f32 = 1. / (1. - min);
@@ -60,6 +66,7 @@ fn amplifier_amount(
     let e = ((5. * (exp_control - 1.)).exp2() - min) * scale;
     (e + lin_control).max(0.)
 }
+*/
 
 impl Module for Amplifier {
     fn simulate(
@@ -71,13 +78,14 @@ impl Module for Amplifier {
         _dt: f32,
     ) {
         let input = inputs[Amplifier::SIGNAL_INPUT];
-        let m = amplifier_amount(
-            self.min,
-            self.scale,
+        let m = self.amount(
             inputs[Amplifier::LINEAR_CONTROL_INPUT],
             inputs[Amplifier::EXP_CONTROL_INPUT],
         );
         update[Amplifier::SIGNAL_OUTPUT] = input * m;
+        // println!("amp exp amount: {}", inputs[Amplifier::EXP_CONTROL_INPUT]);
+        // println!("amp lin amount: {}", inputs[Amplifier::LINEAR_CONTROL_INPUT]);
+        println!("amp_amount: {}", m);
     }
 
     fn finalize(&mut self, _inputs: &[f32], _state: &mut [f32], _outputs: &mut [f32], _dt: f32) {
