@@ -99,7 +99,8 @@ impl SynthSpec {
     }
 
     pub fn compile_input_exprs(&self, state_input: &mut StateInput) -> Result<(), SynthError> {
-        for (_k, module) in self.0.iter() {
+        for (k, module) in self.0.iter() {
+            // println!("compiling input exprs for {}", k);
             module.compile_input_exprs(self, state_input)?;
         }
 

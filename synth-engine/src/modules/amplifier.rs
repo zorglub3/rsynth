@@ -85,7 +85,7 @@ impl Module for Amplifier {
         update[Amplifier::SIGNAL_OUTPUT] = input * m;
         // println!("amp exp amount: {}", inputs[Amplifier::EXP_CONTROL_INPUT]);
         // println!("amp lin amount: {}", inputs[Amplifier::LINEAR_CONTROL_INPUT]);
-        println!("amp_amount: {}", m);
+        // println!("amp_amount: {}", m);
     }
 
     fn finalize(&mut self, _inputs: &[f32], _state: &mut [f32], _outputs: &mut [f32], _dt: f32) {

@@ -79,9 +79,9 @@ impl Module for Filter12db {
         let input = inputs[Filter12db::SIGNAL_INPUT];
         let bp_value = state[Filter12db::STATE_BP];
         let lp_value = state[Filter12db::STATE_LP];
-        let hp_value = input - (bp_value * b).distort(&self.distortion) - lp_value;
+        let hp_value = input - (bp_value * b) - lp_value;
 
-        let bp_value = bp_value.distort(&self.distortion);
+        // let bp_value = bp_value;
 
         update[Filter12db::STATE_HP] = hp_value;
         update[Filter12db::STATE_BP] = a * hp_value;

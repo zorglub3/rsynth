@@ -44,6 +44,7 @@ fn get_sound_config(
             && config.channels() == 2
         {
             chosen_config = Some(config);
+            println!("audio config: {:?}", chosen_config)
         }
     }
 

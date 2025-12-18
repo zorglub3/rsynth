@@ -10,7 +10,7 @@ use synth_engine::modules::*;
 use synth_engine::simulator::state::StateInput;
 use core::ops::Range;
 
-const MODULE_TYPE: &str = "bowed_oscillator";
+const MODULE_TYPE: &str = "quadrature_oscillator";
 const MODULE_NAME: &str = "name";
 const FREQUENCY_CONTROL: &str = "frequency_control";
 const LINEAR_FREQUENCY_CONTROL: &str = "linear_frequency_control";

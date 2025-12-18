@@ -190,8 +190,9 @@ impl StackProgram {
                 Add => {
                     let a = stack[stack_top];
                     stack_top -= 1;
-                    let b = stack[stack_top];
-                    stack[stack_top] = a + b;
+                    stack[stack_top] += a;
+                    // let b = stack[stack_top];
+                    // stack[stack_top] = a + b;
                 }
                 Subtract => {
                     let a = stack[stack_top];
@@ -248,17 +249,17 @@ impl StackProgram {
                     stack[stack_top] = r;
                 }
                 Const(v) => {
-                    stack[stack_top] = *v;
                     stack_top += 1;
+                    stack[stack_top] = *v;
                 }
                 State(i) => {
-                    stack[stack_top] = state_values[*i];
                     stack_top += 1;
+                    stack[stack_top] = state_values[*i];
                 }
             }
         }
 
-        stack[0]
+        stack[1]
     }
 
     /*

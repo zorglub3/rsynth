@@ -8,7 +8,14 @@ fn smoothstep(x: f32) -> f32 {
     3. * x2 - 2. * x3
 }
 
+fn smoothstep_diff(x: f32) -> f32 {
+    let x = x.clamp(0., 1.);
+
+    6. * x * (1. - x)
+}
+
 #[allow(non_snake_case)]
+#[derive(Clone)]
 pub enum DistortionType {
     Tanh,
     Smoothstep,
@@ -37,6 +44,7 @@ pub fn make_diodelike(R: f32, n: f32) -> DistortionType {
 
 pub trait Distort {
     fn distort(&self, tpe: &Option<DistortionType>) -> Self;
+    fn distort_diff(&self, tpe: &Option<DistortionType>) -> Self;
 }
 
 impl Distort for f32 {
@@ -58,6 +66,21 @@ impl Distort for f32 {
                 }
             }
             Some(Logistic(amount)) => 2. / (1. + (-amount * self).exp()) - 1.,
+        }
+    }
+
+    fn distort_diff(&self, tpe: &Option<DistortionType>) -> Self {
+        use DistortionType::*;
+
+        match tpe {
+            None => 1.,
+            Some(Tanh) => {
+                let v = self.tanh();
+                1. - v * v
+            }
+            Some(SmoothStep) => smoothstep_diff(0.5 + self / 2.) * 2.,
+            Some(Diodelike { .. }) => todo!(),
+            Some(Logistic(_amount)) => todo!(),
         }
     }
 }

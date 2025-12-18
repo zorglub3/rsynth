@@ -199,6 +199,10 @@ impl<const STAGES: usize> Simulator for RungeKutta<STAGES> {
                 .compute_inputs(self.temp_states[stage].borrow_all_values());
 
             for module in &self.module_entries {
+                // println!("simulating module w inputs: {:?}, state: {:?}", module.input, module.state);
+                // println!("inputs: {:?}", self.state_input.borrow_inputs(module.input.start, module.input.end));
+                // println!("state: {:?}", self.temp_states[stage].borrow_values(module.state.start, module.state.end));
+
                 module.synth_module.simulate(
                     control_interface,
                     self.state_input
@@ -207,7 +211,7 @@ impl<const STAGES: usize> Simulator for RungeKutta<STAGES> {
                         .borrow_values(module.state.start, module.state.end),
                     self.updates[stage]
                         .values_mut(module.state.start, module.state.end),
-                    self.c[stage], // TODO - or is it dt...? or dt * c?
+                    self.c[stage] * dt, // TODO - or is it dt...? or dt * c?
                 );
             }
 

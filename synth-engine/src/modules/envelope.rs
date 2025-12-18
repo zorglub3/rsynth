@@ -27,6 +27,7 @@ fn triangle(x: f32) -> f32 {
 
 const MIN_TIME: f32 = 0.01_f32; // 10 ms
 
+#[derive(Debug)]
 enum EnvState {
     Finished,
     Attack,
@@ -114,27 +115,24 @@ impl Module for Envelope {
         let attack = inputs[Envelope::ATTACK_INPUT];
         let decay = inputs[Envelope::DECAY_INPUT];
         
+        // println!("attack {}, decay {}", attack, decay);
         match self.env_state {
             EnvState::Attack => {
                 let delta = rise_decay(attack);
                 updates[Envelope::CYCLE_STATE] = delta;
-                updates[Envelope::CONTROL_OUTPUT] = 
-                    output_value(
-                        state[Envelope::CYCLE_STATE],
-                        inputs[Envelope::SHAPE_SELECT],
-                    );
             }
             EnvState::Decay => {
                 let delta = -rise_decay(decay);
                 updates[Envelope::CYCLE_STATE] = delta;
-                updates[Envelope::CONTROL_OUTPUT] =
-                    output_value(
-                        state[Envelope::CYCLE_STATE],
-                        inputs[Envelope::SHAPE_SELECT],
-                    );
             }
             _ => { /* do nothing */ }
         }
+
+        updates[Envelope::CONTROL_OUTPUT] =
+            output_value(
+                state[Envelope::CYCLE_STATE],
+                inputs[Envelope::SHAPE_SELECT],
+            );
     }
 
     fn finalize(&mut self, inputs: &[f32], state: &mut [f32], _outputs: &mut [f32], _dt: f32) {
@@ -157,6 +155,8 @@ impl Module for Envelope {
             (Finished, AttackRelease|AttackDecay) if input_state > 0.5 => self.env_state = Attack,
             _ => { /* do nothing */ }
         }
+
+        // println!("state {:?}, {}, {}", &self.env_state, cycle, output_state);
 
         state[Envelope::CONTROL_OUTPUT] = output_state.clamp(0., 1.);
         state[Envelope::CYCLE_STATE] = cycle.clamp(0., 1.);
